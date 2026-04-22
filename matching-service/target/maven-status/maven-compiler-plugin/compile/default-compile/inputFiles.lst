@@ -1,0 +1,10 @@
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\matching-service\src\main\java\com\catchandgo\matching\config\OpenApiConfig.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\matching-service\src\main\java\com\catchandgo\matching\controller\MatchSuggestionController.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\matching-service\src\main\java\com\catchandgo\matching\dto\MatchSuggestionDto.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\matching-service\src\main\java\com\catchandgo\matching\entity\MatchSuggestion.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\matching-service\src\main\java\com\catchandgo\matching\exception\ServiceException.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\matching-service\src\main\java\com\catchandgo\matching\mapper\MatchSuggestionMapper.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\matching-service\src\main\java\com\catchandgo\matching\MatchingServiceApplication.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\matching-service\src\main\java\com\catchandgo\matching\repository\MatchSuggestionRepository.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\matching-service\src\main\java\com\catchandgo\matching\security\SecurityConfig.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\matching-service\src\main\java\com\catchandgo\matching\service\MatchSuggestionService.java
