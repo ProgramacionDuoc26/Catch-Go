@@ -1,5 +1,40 @@
-version: "3.9"
+<<<<<<< HEAD
+version: '3.8'
 
+services:
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: catchgo-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: catchgo_admin
+      POSTGRES_PASSWORD: admin_password_123
+      POSTGRES_DB: catchgo_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - catchgo-network
+
+  redis-cache:
+    image: redis:7-alpine
+    container_name: catchgo-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - catchgo-network
+
+volumes:
+  postgres_data:
+
+
+networks:
+  catchgo-network:
+    driver: bridge
+=======
+version: "3.9"
 services:
   postgres:
     image: postgres:16-alpine
@@ -12,20 +47,13 @@ services:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - catchgo-network
 
   redis:
     image: redis:7-alpine
     container_name: catch-and-go-redis
     ports:
       - "${REDIS_PORT}:6379"
-    networks:
-      - catchgo-network
 
 volumes:
   postgres_data:
-
-networks:
-  catchgo-network:
-    driver: bridge
+>>>>>>> origin/feature/microservices-base
