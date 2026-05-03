@@ -1,0 +1,10 @@
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\profile-service\src\main\java\com\catchandgo\profile\config\OpenApiConfig.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\profile-service\src\main\java\com\catchandgo\profile\controller\ProfileController.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\profile-service\src\main\java\com\catchandgo\profile\dto\ProfileDto.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\profile-service\src\main\java\com\catchandgo\profile\entity\Profile.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\profile-service\src\main\java\com\catchandgo\profile\exception\ServiceException.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\profile-service\src\main\java\com\catchandgo\profile\mapper\ProfileMapper.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\profile-service\src\main\java\com\catchandgo\profile\ProfileServiceApplication.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\profile-service\src\main\java\com\catchandgo\profile\repository\ProfileRepository.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\profile-service\src\main\java\com\catchandgo\profile\security\SecurityConfig.java
+C:\Users\nicoi\Desktop\catch-and-go-monorepo\profile-service\src\main\java\com\catchandgo\profile\service\ProfileService.java
