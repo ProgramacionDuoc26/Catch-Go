@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TipoUsuario {
+  EMPRESA
+  TRABAJADOR
+}
+
+enum TipoContrato {
+  PLAZO_FIJO
+  HONORARIOS
+}
+
+enum EstadoOferta {
+  ABIERTA
+  CERRADA
+  CON_CANDIDATOS
+  COMPLETADA
+}
+
+enum EstadoPostulacion {
+  PENDIENTE
+  ACEPTADO
+  RECHAZADO
+}
+
+enum PlanSuscripcion {
+  BASICO
+  PROFESIONAL
+  ENTERPRISE
+  TRIAL
+}
+
+enum EstadoSuscripcion {
+  ACTIVA
+  VENCIDA
+  CANCELADA
+}
+
+model Usuario {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  nombre        String?
+  avatar_url    String?
+  tipo          TipoUsuario
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  
+  empresa       Empresa?
+  trabajador    Trabajador?
+}
+
+model Empresa {
+  id                  String    @id @default(uuid())
+  usuario_id          String    @unique
+  usuario             Usuario   @relation(fields: [usuario_id], references: [id])
+  razon_social        String
+  rut                 String    @unique
+  giro                String?
+  direccion           String
+  telefono            String
+  contacto_nombre     String
+  region              String
+  logo_url            String?
+  plan                PlanSuscripcion @default(TRIAL)
+  fecha_trial_fin     DateTime?
+  publicaciones_usadas Int     @default(0)
+  busquedas_usadas    Int      @default(0)
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+  
+  ofertas             Oferta[]
+  suscripcion         Suscripcion?
+}
+
+model Trabajador {
+  id                  String    @id @default(uuid())
+  usuario_id          String    @unique
+  usuario             Usuario   @relation(fields: [usuario_id], references: [id])
+  nombre_completo     String
+  rut                 String    @unique
+  fecha_nacimiento    DateTime?
+  telefono            String
+  region              String
+  comuna              String
+  movilizacion_propia Boolean   @default(false)
+  disponibilidad      Json      // { dias: [], horarios: [] }
+  pretension_renta    Json      // { min, max, tipo }
+  experiencia         Json      // [{ empresa, cargo, periodo, descripcion }]
+  certificaciones     Json      // [{ nombre, fecha_emision, url_certificado }]
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+  
+  postulaciones       Postulacion[]
+}
+
+model Oferta {
+  id              String      @id @default(uuid())
+  empresa_id      String
+  empresa         Empresa     @relation(fields: [empresa_id], references: [id])
+  titulo          String
+  categoria       String      // Guardia, Conserje, Temporero, etc.
+  descripcion     String
+  region          String
+  comuna          String
+  fecha_inicio    DateTime
+  fecha_fin       DateTime?
+  jornada         String      // parcial, full_time, horas
+  horario         String?
+  remuneration    Json        // { monto, forma_pago }
+  tipo_contrato   TipoContrato
+  requisitos      Json        // { certificaciones, experiencia_min, movilizacion }
+  estado          EstadoOferta @default(ABIERTA)
+  score_promedio  Float?
+  created_at      DateTime    @default(now())
+  updated_at      DateTime    @updatedAt
+  
+  postulaciones   Postulacion[]
+}
+
+model Postulacion {
+  id              String              @id @default(uuid())
+  oferta_id       String
+  oferta          Oferta              @relation(fields: [oferta_id], references: [id])
+  trabajador_id   String
+  trabajador      Trabajador          @relation(fields: [trabajador_id], references: [id])
+  score_match     Float
+  mensaje         String?
+  estado          EstadoPostulacion   @default(PENDIENTE)
+  created_at      DateTime            @default(now())
+  updated_at      DateTime            @updatedAt
+  
+  @@unique([oferta_id, trabajador_id])
+}
+
+model Suscripcion {
+  id              String            @id @default(uuid())
+  empresa_id      String            @unique
+  empresa         Empresa           @relation(fields: [empresa_id], references: [id])
+  plan            PlanSuscripcion
+  fecha_inicio    DateTime
+  fecha_fin       DateTime
+  estado          EstadoSuscripcion @default(ACTIVA)
+  transacciones   Transaccion[]
+  created_at      DateTime          @default(now())
+}
+
+model Transaccion {
+  id              String    @id @default(uuid())
+  suscripcion_id  String
+  suscripcion     Suscripcion @relation(fields: [suscripcion_id], references: [id])
+  monto           Int
+  metodo_pago     String    // webpay, transferencia
+  estado          String    // pendiente, completada, fallida
+  external_id     String?   // ID de WebPay
+  created_at      DateTime  @default(now())
+}
