@@ -16,8 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import cl.catchgo.app.ui.home.HomePlaceholderScreen
-import cl.catchgo.app.ui.login.LoginScreen
+import cl.catchgo.app.ui.auth.AuthNavGraph
+import cl.catchgo.app.ui.main.MainScaffold
 import cl.catchgo.app.ui.root.RootViewModel
 import cl.catchgo.app.ui.root.SessionState
 import cl.catchgo.app.ui.theme.CatchGoTheme
@@ -53,9 +53,9 @@ private fun AppRoot(
             contentAlignment = Alignment.Center
         ) { CircularProgressIndicator() }
 
-        SessionState.Unauthenticated -> LoginScreen(modifier = modifier)
+        SessionState.Unauthenticated -> AuthNavGraph(modifier = modifier)
 
-        is SessionState.Authenticated -> HomePlaceholderScreen(
+        is SessionState.Authenticated -> MainScaffold(
             session = state.session,
             modifier = modifier
         )

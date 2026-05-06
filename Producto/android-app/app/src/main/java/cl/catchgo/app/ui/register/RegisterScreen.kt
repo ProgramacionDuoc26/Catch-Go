@@ -1,4 +1,4 @@
-package cl.catchgo.app.ui.login
+package cl.catchgo.app.ui.register
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,6 +21,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import cl.catchgo.app.domain.model.UserRole
 import cl.catchgo.app.ui.components.CatchTextField
 import cl.catchgo.app.ui.components.PrimaryButton
 import cl.catchgo.app.ui.theme.CatchGoTheme
@@ -29,29 +30,37 @@ import cl.catchgo.app.ui.theme.Gray500
 import cl.catchgo.app.ui.theme.Spacing
 
 @Composable
-fun LoginScreen(
-    onRegisterClick: () -> Unit,
+fun RegisterScreen(
+    onLoginClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: LoginViewModel = hiltViewModel()
+    viewModel: RegisterViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    LoginContent(
+    RegisterContent(
         state = state,
+        onRoleSelect = viewModel::onRoleSelect,
         onEmailChange = viewModel::onEmailChange,
         onPasswordChange = viewModel::onPasswordChange,
+        onFullNameChange = viewModel::onFullNameChange,
+        onRutChange = viewModel::onRutChange,
+        onPhoneChange = viewModel::onPhoneChange,
         onSubmit = viewModel::onSubmit,
-        onRegisterClick = onRegisterClick,
+        onLoginClick = onLoginClick,
         modifier = modifier
     )
 }
 
 @Composable
-private fun LoginContent(
-    state: LoginUiState,
+private fun RegisterContent(
+    state: RegisterUiState,
+    onRoleSelect: (UserRole) -> Unit,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
+    onFullNameChange: (String) -> Unit,
+    onRutChange: (String) -> Unit,
+    onPhoneChange: (String) -> Unit,
     onSubmit: () -> Unit,
-    onRegisterClick: () -> Unit,
+    onLoginClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -61,17 +70,50 @@ private fun LoginContent(
             .padding(horizontal = Spacing.lg, vertical = Spacing.xl),
         verticalArrangement = Arrangement.spacedBy(Spacing.md)
     ) {
-        Spacer(Modifier.height(Spacing.xl))
+        Spacer(Modifier.height(Spacing.md))
 
-        Text(text = "Catch-Go", style = MaterialTheme.typography.headlineLarge)
+        Text(text = "Crear cuenta", style = MaterialTheme.typography.headlineLarge)
         Text(
-            text = "Encuentra trabajos cerca tuyo.",
+            text = "Empezá en menos de un minuto.",
             style = MaterialTheme.typography.bodyMedium,
             color = Gray500
         )
 
-        Spacer(Modifier.height(Spacing.lg))
+        Spacer(Modifier.height(Spacing.md))
 
+        Text(
+            text = "¿Cómo vas a usar Catch-Go?",
+            style = MaterialTheme.typography.titleSmall,
+            color = Gray500
+        )
+        RoleSelector(selected = state.role, onSelect = onRoleSelect)
+
+        Spacer(Modifier.height(Spacing.sm))
+
+        CatchTextField(
+            value = state.fullName,
+            onValueChange = onFullNameChange,
+            label = if (state.role == UserRole.EMPRESA) "Razón social" else "Nombre completo",
+            enabled = !state.isLoading,
+            isError = state.errorMessage != null
+        )
+        CatchTextField(
+            value = state.rut,
+            onValueChange = onRutChange,
+            label = "RUT",
+            placeholder = "12.345.678-9",
+            enabled = !state.isLoading,
+            isError = state.errorMessage != null
+        )
+        CatchTextField(
+            value = state.phone,
+            onValueChange = onPhoneChange,
+            label = "Teléfono",
+            placeholder = "+56 9 1234 5678",
+            keyboardType = KeyboardType.Phone,
+            enabled = !state.isLoading,
+            isError = state.errorMessage != null
+        )
         CatchTextField(
             value = state.email,
             onValueChange = onEmailChange,
@@ -81,11 +123,11 @@ private fun LoginContent(
             enabled = !state.isLoading,
             isError = state.errorMessage != null
         )
-
         CatchTextField(
             value = state.password,
             onValueChange = onPasswordChange,
             label = "Contraseña",
+            supportingText = "Mínimo 6 caracteres",
             isPassword = true,
             enabled = !state.isLoading,
             isError = state.errorMessage != null
@@ -102,7 +144,7 @@ private fun LoginContent(
         Spacer(Modifier.height(Spacing.sm))
 
         PrimaryButton(
-            text = "Iniciar sesión",
+            text = "Crear cuenta y empezar",
             onClick = onSubmit,
             enabled = state.canSubmit,
             loading = state.isLoading
@@ -114,45 +156,31 @@ private fun LoginContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "¿No tienes cuenta?",
+                text = "¿Ya tienes cuenta?",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Gray500
             )
-            TextButton(onClick = onRegisterClick, enabled = !state.isLoading) {
-                Text(text = "Crear una")
+            TextButton(onClick = onLoginClick, enabled = !state.isLoading) {
+                Text(text = "Inicia sesión")
             }
         }
     }
 }
 
-@Preview(showBackground = true, widthDp = 360)
+@Preview(showBackground = true, widthDp = 360, heightDp = 900)
 @Composable
-private fun LoginScreenPreview() {
+private fun RegisterScreenPreview() {
     CatchGoTheme {
-        LoginContent(
-            state = LoginUiState(email = "marco@correo.cl"),
+        RegisterContent(
+            state = RegisterUiState(role = UserRole.WORKER, email = "marco@correo.cl"),
+            onRoleSelect = {},
             onEmailChange = {},
             onPasswordChange = {},
+            onFullNameChange = {},
+            onRutChange = {},
+            onPhoneChange = {},
             onSubmit = {},
-            onRegisterClick = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, widthDp = 360, name = "Login con error")
-@Composable
-private fun LoginScreenErrorPreview() {
-    CatchGoTheme {
-        LoginContent(
-            state = LoginUiState(
-                email = "marco@correo.cl",
-                password = "1234",
-                errorMessage = "Credenciales inválidas"
-            ),
-            onEmailChange = {},
-            onPasswordChange = {},
-            onSubmit = {},
-            onRegisterClick = {}
+            onLoginClick = {}
         )
     }
 }
