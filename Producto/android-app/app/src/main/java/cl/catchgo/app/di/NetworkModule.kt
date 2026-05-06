@@ -1,9 +1,11 @@
 package cl.catchgo.app.di
 
 import cl.catchgo.app.data.remote.ApiConfig
+import cl.catchgo.app.data.remote.ApplicationsApi
 import cl.catchgo.app.data.remote.AuthApi
 import cl.catchgo.app.data.remote.AuthInterceptor
 import cl.catchgo.app.data.remote.HealthApi
+import cl.catchgo.app.data.remote.JobsApi
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -62,4 +64,13 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideAuthApi(retrofit: Retrofit): AuthApi = retrofit.create(AuthApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideJobsApi(retrofit: Retrofit): JobsApi = retrofit.create(JobsApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideApplicationsApi(retrofit: Retrofit): ApplicationsApi =
+        retrofit.create(ApplicationsApi::class.java)
 }

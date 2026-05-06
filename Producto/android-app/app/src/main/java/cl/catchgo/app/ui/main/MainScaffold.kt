@@ -15,19 +15,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import cl.catchgo.app.domain.model.UserSession
-import cl.catchgo.app.ui.applications.ApplicationsPlaceholderScreen
-import cl.catchgo.app.ui.feed.FeedPlaceholderScreen
+import cl.catchgo.app.ui.applications.ApplicationsScreen
+import cl.catchgo.app.ui.detail.OfferDetailScreen
+import cl.catchgo.app.ui.feed.FeedScreen
 import cl.catchgo.app.ui.messages.MessagesPlaceholderScreen
 import cl.catchgo.app.ui.profile.ProfilePlaceholderScreen
 import cl.catchgo.app.ui.theme.BrandBlue700
 import cl.catchgo.app.ui.theme.Gray200
 import cl.catchgo.app.ui.theme.Gray500
 import cl.catchgo.app.ui.theme.White
+
+private const val ROUTE_OFFER_DETAIL = "offer/{id}"
+private fun offerDetailRoute(id: String) = "offer/$id"
 
 @Composable
 fun MainScaffold(
@@ -37,41 +43,44 @@ fun MainScaffold(
     val navController = rememberNavController()
     val backStack by navController.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination?.route
+    val showBottomBar = MainTab.all.any { it.route == currentRoute }
 
     Scaffold(
         modifier = modifier,
         bottomBar = {
-            Column {
-                HorizontalDivider(thickness = 1.dp, color = Gray200)
-                NavigationBar(containerColor = White, tonalElevation = 0.dp) {
-                    MainTab.all.forEach { tab ->
-                        val selected = backStack?.destination?.hierarchy?.any { it.route == tab.route } == true
-                        NavigationBarItem(
-                            selected = selected,
-                            onClick = {
-                                if (currentRoute != tab.route) {
-                                    navController.navigate(tab.route) {
-                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                        launchSingleTop = true
-                                        restoreState = true
+            if (showBottomBar) {
+                Column {
+                    HorizontalDivider(thickness = 1.dp, color = Gray200)
+                    NavigationBar(containerColor = White, tonalElevation = 0.dp) {
+                        MainTab.all.forEach { tab ->
+                            val selected = backStack?.destination?.hierarchy?.any { it.route == tab.route } == true
+                            NavigationBarItem(
+                                selected = selected,
+                                onClick = {
+                                    if (currentRoute != tab.route) {
+                                        navController.navigate(tab.route) {
+                                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
                                     }
-                                }
-                            },
-                            icon = { Icon(imageVector = tab.icon, contentDescription = null) },
-                            label = {
-                                Text(
-                                    text = tab.label(session.user.role),
-                                    style = MaterialTheme.typography.labelSmall
+                                },
+                                icon = { Icon(imageVector = tab.icon, contentDescription = null) },
+                                label = {
+                                    Text(
+                                        text = tab.label(session.user.role),
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                },
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = BrandBlue700,
+                                    selectedTextColor = BrandBlue700,
+                                    unselectedIconColor = Gray500,
+                                    unselectedTextColor = Gray500,
+                                    indicatorColor = White
                                 )
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = BrandBlue700,
-                                selectedTextColor = BrandBlue700,
-                                unselectedIconColor = Gray500,
-                                unselectedTextColor = Gray500,
-                                indicatorColor = White
                             )
-                        )
+                        }
                     }
                 }
             }
@@ -82,10 +91,28 @@ fun MainScaffold(
             startDestination = MainTab.Feed.route,
             modifier = Modifier.padding(padding)
         ) {
-            composable(MainTab.Feed.route) { FeedPlaceholderScreen(role = session.user.role) }
-            composable(MainTab.Applications.route) { ApplicationsPlaceholderScreen(role = session.user.role) }
+            composable(MainTab.Feed.route) {
+                FeedScreen(
+                    role = session.user.role,
+                    onOfferClick = { offerId -> navController.navigate(offerDetailRoute(offerId)) }
+                )
+            }
+            composable(MainTab.Applications.route) {
+                ApplicationsScreen(
+                    role = session.user.role,
+                    onApplicationClick = { offerId -> navController.navigate(offerDetailRoute(offerId)) }
+                )
+            }
             composable(MainTab.Messages.route) { MessagesPlaceholderScreen() }
             composable(MainTab.Profile.route) { ProfilePlaceholderScreen(session = session) }
+            composable(
+                route = ROUTE_OFFER_DETAIL,
+                arguments = listOf(navArgument("id") { type = NavType.StringType })
+            ) {
+                OfferDetailScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
         }
     }
 }
