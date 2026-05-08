@@ -21,13 +21,52 @@ export default function LoginPage() {
   };
 
   // Botones de acceso rápido para desarrollo (sin validación)
-  const handleDevEmpresa = () => router.push('/empresa/ofertas');
-  const handleDevTrabajador = () => router.push('/trabajador/ofertas');
+  const handleDevEmpresa = () => {
+    localStorage.setItem('user_info', JSON.stringify({ id: '1', nombre: 'Empresa Test', tipo: 'EMPRESA' }));
+    router.push('/empresa/ofertas');
+  };
+  const handleDevTrabajador = () => {
+    localStorage.setItem('user_info', JSON.stringify({ id: '12', nombre: 'Trabajador Test', tipo: 'TRABAJADOR' }));
+    router.push('/trabajador/ofertas');
+  };
 
-  const handleLoginEmpresa = (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [globalError, setGlobalError] = useState<string>('');
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      router.push('/empresa/ofertas');
+    setGlobalError('');
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+    try {
+      const { authApi } = await import('@/lib/api/auth');
+      const res = await authApi.login({
+        email: formData.email,
+        password: formData.password
+      });
+
+      if (res.error) {
+        setGlobalError(res.error || 'Correo o contraseña incorrectos');
+      } else if (res.data) {
+        if (res.data.token) {
+          localStorage.setItem('auth_token', res.data.token);
+        }
+        if (res.data.usuario) {
+          localStorage.setItem('user_info', JSON.stringify(res.data.usuario));
+        }
+        
+        // Redirigir según el tipo de usuario devuelto por el backend
+        if (res.data.usuario?.tipo === 'EMPRESA') {
+          router.push('/empresa/ofertas');
+        } else {
+          router.push('/trabajador/ofertas');
+        }
+      }
+    } catch (error) {
+      setGlobalError('Error de conexión con el servidor');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -43,6 +82,21 @@ export default function LoginPage() {
     return true;
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+    } catch (error) {
+      setGlobalError('Error al conectar con Google');
+    }
+  };
+
   return (
     <div className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-surface p-8 rounded-xl shadow-sm border border-gray-100">
@@ -53,30 +107,7 @@ export default function LoginPage() {
           </p>
         </div>
         
-        {/* ── Acceso rápido de desarrollo ── */}
-        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-          <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-3">🚧 Acceso rápido (desarrollo)</p>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={handleDevEmpresa}
-              className="flex-1 flex justify-center items-center py-3 px-3 border border-amber-300 rounded-lg text-sm font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 transition-colors gap-2"
-            >
-              <LogIn className="w-4 h-4" />
-              Empresa
-            </button>
-            <button
-              type="button"
-              onClick={handleDevTrabajador}
-              className="flex-1 flex justify-center items-center py-3 px-3 border border-amber-300 rounded-lg text-sm font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 transition-colors gap-2"
-            >
-              <LogIn className="w-4 h-4" />
-              Trabajador
-            </button>
-          </div>
-        </div>
-
-        <form className="space-y-6" onSubmit={handleLoginEmpresa}>
+        <form className="space-y-6" onSubmit={handleLogin}>
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-text-main mb-2">Correo Electrónico</label>
             <input 
@@ -121,12 +152,25 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {globalError && (
+            <div className="p-3 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+              {globalError}
+            </div>
+          )}
+
           <button 
             type="submit"
-            className="w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-md shadow-sm text-sm font-semibold text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary min-h-[48px] transition-colors gap-2"
+            disabled={isLoading}
+            className="w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-md shadow-sm text-sm font-semibold text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary min-h-[48px] transition-colors gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <LogIn className="w-5 h-5" />
-            Ingresar
+            {isLoading ? (
+              <span className="animate-pulse">Ingresando...</span>
+            ) : (
+              <>
+                <LogIn className="w-5 h-5" />
+                Ingresar
+              </>
+            )}
           </button>
         </form>
 
@@ -143,6 +187,7 @@ export default function LoginPage() {
           <div className="mt-6">
             <button
               type="button"
+              onClick={handleGoogleLogin}
               className="w-full flex justify-center items-center py-4 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-semibold text-text-main bg-white hover:bg-gray-50 focus:outline-none min-h-[48px] transition-colors"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

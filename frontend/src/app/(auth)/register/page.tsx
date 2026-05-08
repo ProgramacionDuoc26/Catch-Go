@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { UserPlus, Building2, User } from "lucide-react";
+import { UserPlus, Building2, User, Eye, EyeOff } from "lucide-react";
 
 export default function RegisterPage() {
   const [accountType, setAccountType] = useState<'trabajador' | 'empresa'>('trabajador');
@@ -15,16 +15,30 @@ export default function RegisterPage() {
     companyName: '',
     companyRut: '',
     email: '',
-    confirmEmail: '',
-    phone: '',
-    password: ''
+    phone: '+56 ',
+    password: '',
+    confirmPassword: ''
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
-    // Limpiar el error cuando el usuario empieza a escribir de nuevo
+    let value = e.target.value;
+    
+    // Lógica especial para el teléfono
+    if (e.target.id === 'phone') {
+      if (!value.startsWith('+56 ')) {
+        value = '+56 ';
+      }
+      // Solo permitir números después del +56 y máximo 9 dígitos
+      const numbers = value.slice(4).replace(/\D/g, '').slice(0, 9);
+      value = '+56 ' + numbers;
+    }
+
+    setFormData({ ...formData, [e.target.id]: value });
     if (errors[e.target.id]) {
       setErrors({ ...errors, [e.target.id]: '' });
     }
@@ -40,8 +54,12 @@ export default function RegisterPage() {
     return /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [globalError, setGlobalError] = useState<string>('');
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setGlobalError('');
     const newErrors: Record<string, string> = {};
 
     if (accountType === 'trabajador') {
@@ -53,10 +71,12 @@ export default function RegisterPage() {
     }
 
     if (!formData.email) newErrors.email = 'El correo es obligatorio';
-    if (formData.email !== formData.confirmEmail) newErrors.confirmEmail = 'Los correos no coinciden';
-    if (!formData.phone || formData.phone.length < 9) newErrors.phone = 'Teléfono inválido (mínimo 9 dígitos)';
+    if (!formData.phone || formData.phone.length < 13) newErrors.phone = 'Teléfono incompleto (debe tener 9 dígitos tras el +56)';
     if (!formData.password || !validatePassword(formData.password)) {
-      newErrors.password = 'La contraseña debe tener al menos 8 caracteres, 1 mayúscula y 1 número';
+      newErrors.password = 'Mínimo 8 caracteres, 1 mayúscula y 1 número';
+    }
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Las contraseñas no coinciden';
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -64,10 +84,39 @@ export default function RegisterPage() {
       return;
     }
 
-    if (accountType === 'trabajador') {
-      router.push('/trabajador/ofertas');
-    } else {
-      router.push('/empresa/ofertas');
+    setIsLoading(true);
+    try {
+      // Import dinámico de authApi para evitar problemas de lint si no está en el top de imports,
+      // pero es mejor agregarlo arriba. Asumiremos que se agregó el import de authApi.
+      const { authApi } = await import('@/lib/api/auth');
+      
+      const res = await authApi.register({
+        email: formData.email,
+        password: formData.password,
+        nombre: accountType === 'trabajador' ? formData.name : formData.companyName,
+        tipo: accountType.toUpperCase() as 'TRABAJADOR' | 'EMPRESA',
+        telefono: formData.phone
+      });
+      
+      if (res.error) {
+        setGlobalError(res.error || 'Ocurrió un error en el registro');
+      } else {
+        if (res.data?.token) {
+          localStorage.setItem('auth_token', res.data.token);
+        }
+        if (res.data?.usuario) {
+          localStorage.setItem('user_info', JSON.stringify(res.data.usuario));
+        }
+        if (accountType === 'trabajador') {
+          router.push('/trabajador/ofertas');
+        } else {
+          router.push('/empresa/ofertas');
+        }
+      }
+    } catch (err: any) {
+      setGlobalError('Error de red al intentar registrar la cuenta');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -159,11 +208,7 @@ export default function RegisterPage() {
             {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
           </div>
 
-          <div>
-            <label htmlFor="confirmEmail" className="block text-sm font-medium text-text-main mb-2">Confirmar Correo Electrónico</label>
-            <input id="confirmEmail" type="email" value={formData.confirmEmail} onChange={handleInputChange} className={`w-full border ${errors.confirmEmail ? 'border-red-500' : 'border-gray-300'} rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow`} placeholder="correo@ejemplo.com" />
-            {errors.confirmEmail && <p className="mt-1 text-sm text-red-500">{errors.confirmEmail}</p>}
-          </div>
+          {/* Eliminado Confirmar Correo */}
 
           <div>
             <label htmlFor="phone" className="block text-sm font-medium text-text-main mb-2">Teléfono de Contacto</label>
@@ -173,16 +218,67 @@ export default function RegisterPage() {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-text-main mb-2">Contraseña</label>
-            <input id="password" type="password" value={formData.password} onChange={handleInputChange} className={`w-full border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow`} placeholder="••••••••" />
+            <div className="relative">
+              <input 
+                id="password" 
+                type={showPassword ? "text" : "password"} 
+                value={formData.password} 
+                onChange={handleInputChange} 
+                className={`w-full border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-md px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow`} 
+                placeholder="••••••••" 
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
             {errors.password && <p className="mt-1 text-sm text-red-500">{errors.password}</p>}
           </div>
 
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-text-main mb-2">Confirmar Contraseña</label>
+            <div className="relative">
+              <input 
+                id="confirmPassword" 
+                type={showConfirmPassword ? "text" : "password"} 
+                value={formData.confirmPassword} 
+                onChange={handleInputChange} 
+                className={`w-full border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-md px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow`} 
+                placeholder="••••••••" 
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
+              >
+                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+            {errors.confirmPassword && <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>}
+          </div>
+
+          {globalError && (
+            <div className="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+              {globalError}
+            </div>
+          )}
+
           <button 
             type="submit" 
-            className="w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-md shadow-sm text-sm font-semibold text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary min-h-[48px] transition-colors gap-2"
+            disabled={isLoading}
+            className="w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-md shadow-sm text-sm font-semibold text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary min-h-[48px] transition-colors gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <UserPlus className="w-5 h-5" />
-            Registrarse de Prueba ({accountType === 'trabajador' ? 'Trabajador' : 'Empresa'})
+            {isLoading ? (
+              <span className="animate-pulse">Registrando...</span>
+            ) : (
+              <>
+                <UserPlus className="w-5 h-5" />
+                Registrarse ({accountType === 'trabajador' ? 'Trabajador' : 'Empresa'})
+              </>
+            )}
           </button>
         </form>
 

@@ -1,12 +1,45 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Search, MapPin, Calendar, Clock } from "lucide-react";
 
 export default function TrabajadorDashboard() {
+  const [userName, setUserName] = useState("Trabajador");
+
+  useEffect(() => {
+    const loadUserName = async () => {
+      // 1. Intentar con localStorage (login local)
+      const storedUser = localStorage.getItem('user_info');
+      if (storedUser) {
+        try {
+          const parsed = JSON.parse(storedUser);
+          const name = parsed.nombre || parsed.name || '';
+          if (name) {
+            setUserName(name.split(' ')[0]);
+            return;
+          }
+        } catch { /* ignore */ }
+      }
+
+      // 2. Intentar con Supabase
+      try {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.user_metadata?.full_name) {
+          setUserName(user.user_metadata.full_name.split(' ')[0]);
+        }
+      } catch { /* ignore */ }
+    };
+    loadUserName();
+  }, []);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-text-main">Hola, Juan</h1>
+          <h1 className="text-3xl font-bold text-text-main">Hola, {userName}</h1>
           <p className="text-text-muted mt-1">Aquí tienes turnos sugeridos según tu perfil.</p>
         </div>
         <button className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark transition-colors font-semibold flex items-center gap-2 min-h-[44px]">

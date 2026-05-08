@@ -15,7 +15,7 @@ public class GatewaySecurityConfig {
         return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/actuator/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/auth/**").permitAll()
-                        .anyExchange().authenticated())
+                        .anyExchange().permitAll())
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .build();
     }

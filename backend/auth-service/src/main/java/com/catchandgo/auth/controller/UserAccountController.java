@@ -1,30 +1,34 @@
 package com.catchandgo.auth.controller;
 
-import com.catchandgo.auth.dto.UserAccountDto;
+import com.catchandgo.auth.dto.AuthResponseDto;
+import com.catchandgo.auth.dto.LoginRequestDto;
+import com.catchandgo.auth.dto.RegisterRequestDto;
 import com.catchandgo.auth.service.UserAccountService;
-import java.util.List;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth/register")
+@RequestMapping("/auth")
 public class UserAccountController {
+
     private final UserAccountService service;
 
     public UserAccountController(UserAccountService service) {
         this.service = service;
     }
 
-    @GetMapping
-    public List<UserAccountDto> findAll() {
-        return service.findAll();
+    @PostMapping("/register")
+    public ResponseEntity<AuthResponseDto> register(@RequestBody RegisterRequestDto dto) {
+        return ResponseEntity.ok(service.register(dto));
     }
 
-    @PostMapping
-    public UserAccountDto create(@RequestBody UserAccountDto dto) {
-        return service.create(dto);
+    @PostMapping("/login")
+    public AuthResponseDto login(@RequestBody LoginRequestDto dto) {
+        return service.login(dto);
+    }
+
+    @GetMapping("/user/{id}")
+    public AuthResponseDto.UserDto findById(@PathVariable Long id) {
+        return service.findById(id);
     }
 }

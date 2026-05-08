@@ -3,11 +3,8 @@ package com.catchandgo.profile.controller;
 import com.catchandgo.profile.dto.ProfileDto;
 import com.catchandgo.profile.service.ProfileService;
 import java.util.List;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/profiles")
@@ -23,8 +20,18 @@ public class ProfileController {
         return service.findAll();
     }
 
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<ProfileDto> findByUserId(@PathVariable String userId) {
+        ProfileDto profile = service.findByUserId(userId);
+        if (profile == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(profile);
+    }
+
     @PostMapping
-    public ProfileDto create(@RequestBody ProfileDto dto) {
-        return service.create(dto);
+    public ProfileDto save(@RequestBody ProfileDto dto) {
+        return service.saveOrUpdate(dto);
     }
 }
+

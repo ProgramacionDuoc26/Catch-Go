@@ -31,6 +31,12 @@
       <groupId>com.catchandgo</groupId>
       <artifactId>common-security</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-web</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.catchandgo</groupId>

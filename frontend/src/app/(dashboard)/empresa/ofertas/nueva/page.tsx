@@ -1,11 +1,79 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { jobsApi } from '@/lib/api/jobs';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 
 export default function NuevaOfertaPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    titulo: '',
+    categoria: 'Guardia',
+    remuneracion: 0,
+    fechaInicio: '',
+    fechaFin: '',
+    descripcion: '',
+    ubicacion: 'Santiago, RM'
+  });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const value = e.target.type === 'number' ? parseInt(e.target.value) : e.target.value;
+    setFormData({ ...formData, [e.target.id]: value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      // Obtener el ID real de la empresa
+      let realEmpresaId = '';
+      
+      // 1. Intentar con Supabase
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+      
+      if (supabaseUser) {
+        realEmpresaId = supabaseUser.id;
+      } else {
+        // 2. Intentar con localStorage
+        const storedUser = localStorage.getItem('user_info');
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          realEmpresaId = parsed.id?.toString() || '';
+        }
+      }
+
+      if (!realEmpresaId) {
+        alert('Sesión no encontrada. Por favor inicia sesión nuevamente.');
+        router.push('/login');
+        return;
+      }
+
+      const response = await jobsApi.create({
+        ...formData,
+        empresaId: realEmpresaId
+      });
+      
+      if (response.error) {
+        alert('Error al publicar: ' + response.error);
+      } else {
+        alert('¡Oferta publicada con éxito!');
+        router.push('/empresa/ofertas');
+      }
+    } catch (error) {
+      console.error('Error creating offer:', error);
+      alert('Error de conexión al publicar la oferta.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
@@ -15,12 +83,15 @@ export default function NuevaOfertaPage() {
 
       <Card>
         <CardContent className="space-y-6 pt-6">
-          <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <label htmlFor="titulo" className="block text-sm font-medium text-gray-700">Título del Turno/Oferta</label>
               <input 
                 type="text" 
                 id="titulo" 
+                required
+                value={formData.titulo}
+                onChange={handleInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-primary focus:border-primary" 
                 placeholder="Ej. Guardia de Seguridad Turno Noche"
               />
@@ -29,7 +100,12 @@ export default function NuevaOfertaPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label htmlFor="categoria" className="block text-sm font-medium text-gray-700">Categoría</label>
-                <select id="categoria" className="w-full px-4 py-3 border border-gray-300 rounded-md bg-white focus:ring-primary focus:border-primary">
+                <select 
+                  id="categoria" 
+                  value={formData.categoria}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md bg-white focus:ring-primary focus:border-primary"
+                >
                   <option>Guardia</option>
                   <option>Garzón</option>
                   <option>Carga/Descarga</option>
@@ -41,6 +117,9 @@ export default function NuevaOfertaPage() {
                 <input 
                   type="number" 
                   id="remuneracion" 
+                  required
+                  value={formData.remuneracion}
+                  onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-primary focus:border-primary" 
                   placeholder="35000"
                 />
@@ -53,6 +132,9 @@ export default function NuevaOfertaPage() {
                 <input 
                   type="date" 
                   id="fechaInicio" 
+                  required
+                  value={formData.fechaInicio}
+                  onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-primary focus:border-primary" 
                 />
               </div>
@@ -61,6 +143,8 @@ export default function NuevaOfertaPage() {
                 <input 
                   type="date" 
                   id="fechaFin" 
+                  value={formData.fechaFin}
+                  onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-primary focus:border-primary" 
                 />
               </div>
@@ -71,15 +155,20 @@ export default function NuevaOfertaPage() {
               <textarea 
                 id="descripcion" 
                 rows={4}
+                required
+                value={formData.descripcion}
+                onChange={handleInputChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-primary focus:border-primary resize-none" 
                 placeholder="Describe el trabajo y lista los requisitos mínimos (ej. OS10 vigente, zapatos de seguridad)..."
               ></textarea>
             </div>
 
             <div className="pt-4 flex flex-col sm:flex-row gap-3">
-              <Button variant="primary" fullWidth>Publicar Oferta</Button>
+              <Button variant="primary" fullWidth disabled={loading} type="submit">
+                {loading ? <Loader2 className="animate-spin mr-2" /> : 'Publicar Oferta'}
+              </Button>
               <Link href="/empresa/ofertas" className="w-full sm:w-auto">
-                <Button variant="ghost" fullWidth>Cancelar</Button>
+                <Button variant="ghost" fullWidth type="button">Cancelar</Button>
               </Link>
             </div>
           </form>

@@ -10,7 +10,7 @@ services:
   # ── Infraestructura ──────────────────────────
 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:15-alpine
     container_name: catch-and-go-postgres
     restart: always
     environment:
@@ -43,93 +43,128 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── Microservicios Java (descomentar cuando tengan Dockerfile) ──
+  # ── Microservicios Java ──
 
-  # auth-service:
-  #   build: ./backend/auth-service
-  #   container_name: catch-and-go-auth
-  #   ports:
-  #     - "8081:8081"
-  #   environment:
-  #     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-catchandgo}
-  #     SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-catchandgo}
-  #     SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-catchandgo}
-  #     SPRING_DATA_REDIS_HOST: redis
-  #     JWT_SECRET: ${JWT_SECRET:-change-me-in-real-env}
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #   networks:
-  #     - catchgo-network
+  auth-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        MODULE: auth-service
+    container_name: catch-and-go-auth
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-catchandgo}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-catchandgo}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-catchandgo}
+      SPRING_DATA_REDIS_HOST: redis
+      JWT_SECRET: ${JWT_SECRET:-super-secret-key-for-development-must-be-long-enough}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - catchgo-network
 
-  # profile-service:
-  #   build: ./backend/profile-service
-  #   container_name: catch-and-go-profile
-  #   ports:
-  #     - "8082:8082"
-  #   environment:
-  #     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-catchandgo}
-  #     SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-catchandgo}
-  #     SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-catchandgo}
-  #     SPRING_DATA_REDIS_HOST: redis
-  #     JWT_SECRET: ${JWT_SECRET:-change-me-in-real-env}
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   networks:
-  #     - catchgo-network
+  profile-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        MODULE: profile-service
+    container_name: catch-and-go-profile
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-catchandgo}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-catchandgo}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-catchandgo}
+      SPRING_DATA_REDIS_HOST: redis
+      JWT_SECRET: ${JWT_SECRET:-super-secret-key-for-development-must-be-long-enough}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - profile_uploads:/app/uploads
+    networks:
+      - catchgo-network
 
-  # jobs-service:
-  #   build: ./backend/jobs-service
-  #   container_name: catch-and-go-jobs
-  #   ports:
-  #     - "8083:8083"
-  #   environment:
-  #     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-catchandgo}
-  #     SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-catchandgo}
-  #     SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-catchandgo}
-  #     SPRING_DATA_REDIS_HOST: redis
-  #     JWT_SECRET: ${JWT_SECRET:-change-me-in-real-env}
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   networks:
-  #     - catchgo-network
+  jobs-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        MODULE: jobs-service
+    container_name: catch-and-go-jobs
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-catchandgo}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-catchandgo}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-catchandgo}
+      SPRING_DATA_REDIS_HOST: redis
+      JWT_SECRET: ${JWT_SECRET:-super-secret-key-for-development-must-be-long-enough}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - catchgo-network
 
-  # matching-service:
-  #   build: ./backend/matching-service
-  #   container_name: catch-and-go-matching
-  #   ports:
-  #     - "8084:8084"
-  #   environment:
-  #     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-catchandgo}
-  #     SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-catchandgo}
-  #     SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-catchandgo}
-  #     SPRING_DATA_REDIS_HOST: redis
-  #     JWT_SECRET: ${JWT_SECRET:-change-me-in-real-env}
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   networks:
-  #     - catchgo-network
+  matching-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        MODULE: matching-service
+    container_name: catch-and-go-matching
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-catchandgo}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-catchandgo}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-catchandgo}
+      SPRING_DATA_REDIS_HOST: redis
+      JWT_SECRET: ${JWT_SECRET:-super-secret-key-for-development-must-be-long-enough}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - catchgo-network
 
-  # api-gateway:
-  #   build: ./backend/api-gateway
-  #   container_name: catch-and-go-gateway
-  #   ports:
-  #     - "8080:8080"
-  #   depends_on:
-  #     - auth-service
-  #     - profile-service
-  #     - jobs-service
-  #     - matching-service
-  #   networks:
-  #     - catchgo-network
+  api-gateway:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        MODULE: api-gateway
+    container_name: catch-and-go-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - profile-service
+      - jobs-service
+      - matching-service
+    networks:
+      - catchgo-network
+
+  # ── Visualización de Base de Datos ──
+  adminer:
+    image: adminer:latest
+    container_name: catch-and-go-adminer
+    restart: always
+    ports:
+      - "8085:8080"
+    networks:
+      - catchgo-network
+    depends_on:
+      - postgres
 
 volumes:
   postgres_data:
+  profile_uploads:
 
 networks:
   catchgo-network:
