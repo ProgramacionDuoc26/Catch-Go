@@ -67,9 +67,14 @@ export default function TrabajadorPerfilPage() {
         } else {
           const storedUser = localStorage.getItem('user_info');
           if (storedUser) {
-            const parsed = JSON.parse(storedUser);
-            realUserId = parsed.id?.toString() || '';
-            initialData = { name: parsed.nombre || '', email: parsed.email || '', phone: parsed.telefono || '+56 ' };
+            const userData = JSON.parse(storedUser);
+            realUserId = userData.id?.toString() || '';
+            console.log('DEBUG: Loading profile for userId:', realUserId);
+            
+            if (!realUserId) {
+              console.warn('DEBUG: No userId found in user_info');
+            }
+            initialData = { name: userData.nombre || '', email: userData.email || '', phone: userData.telefono || '+56 ' };
           }
         }
 

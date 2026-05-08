@@ -1,6 +1,12 @@
 server:
   port: 8082
 
+logging:
+  level:
+    root: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate: INFO
+
 spring:
   application:
     name: profile-service

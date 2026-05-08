@@ -31,6 +31,7 @@ public class FileUploadController {
 
             // Crear directorio si no existe
             Path dir = Paths.get(uploadDir, userId);
+            System.out.println("DEBUG: Uploading file to directory: " + dir.toAbsolutePath());
             if (!Files.exists(dir)) {
                 Files.createDirectories(dir);
             }
@@ -59,8 +60,8 @@ public class FileUploadController {
 
     @GetMapping("/view/{userId}/{fileName}")
     public ResponseEntity<byte[]> viewFile(
-            @PathVariable String userId,
-            @PathVariable String fileName
+            @PathVariable("userId") String userId,
+            @PathVariable("fileName") String fileName
     ) {
         try {
             Path filePath = Paths.get(uploadDir, userId, fileName);

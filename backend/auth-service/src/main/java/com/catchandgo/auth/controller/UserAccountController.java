@@ -28,7 +28,7 @@ public class UserAccountController {
     }
 
     @GetMapping("/user/{id}")
-    public AuthResponseDto.UserDto findById(@PathVariable Long id) {
+    public AuthResponseDto.UserDto findById(@PathVariable("id") Long id) {
         return service.findById(id);
     }
 }

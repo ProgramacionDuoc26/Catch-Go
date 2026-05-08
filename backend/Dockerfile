@@ -16,8 +16,11 @@ WORKDIR /app
 ARG MODULE
 ENV MODULE=${MODULE}
 
-# Añadir un usuario sin privilegios para mayor seguridad
-RUN addgroup -S spring && adduser -S spring -G spring
+# Crear directorio de uploads y usuario sin privilegios
+RUN addgroup -S spring && adduser -S spring -G spring && \
+    mkdir -p /app/uploads && \
+    chown -R spring:spring /app/uploads
+
 USER spring:spring
 
 # Copiamos solo el JAR del módulo específico desde la etapa de compilación
