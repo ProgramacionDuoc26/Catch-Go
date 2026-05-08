@@ -10,6 +10,8 @@ import { profileApi, Profile } from '@/lib/api/profile';
 import { jobsApi } from '@/lib/api/jobs';
 import { createClient } from '@/lib/supabase/client';
 import { uploadFile } from '@/lib/supabase/storage';
+import { authApi } from '@/lib/api/auth';
+import { Trash2, AlertTriangle, X } from 'lucide-react';
 
 const BANCOS_CHILE = [
   "Banco de Chile", "Banco Estado", "Banco Santander", "Banco BCI",
@@ -51,6 +53,10 @@ export default function TrabajadorPerfilPage() {
   const [savedProfile, setSavedProfile] = useState<Profile | null>(null);
   const [postulaciones, setPostulaciones] = useState<Postulacion[]>([]);
   const [loadingPostulaciones, setLoadingPostulaciones] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -199,6 +205,46 @@ export default function TrabajadorPerfilPage() {
         setFormData(prev => ({ ...prev, [field]: url }));
       } catch (error: any) { alert(error.message || 'Error al subir el archivo.'); }
       finally { setUploading(null); }
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) {
+      setDeleteError('Por favor, ingresa tu contraseña para continuar.');
+      return;
+    }
+
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      // 1. Verificar contraseña
+      const verifyRes = await authApi.verifyPassword(formData.userId, deletePassword);
+      if (verifyRes.data !== true) {
+        setDeleteError('Contraseña incorrecta. Por favor, intenta de nuevo.');
+        setDeleting(false);
+        return;
+      }
+
+      // 2. Eliminar perfil
+      await profileApi.deleteProfile(formData.userId);
+
+      // 3. Eliminar cuenta
+      const deleteRes = await authApi.deleteAccount(formData.userId);
+
+      if (!deleteRes.error) {
+        // 4. Limpiar sesión y redirigir
+        localStorage.clear();
+        sessionStorage.clear();
+        alert('Tu cuenta ha sido eliminada permanentemente.');
+        router.push('/login');
+      } else {
+        setDeleteError('Error al eliminar la cuenta de usuario.');
+      }
+    } catch (error) {
+      console.error('Delete account error:', error);
+      setDeleteError('Ocurrió un error inesperado al eliminar la cuenta.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -487,7 +533,13 @@ export default function TrabajadorPerfilPage() {
           </Card>
 
           {/* Botón guardar */}
-          <div className="flex justify-end pt-2">
+          <div className="flex justify-between items-center pt-8 border-t border-gray-100 mt-8">
+            <button 
+              onClick={() => setShowDeleteModal(true)}
+              className="text-red-500 hover:text-red-700 flex items-center gap-2 text-sm font-medium transition-colors"
+            >
+              <Trash2 size={16} /> Eliminar mi cuenta permanentemente
+            </button>
             <Button variant="primary" size="lg" className="px-8 gap-2 shadow-lg shadow-primary/20" disabled={saving} onClick={handleSave}>
               {saving ? <Loader2 className="animate-spin" /> : <Save size={20} />}
               {saving ? 'Guardando...' : 'Guardar Todos los Cambios'}
@@ -495,6 +547,66 @@ export default function TrabajadorPerfilPage() {
           </div>
         </div>
       </div>
+
+      {/* MODAL DE ELIMINACIÓN */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-600">
+                  <AlertTriangle size={24} />
+                </div>
+                <button onClick={() => setShowDeleteModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <h3 className="text-xl font-bold text-gray-900 mb-2">¿Estás seguro de eliminar tu cuenta?</h3>
+              <p className="text-gray-500 text-sm mb-6">
+                Esta acción es **permanente** y no se puede deshacer. Se eliminarán todas tus postulaciones, datos bancarios, documentos y perfil personal.
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="deletePassword" class="block text-sm font-medium text-gray-700 mb-2">
+                    Confirma tu contraseña para continuar
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input 
+                      type="password" 
+                      id="deletePassword"
+                      value={deletePassword}
+                      onChange={(e) => setDeletePassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all outline-none"
+                    />
+                  </div>
+                  {deleteError && <p className="mt-2 text-xs text-red-500 font-medium">{deleteError}</p>}
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => setShowDeleteModal(false)}
+                    className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleting}
+                    className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold shadow-lg shadow-red-200 transition-colors flex items-center justify-center gap-2"
+                  >
+                    {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 size={16} />}
+                    {deleting ? 'Eliminando...' : 'Eliminar Cuenta'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

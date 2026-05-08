@@ -30,4 +30,10 @@ export const profileApi = {
    */
   save: (data: Profile) =>
     api.post<Profile>(BASE, data),
+
+  /**
+   * Eliminar perfil por ID de usuario
+   */
+  deleteProfile: (userId: string) =>
+    api.delete<void>(`${BASE}/user/${userId}`),
 };

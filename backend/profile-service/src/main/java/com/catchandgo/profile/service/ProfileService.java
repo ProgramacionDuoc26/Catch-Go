@@ -57,4 +57,8 @@ public class ProfileService {
 
         return mapper.toDto(repository.save(entity));
     }
+
+    public void deleteByUserId(String userId) {
+        repository.findByUserId(userId).ifPresent(repository::delete);
+    }
 }

@@ -104,12 +104,33 @@ export default function NuevaOfertaPage() {
                   id="categoria" 
                   value={formData.categoria}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md bg-white focus:ring-primary focus:border-primary"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-md bg-white focus:ring-primary focus:border-primary font-medium"
                 >
-                  <option>Guardia</option>
-                  <option>Garzón</option>
-                  <option>Carga/Descarga</option>
-                  <option>Aseo</option>
+                  <optgroup label="Seguridad y Servicios">
+                    <option>Guardia</option>
+                    <option>Aseo / Limpieza</option>
+                    <option>Seguridad Eventos</option>
+                  </optgroup>
+                  <optgroup label="Gastronomía y Eventos">
+                    <option>Garzón</option>
+                    <option>Cocina / Ayudante</option>
+                    <option>Anfitrión(a) / Recepcionista</option>
+                    <option>Bailarín(a)</option>
+                    <option>Cantante Eventos</option>
+                  </optgroup>
+                  <optgroup label="Logística y Retail">
+                    <option>Carga/Descarga</option>
+                    <option>Reponedor</option>
+                    <option>Operario de Bodega</option>
+                    <option>Promotor(a)</option>
+                    <option>Delivery</option>
+                  </optgroup>
+                  <optgroup label="Educación y Otros">
+                    <option>Profesor</option>
+                    <option>Tutor Particular</option>
+                    <option>Faenero</option>
+                    <option>Administrativo</option>
+                  </optgroup>
                 </select>
               </div>
               <div className="space-y-2">

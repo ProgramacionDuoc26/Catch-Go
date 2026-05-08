@@ -36,5 +36,11 @@ public class ProfileController {
     public ProfileDto save(@RequestBody ProfileDto dto) {
         return service.saveOrUpdate(dto);
     }
+
+    @DeleteMapping("/user/{userId}")
+    public ResponseEntity<Void> deleteByUserId(@PathVariable("userId") String userId) {
+        service.deleteByUserId(userId);
+        return ResponseEntity.noContent().build();
+    }
 }
 

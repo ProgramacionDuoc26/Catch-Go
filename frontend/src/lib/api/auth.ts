@@ -31,4 +31,16 @@ export const authApi = {
    */
   getUserById: (id: string) =>
     api.get<any>(`${BASE}/auth/user/${id}`),
+
+  /**
+   * Verificar contraseña del usuario actual
+   */
+  verifyPassword: (id: string, password: string) =>
+    api.post<boolean>(`${BASE}/auth/verify-password`, { id, password }),
+
+  /**
+   * Eliminar cuenta de usuario
+   */
+  deleteAccount: (id: string) =>
+    api.delete<void>(`${BASE}/auth/user/${id}`),
 };

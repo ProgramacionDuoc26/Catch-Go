@@ -53,9 +53,13 @@ public class UserAccountService {
         return new AuthResponseDto(token, mapper.toUserDto(user));
     }
 
-    public AuthResponseDto.UserDto findById(Long id) {
-        return repository.findById(id)
-                .map(mapper::toUserDto)
+    public boolean verifyPassword(Long id, String rawPassword) {
+        UserAccount user = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        return passwordEncoder.matches(rawPassword, user.getPassword());
+    }
+
+    public void deleteById(Long id) {
+        repository.deleteById(id);
     }
 }

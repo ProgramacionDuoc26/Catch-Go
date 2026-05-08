@@ -31,4 +31,17 @@ public class UserAccountController {
     public AuthResponseDto.UserDto findById(@PathVariable("id") Long id) {
         return service.findById(id);
     }
+
+    @PostMapping("/verify-password")
+    public ResponseEntity<Boolean> verifyPassword(@RequestBody java.util.Map<String, String> body) {
+        Long id = Long.valueOf(body.get("id"));
+        String password = body.get("password");
+        return ResponseEntity.ok(service.verifyPassword(id, password));
+    }
+
+    @DeleteMapping("/user/{id}")
+    public ResponseEntity<Void> deleteById(@PathVariable("id") Long id) {
+        service.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
 }
