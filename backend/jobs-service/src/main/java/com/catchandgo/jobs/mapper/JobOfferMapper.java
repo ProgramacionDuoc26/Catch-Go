@@ -16,7 +16,9 @@ public class JobOfferMapper {
             entity.getFechaInicio(),
             entity.getFechaFin(),
             entity.getEstado(),
-            entity.getEmpresaId()
+            entity.getEmpresaId(),
+            entity.getLatitude(),
+            entity.getLongitude()
         );
     }
 
@@ -31,6 +33,8 @@ public class JobOfferMapper {
         entity.setFechaFin(dto.fechaFin());
         entity.setEstado(dto.estado());
         entity.setEmpresaId(dto.empresaId());
+        entity.setLatitude(dto.latitude());
+        entity.setLongitude(dto.longitude());
         return entity;
     }
 }

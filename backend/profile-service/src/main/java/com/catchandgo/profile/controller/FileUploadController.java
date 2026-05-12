@@ -31,7 +31,6 @@ public class FileUploadController {
 
             // Crear directorio si no existe
             Path dir = Paths.get(uploadDir, userId);
-            System.out.println("DEBUG: Uploading file to directory: " + dir.toAbsolutePath());
             if (!Files.exists(dir)) {
                 Files.createDirectories(dir);
             }

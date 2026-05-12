@@ -10,20 +10,23 @@ const config: Config = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: "#0F52BA", // Azul corporativo (Zafiro)
-          dark: "#08367B",
-          light: "#3F7CDD",
+          DEFAULT: "#0056b3", // Vibrant Blue from logo
+          dark: "#001b3a",    // Navy Blue from logo
+          light: "#00aaff",
         },
-        background: "#F9FAFB",
+        accent: {
+          red: "#e63946",     // Red accent from logo
+        },
+        background: "#FDFDFD",
         surface: "#FFFFFF",
         text: {
-          main: "#111827",
-          muted: "#6B7280",
+          main: "#001b3a",    // Use Navy Blue for text
+          muted: "#64748b",
         },
         semantic: {
           success: "#10B981",
-          error: "#EF4444",
-          warning: "#F59E0B",
+          error: "#e63946",
+          warning: "#f59e0b",
         }
       },
       fontFamily: {

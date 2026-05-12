@@ -22,14 +22,12 @@ public class ProfileService {
     }
 
     public ProfileDto findByUserId(String userId) {
-        System.out.println("Fetching profile for userId: " + userId);
         return repository.findByUserId(userId)
                 .map(mapper::toDto)
                 .orElse(null);
     }
 
     public ProfileDto saveOrUpdate(ProfileDto dto) {
-        System.out.println("Saving profile for userId: " + dto.getUserId() + ", birthDate: " + dto.getBirthDate());
         Profile entity = repository.findByUserId(dto.getUserId())
                 .orElse(new Profile());
         
@@ -54,6 +52,8 @@ public class ProfileService {
         entity.setAccountType(dto.getAccountType());
         entity.setAccountNumber(dto.getAccountNumber());
         entity.setType(dto.getType());
+        entity.setLatitude(dto.getLatitude());
+        entity.setLongitude(dto.getLongitude());
 
         return mapper.toDto(repository.save(entity));
     }

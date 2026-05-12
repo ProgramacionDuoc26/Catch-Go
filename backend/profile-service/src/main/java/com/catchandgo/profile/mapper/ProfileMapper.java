@@ -25,6 +25,8 @@ public class ProfileMapper {
         dto.setAccountType(entity.getAccountType());
         dto.setAccountNumber(entity.getAccountNumber());
         dto.setType(entity.getType());
+        dto.setLatitude(entity.getLatitude());
+        dto.setLongitude(entity.getLongitude());
         return dto;
     }
 
@@ -46,6 +48,8 @@ public class ProfileMapper {
         entity.setAccountType(dto.getAccountType());
         entity.setAccountNumber(dto.getAccountNumber());
         entity.setType(dto.getType());
+        entity.setLatitude(dto.getLatitude());
+        entity.setLongitude(dto.getLongitude());
         return entity;
     }
 }

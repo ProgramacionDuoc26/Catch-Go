@@ -38,27 +38,36 @@ export function Navbar() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-primary">Catch&Go</span>
+              <img src="/logo.png" alt="Catch&Go" className="h-8 md:h-10 w-auto" 
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+              <span className="text-2xl font-bold text-primary-dark hidden">CATCH<span className="text-primary">AND</span>GO</span>
             </Link>
           </div>
           
           <nav className="hidden md:flex space-x-8">
             {!isDashboard ? (
               <>
-                <Link href="/quienes-somos" className="text-text-muted hover:text-primary transition-colors">
+                <Link href="/#quienes-somos" className="text-primary-dark font-medium hover:text-primary transition-colors">
                   ¿Quiénes Somos?
                 </Link>
-                <Link href="/contacto" className="text-text-muted hover:text-primary transition-colors">
+                <Link href="/#contacto" className="text-primary-dark font-medium hover:text-primary transition-colors">
                   Contacto
+                </Link>
+                <Link href="/terminos" className="text-primary-dark font-medium hover:text-primary transition-colors">
+                  Términos
                 </Link>
               </>
             ) : (
               <>
-                <Link href={isTrabajador ? "/trabajador/ofertas" : "/empresa/ofertas"} className="text-text-muted hover:text-primary transition-colors flex items-center gap-1">
+                <Link href={isTrabajador ? "/trabajador/ofertas" : "/empresa/ofertas"} className="text-primary-dark font-medium hover:text-primary transition-colors flex items-center gap-1">
                   <LayoutDashboard size={18} />
                   Dashboard
                 </Link>
-                <Link href={isTrabajador ? "/trabajador/postulaciones" : "/empresa/candidatos"} className="text-text-muted hover:text-primary transition-colors">
+                <Link href={isTrabajador ? "/trabajador/postulaciones" : "/empresa/candidatos"} className="text-primary-dark font-medium hover:text-primary transition-colors">
                   {isTrabajador ? "Mis Postulaciones" : "Gestión Candidatos"}
                 </Link>
               </>

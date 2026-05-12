@@ -31,7 +31,6 @@ public class JobOfferService {
     }
 
     public void apply(Long jobId, String userId) {
-        System.out.println("Applying to jobId: " + jobId + " for userId: " + userId);
         if (applicationRepository.findByUserIdAndJobId(userId, jobId).isPresent()) {
             throw new RuntimeException("Ya has postulado a esta oferta");
         }
@@ -41,10 +40,7 @@ public class JobOfferService {
             application.setUserId(userId);
             application.setEstado("PENDIENTE");
             applicationRepository.save(application);
-            System.out.println("Application saved successfully");
         } catch (Exception e) {
-            System.err.println("Error saving application: " + e.getMessage());
-            e.printStackTrace();
             throw e;
         }
     }

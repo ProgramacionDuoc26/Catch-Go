@@ -29,6 +29,10 @@ public class Profile {
     // Tipo de Perfil: TRABAJADOR o EMPRESA
     private String type;
 
+    // Geolocalización
+    private Double latitude;
+    private Double longitude;
+
     // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -56,4 +60,9 @@ public class Profile {
     public void setAccountNumber(String accountNumber) { this.accountNumber = accountNumber; }
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
+
+    public Double getLatitude() { return latitude; }
+    public void setLatitude(Double latitude) { this.latitude = latitude; }
+    public Double getLongitude() { return longitude; }
+    public void setLongitude(Double longitude) { this.longitude = longitude; }
 }

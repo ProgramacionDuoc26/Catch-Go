@@ -16,6 +16,8 @@ export interface Profile {
   accountType?: string;
   accountNumber?: string;
   type: 'TRABAJADOR' | 'EMPRESA';
+  latitude?: number;
+  longitude?: number;
 }
 
 export const profileApi = {

@@ -22,13 +22,10 @@ public class ProfileController {
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<ProfileDto> findByUserId(@PathVariable("userId") String userId) {
-        System.out.println("DEBUG: Request received for userId: " + userId);
         ProfileDto profile = service.findByUserId(userId);
         if (profile == null) {
-            System.out.println("DEBUG: No profile found for userId: " + userId);
             return ResponseEntity.noContent().build();
         }
-        System.out.println("DEBUG: Profile found for userId: " + userId + ", Name: " + profile.getName());
         return ResponseEntity.ok(profile);
     }
 

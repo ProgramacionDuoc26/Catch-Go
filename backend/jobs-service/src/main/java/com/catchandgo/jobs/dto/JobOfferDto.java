@@ -9,6 +9,8 @@ public record JobOfferDto(
     String fechaInicio, 
     String fechaFin, 
     String estado, 
-    String empresaId
+    String empresaId,
+    Double latitude,
+    Double longitude
 ) {
 }

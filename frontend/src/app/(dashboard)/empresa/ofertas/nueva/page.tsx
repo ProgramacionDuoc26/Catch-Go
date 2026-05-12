@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/Button';
 import { jobsApi } from '@/lib/api/jobs';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import LocationPicker from '@/components/maps/LocationPicker';
+
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 export default function NuevaOfertaPage() {
   const router = useRouter();
@@ -18,7 +21,9 @@ export default function NuevaOfertaPage() {
     fechaInicio: '',
     fechaFin: '',
     descripcion: '',
-    ubicacion: 'Santiago, RM'
+    ubicacion: 'Santiago, RM',
+    latitude: -33.4489,
+    longitude: -70.6693
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -182,6 +187,18 @@ export default function NuevaOfertaPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-primary focus:border-primary resize-none" 
                 placeholder="Describe el trabajo y lista los requisitos mínimos (ej. OS10 vigente, zapatos de seguridad)..."
               ></textarea>
+            </div>
+
+            {/* MAPA DE UBICACION DEL TRABAJO */}
+            <div className="pt-2">
+              <LocationPicker 
+                apiKey={GOOGLE_MAPS_API_KEY}
+                initialLat={formData.latitude}
+                initialLng={formData.longitude}
+                onLocationChange={(lat, lng) => {
+                  setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                }}
+              />
             </div>
 
             <div className="pt-4 flex flex-col sm:flex-row gap-3">

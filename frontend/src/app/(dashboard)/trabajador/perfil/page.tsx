@@ -12,6 +12,10 @@ import { createClient } from '@/lib/supabase/client';
 import { uploadFile } from '@/lib/supabase/storage';
 import { authApi } from '@/lib/api/auth';
 import { Trash2, AlertTriangle, X } from 'lucide-react';
+import LocationPicker from '@/components/maps/LocationPicker';
+
+// REEMPLAZAR CON TU API KEY DE GOOGLE CLOUD
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 const BANCOS_CHILE = [
   "Banco de Chile", "Banco Estado", "Banco Santander", "Banco BCI",
@@ -137,7 +141,7 @@ export default function TrabajadorPerfilPage() {
   }, [router]);
 
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     let { id, value } = e.target;
     if (id === 'phone') {
       if (!value.startsWith('+56 ')) value = '+56 ';
@@ -387,6 +391,24 @@ export default function TrabajadorPerfilPage() {
                   <input id="name" type="text" value={formData.name} onChange={handleInputChange}
                     className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary" />
                 </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Sobre mí / Resumen profesional</label>
+                  <textarea id="description" rows={3} value={formData.description} onChange={handleInputChange}
+                    placeholder="Cuéntanos sobre tu experiencia y habilidades..."
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none" />
+                </div>
+
+                {/* MAPA DE GEOLOCALIZACION */}
+                <div className="md:col-span-2 pt-4 border-t border-gray-100">
+                  <LocationPicker 
+                    apiKey={GOOGLE_MAPS_API_KEY}
+                    initialLat={formData.latitude}
+                    initialLng={formData.longitude}
+                    onLocationChange={(lat, lng) => {
+                      setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                    }}
+                  />
+                </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
                   <input id="email" type="email" value={formData.email} onChange={handleInputChange}
@@ -569,7 +591,7 @@ export default function TrabajadorPerfilPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="deletePassword" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="deletePassword" className="block text-sm font-medium text-gray-700 mb-2">
                     Confirma tu contraseña para continuar
                   </label>
                   <div className="relative">

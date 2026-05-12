@@ -6,28 +6,41 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { jobsApi } from '@/lib/api/jobs';
 import { Oferta } from '@/lib/api/types';
-import { Search, Filter, CheckCircle2, Loader2, MapPin, Calendar } from 'lucide-react';
+import { profileApi, Profile } from '@/lib/api/profile';
+import { Search, Filter, CheckCircle2, Loader2, MapPin, Calendar, Map as MapIcon, X } from 'lucide-react';
+import JobDistanceMap from '@/components/maps/JobDistanceMap';
+
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 export default function TrabajadorOfertasPage() {
   const [ofertas, setOfertas] = useState<Oferta[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [appliedJobs, setAppliedJobs] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [workerProfile, setWorkerProfile] = useState<Profile | null>(null);
+  const [selectedJobForMap, setSelectedJobForMap] = useState<Oferta | null>(null);
 
   useEffect(() => {
-    const fetchOfertas = async () => {
+    const fetchInitialData = async () => {
+      setLoading(true);
       try {
-        const response = await jobsApi.list();
-        if (response.data) {
-          setOfertas(response.data);
+        const jobsRes = await jobsApi.list();
+        if (jobsRes.data) setOfertas(jobsRes.data);
+
+        // Intentar obtener el perfil del trabajador para las coordenadas
+        const storedUser = localStorage.getItem('user_info');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          const profRes = await profileApi.getByUserId(userData.id?.toString());
+          if (profRes.data) setWorkerProfile(profRes.data);
         }
       } catch (error) {
-        console.error('Error fetching jobs:', error);
+        console.error('Error fetching initial data:', error);
       } finally {
         setLoading(false);
       }
     };
-    fetchOfertas();
+    fetchInitialData();
   }, []);
 
   const handleApply = async (id: string) => {
@@ -153,6 +166,13 @@ export default function TrabajadorOfertasPage() {
               </CardContent>
               <CardFooter className="flex justify-end gap-2 pt-3">
                 <Button 
+                  variant="outline"
+                  onClick={() => setSelectedJobForMap(oferta)}
+                  className="gap-2"
+                >
+                  <MapIcon size={16} /> Ver Mapa
+                </Button>
+                <Button 
                   variant={appliedJobs.includes(oferta.id) ? "outline" : "primary"}
                   disabled={appliedJobs.includes(oferta.id)}
                   onClick={() => handleApply(oferta.id)}
@@ -176,6 +196,65 @@ export default function TrabajadorOfertasPage() {
           </div>
         )}
       </div>
+
+      {/* MODAL DEL MAPA DE DISTANCIA */}
+      {selectedJobForMap && workerProfile && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-[32px] max-w-2xl w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-8">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h3 className="text-2xl font-bold text-primary-dark">Ubicación del Trabajo</h3>
+                  <p className="text-gray-500 text-sm">Calculando distancia desde tu ubicación guardada</p>
+                </div>
+                <button 
+                  onClick={() => setSelectedJobForMap(null)}
+                  className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-all"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {typeof workerProfile.latitude === 'number' && typeof workerProfile.longitude === 'number' && 
+               typeof selectedJobForMap.latitude === 'number' && typeof selectedJobForMap.longitude === 'number' ? (
+                <JobDistanceMap 
+                  apiKey={GOOGLE_MAPS_API_KEY}
+                  origin={{ 
+                    lat: workerProfile.latitude, 
+                    lng: workerProfile.longitude, 
+                    label: "Tu Ubicación" 
+                  }}
+                  destination={{ 
+                    lat: selectedJobForMap.latitude, 
+                    lng: selectedJobForMap.longitude, 
+                    label: selectedJobForMap.titulo 
+                  }}
+                />
+              ) : (
+                <div className="bg-amber-50 border border-amber-200 p-8 rounded-[32px] text-amber-700 text-center">
+                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto shadow-sm mb-4">
+                    <MapPin className="w-8 h-8 opacity-50" />
+                  </div>
+                  <p className="font-bold text-xl mb-2">Datos Geográficos Incompletos</p>
+                  <p className="text-sm max-w-sm mx-auto">
+                    Para calcular la distancia, asegúrate de que **ambos** (tú y la empresa) hayan marcado su ubicación en el mapa.
+                  </p>
+                  <div className="mt-4 pt-4 border-t border-amber-100 flex justify-center gap-4 text-[10px] font-mono">
+                    <span>Tú: {workerProfile.latitude ? '✅' : '❌'}</span>
+                    <span>Trabajo: {selectedJobForMap.latitude ? '✅' : '❌'}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-8 flex justify-end">
+                <Button variant="primary" onClick={() => setSelectedJobForMap(null)} className="px-8">
+                  Entendido
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

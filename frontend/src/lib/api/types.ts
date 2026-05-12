@@ -73,6 +73,8 @@ export interface Oferta {
   fechaFin?: string;
   remuneracion: number;
   estado: 'ABIERTA' | 'CERRADA' | 'CON_CANDIDATOS' | 'COMPLETADA';
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface CreateOfertaRequest {
@@ -84,6 +86,8 @@ export interface CreateOfertaRequest {
   fechaFin?: string;
   remuneracion: number;
   empresaId: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 // ── Matching ──────────────────────────────────────────
