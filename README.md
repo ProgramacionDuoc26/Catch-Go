@@ -1,0 +1,53 @@
+# Catch & Go
+
+Plataforma de intermediación laboral para empleos ocasionales en Chile. Conecta a trabajadores con empresas que requieren personal por períodos cortos, mediante un sistema de matching automatizado.
+
+## Integrantes del Equipo
+
+Ver archivo [Gestión/Integrantes.txt](Gestión/Integrantes.txt) para el listado completo de integrantes.
+
+## Estructura del Repositorio
+
+Este repositorio se organiza en tres secciones principales, según los criterios de entrega del proyecto:
+
+| Carpeta | Descripción |
+|---|---|
+| [Documentacion/](Documentacion/) | Informe, UML, WireFrame, MER, Gantt y demás recursos de gestión, diseño y QA del producto |
+| [Producto/](Producto/) | Código fuente, scripts de base de datos, librerías y configuración de infraestructura |
+| [Gestión/](Gestión/) | Documentos de registro del proyecto e identificación del equipo |
+
+## Stack Tecnológico
+
+- **Backend:** Java 21 · Spring Boot 3 · Spring Cloud Gateway · Flyway
+- **Frontend Web:** Next.js 14 · TypeScript · Tailwind CSS · Prisma · Supabase
+- **Aplicación Móvil:** Android · Kotlin · Jetpack Compose · Retrofit · Hilt
+- **Infraestructura:** Docker · PostgreSQL 15 · Redis 7
+
+## Ramas del Repositorio
+
+| Rama | Propósito |
+|---|---|
+| `main` | Rama principal con la estructura completa del proyecto |
+| `develop` | Integración continua de funcionalidades |
+| `feature/init-frontend` | Implementación del frontend web y microservicios backend |
+| `feature/microservices-base` | Arquitectura base de microservicios Java |
+| `feature/f3-network-login` | Aplicación Android con flujo de autenticación completo |
+| `feature/f2-network-layer` | Capa de red y design system del app Android |
+| `feature-microservicioauth` | Microservicio de autenticación inicial |
+| `feature/rama-colores-paleta` | Paleta de colores y diseño visual del app Android |
+| `feature/setup-infra-bd` | Configuración de infraestructura y base de datos |
+| `release/v1.0` | Primera entrega oficial del proyecto |
+
+## Inicio Rápido
+
+```bash
+# Clonar el repositorio
+git clone https://github.com/Nicolasiturrieta/Catch-Go.git
+cd Catch-Go
+
+# Levantar la infraestructura local (PostgreSQL + Redis)
+cd Producto
+docker compose up -d
+```
+
+Para instrucciones detalladas de cada componente, revisar el `README.md` dentro de la carpeta [Producto/](Producto/).

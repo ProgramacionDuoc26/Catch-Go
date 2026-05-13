@@ -1,0 +1,20 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: http://catchgo-auth:8081
+          predicates:
+            - Path=/auth/**
+        - id: profile-service
+          uri: http://catchgo-profile:8082
+          predicates:
+            - Path=/profiles/**
+        - id: jobs-service
+          uri: http://catchgo-jobs:8083
+          predicates:
+            - Path=/jobs/**
+        - id: matching-service
+          uri: http://catchgo-matching:8084
+          predicates:
+            - Path=/matching/**

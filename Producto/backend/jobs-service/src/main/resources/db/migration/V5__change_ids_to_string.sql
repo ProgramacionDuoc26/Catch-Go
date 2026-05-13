@@ -1,0 +1,2 @@
+ALTER TABLE job_offers ALTER COLUMN empresa_id TYPE VARCHAR(255);
+ALTER TABLE job_applications ALTER COLUMN user_id TYPE VARCHAR(255);

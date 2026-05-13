@@ -1,0 +1,32 @@
+# Maven / Java build artifacts
+**/target/
+*.class
+*.jar
+*.war
+
+# Node.js
+node_modules/
+.next/
+*.tsbuildinfo
+
+# Android build outputs
+**/build/
+*.apk
+*.aab
+
+# Environment files (contienen secretos)
+.env
+.env.local
+.env.production
+
+# IDEs
+.vs/
+.idea/
+*.iml
+
+# Claude Code internal
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db

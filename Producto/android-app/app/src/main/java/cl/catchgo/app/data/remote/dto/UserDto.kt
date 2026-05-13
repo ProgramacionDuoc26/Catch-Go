@@ -10,7 +10,8 @@ data class UserDto(
     val email: String,
     val nombre: String? = null,
     val tipo: String? = null,
-    val telefono: String? = null
+    val telefono: String? = null,
+    val nivel: Int = 1
 ) {
     fun toDomain(): User = User(
         id = id.toString(),
@@ -20,6 +21,7 @@ data class UserDto(
             "EMPRESA" -> UserRole.EMPRESA
             else -> UserRole.UNKNOWN
         },
-        fullName = nombre
+        fullName = nombre,
+        nivel = nivel
     )
 }
