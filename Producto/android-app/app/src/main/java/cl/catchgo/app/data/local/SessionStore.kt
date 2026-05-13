@@ -2,6 +2,7 @@ package cl.catchgo.app.data.local
 
 import android.content.Context
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import cl.catchgo.app.domain.model.User
@@ -30,7 +31,8 @@ class SessionStore @Inject constructor(
                 role = prefs[KEY_USER_ROLE]
                     ?.let { runCatching { UserRole.valueOf(it) }.getOrDefault(UserRole.UNKNOWN) }
                     ?: UserRole.UNKNOWN,
-                fullName = prefs[KEY_USER_FULL_NAME]
+                fullName = prefs[KEY_USER_FULL_NAME],
+                nivel = prefs[KEY_USER_NIVEL] ?: 1
             )
         )
     }
@@ -42,6 +44,7 @@ class SessionStore @Inject constructor(
             prefs[KEY_USER_EMAIL] = session.user.email
             prefs[KEY_USER_ROLE] = session.user.role.name
             session.user.fullName?.let { prefs[KEY_USER_FULL_NAME] = it }
+            prefs[KEY_USER_NIVEL] = session.user.nivel
         }
     }
 
@@ -57,5 +60,6 @@ class SessionStore @Inject constructor(
         val KEY_USER_EMAIL = stringPreferencesKey("user_email")
         val KEY_USER_ROLE = stringPreferencesKey("user_role")
         val KEY_USER_FULL_NAME = stringPreferencesKey("user_full_name")
+        val KEY_USER_NIVEL = intPreferencesKey("user_nivel")
     }
 }

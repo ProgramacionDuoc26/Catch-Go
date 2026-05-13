@@ -4,6 +4,7 @@ import cl.catchgo.app.data.remote.ApiConfig
 import cl.catchgo.app.data.remote.ApplicationsApi
 import cl.catchgo.app.data.remote.AuthApi
 import cl.catchgo.app.data.remote.AuthInterceptor
+import cl.catchgo.app.data.remote.HabilidadesApi
 import cl.catchgo.app.data.remote.HealthApi
 import cl.catchgo.app.data.remote.JobsApi
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
@@ -87,4 +88,9 @@ object NetworkModule {
     @Singleton
     fun provideApplicationsApi(@Named("jobs") retrofit: Retrofit): ApplicationsApi =
         retrofit.create(ApplicationsApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideHabilidadesApi(@Named("auth") retrofit: Retrofit): HabilidadesApi =
+        retrofit.create(HabilidadesApi::class.java)
 }

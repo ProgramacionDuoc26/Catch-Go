@@ -1,0 +1,36 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: jobs-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/catchgo_db
+    username: catchgo_admin
+    password: admin_password_123
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    repair-on-migrate: true
+    validate-on-migrate: false
+    table: flyway_schema_history_jobs
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

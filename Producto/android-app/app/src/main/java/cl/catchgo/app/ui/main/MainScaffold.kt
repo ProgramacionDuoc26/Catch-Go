@@ -27,12 +27,14 @@ import cl.catchgo.app.ui.detail.OfferDetailScreen
 import cl.catchgo.app.ui.feed.FeedScreen
 import cl.catchgo.app.ui.messages.MessagesPlaceholderScreen
 import cl.catchgo.app.ui.profile.ProfilePlaceholderScreen
+import cl.catchgo.app.ui.skills.SkillsSetupScreen
 import cl.catchgo.app.ui.theme.BrandBlue700
 import cl.catchgo.app.ui.theme.Gray200
 import cl.catchgo.app.ui.theme.Gray500
 import cl.catchgo.app.ui.theme.White
 
 private const val ROUTE_OFFER_DETAIL = "offer/{id}"
+private const val ROUTE_SKILLS_SETUP = "skills_setup"
 private fun offerDetailRoute(id: String) = "offer/$id"
 
 @Composable
@@ -104,14 +106,20 @@ fun MainScaffold(
                 )
             }
             composable(MainTab.Messages.route) { MessagesPlaceholderScreen() }
-            composable(MainTab.Profile.route) { ProfilePlaceholderScreen(session = session) }
+            composable(MainTab.Profile.route) {
+                ProfilePlaceholderScreen(
+                    session = session,
+                    onNavigateToSkills = { navController.navigate(ROUTE_SKILLS_SETUP) }
+                )
+            }
+            composable(ROUTE_SKILLS_SETUP) {
+                SkillsSetupScreen(onBack = { navController.popBackStack() })
+            }
             composable(
                 route = ROUTE_OFFER_DETAIL,
                 arguments = listOf(navArgument("id") { type = NavType.StringType })
             ) {
-                OfferDetailScreen(
-                    onBack = { navController.popBackStack() }
-                )
+                OfferDetailScreen(onBack = { navController.popBackStack() })
             }
         }
     }

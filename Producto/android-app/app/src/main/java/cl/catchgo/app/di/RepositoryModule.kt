@@ -2,9 +2,11 @@ package cl.catchgo.app.di
 
 import cl.catchgo.app.data.repository.ApplicationsRepositoryImpl
 import cl.catchgo.app.data.repository.AuthRepositoryImpl
+import cl.catchgo.app.data.repository.HabilidadesRepositoryImpl
 import cl.catchgo.app.data.repository.JobsRepositoryImpl
 import cl.catchgo.app.domain.repository.ApplicationsRepository
 import cl.catchgo.app.domain.repository.AuthRepository
+import cl.catchgo.app.domain.repository.HabilidadesRepository
 import cl.catchgo.app.domain.repository.JobsRepository
 import dagger.Binds
 import dagger.Module
@@ -27,4 +29,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindApplicationsRepository(impl: ApplicationsRepositoryImpl): ApplicationsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindHabilidadesRepository(impl: HabilidadesRepositoryImpl): HabilidadesRepository
 }

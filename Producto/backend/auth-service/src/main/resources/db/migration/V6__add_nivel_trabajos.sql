@@ -1,0 +1,3 @@
+ALTER TABLE user_accounts
+    ADD COLUMN IF NOT EXISTS nivel INTEGER DEFAULT 1,
+    ADD COLUMN IF NOT EXISTS trabajos_completados INTEGER DEFAULT 0;
