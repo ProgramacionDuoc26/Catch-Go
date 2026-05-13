@@ -66,21 +66,19 @@ export function Navbar() {
               </>
             ) : (
               <>
-                <Link 
-                  href={isAdmin ? "/admin" : (isTrabajador ? "/trabajador/ofertas" : "/empresa/ofertas")} 
-                  className="text-primary-dark font-medium hover:text-primary transition-colors flex items-center gap-1"
-                >
-                  <LayoutDashboard size={18} />
-                  Dashboard
-                </Link>
-                {isAdmin ? (
-                  <Link href="/admin?tab=reports" className="text-primary-dark font-medium hover:text-primary transition-colors">
-                    Reportes
-                  </Link>
-                ) : (
-                  <Link href={isTrabajador ? "/trabajador/postulaciones" : "/empresa/candidatos"} className="text-primary-dark font-medium hover:text-primary transition-colors">
-                    {isTrabajador ? "Mis Postulaciones" : "Gestión Candidatos"}
-                  </Link>
+                {!isAdmin && (
+                  <>
+                    <Link 
+                      href={isTrabajador ? "/trabajador/ofertas" : "/empresa/ofertas"} 
+                      className="text-primary-dark font-medium hover:text-primary transition-colors flex items-center gap-1"
+                    >
+                      <LayoutDashboard size={18} />
+                      Dashboard
+                    </Link>
+                    <Link href={isTrabajador ? "/trabajador/postulaciones" : "/empresa/candidatos"} className="text-primary-dark font-medium hover:text-primary transition-colors">
+                      {isTrabajador ? "Mis Postulaciones" : "Gestión Candidatos"}
+                    </Link>
+                  </>
                 )}
               </>
             )}
