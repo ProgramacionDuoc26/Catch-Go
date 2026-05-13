@@ -1,0 +1,107 @@
+services:
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: catchgo-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: catchandgo
+      POSTGRES_PASSWORD: catchandgo
+      POSTGRES_DB: catchandgo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U catchandgo -d catchandgo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - catchgo-network
+
+  redis-cache:
+    image: redis:7-alpine
+    container_name: catchgo-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - catchgo-network
+
+  auth-service:
+    build:
+      context: ./Producto/backend
+      dockerfile: Dockerfile
+      args:
+        MODULE: auth-service
+    container_name: catchgo-auth
+    restart: on-failure
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/catchandgo
+      SPRING_DATASOURCE_USERNAME: catchandgo
+      SPRING_DATASOURCE_PASSWORD: catchandgo
+      SPRING_DATA_REDIS_HOST: redis-cache
+      SPRING_DATA_REDIS_PORT: 6379
+    ports:
+      - "8081:8081"
+    networks:
+      - catchgo-network
+
+  jobs-service:
+    build:
+      context: ./Producto/backend
+      dockerfile: Dockerfile
+      args:
+        MODULE: jobs-service
+    container_name: catchgo-jobs
+    restart: on-failure
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/catchandgo
+      SPRING_DATASOURCE_USERNAME: catchandgo
+      SPRING_DATASOURCE_PASSWORD: catchandgo
+      SPRING_DATA_REDIS_HOST: redis-cache
+      SPRING_DATA_REDIS_PORT: 6379
+    ports:
+      - "8083:8083"
+    networks:
+      - catchgo-network
+
+  api-gateway:
+    build:
+      context: ./Producto/backend
+      dockerfile: Dockerfile
+      args:
+        MODULE: api-gateway
+    container_name: catchgo-gateway
+    restart: on-failure
+    depends_on:
+      - auth-service
+      - jobs-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
+    networks:
+      - catchgo-network
+
+volumes:
+  postgres_data:
+
+networks:
+  catchgo-network:
+    driver: bridge
