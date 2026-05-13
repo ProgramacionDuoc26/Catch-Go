@@ -11,6 +11,7 @@ public record JobOfferDto(
     String estado, 
     String empresaId,
     Double latitude,
-    Double longitude
+    Double longitude,
+    String categoria
 ) {
 }

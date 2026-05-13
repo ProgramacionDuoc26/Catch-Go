@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Briefcase, MapPin, Calendar, DollarSign, Save, X, Loader2 } from 'lucide-react';
 import { jobsApi } from '@/lib/api/jobs';
+import LocationPicker from '@/components/maps/LocationPicker';
+
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 export default function EmpresaOfertaEditarPage() {
   const router = useRouter();
@@ -19,7 +22,9 @@ export default function EmpresaOfertaEditarPage() {
     ubicacion: '',
     remuneracion: 0,
     fechaInicio: '',
-    empresaId: ''
+    empresaId: '',
+    latitude: -33.4489,
+    longitude: -70.6693
   });
 
   useEffect(() => {
@@ -35,7 +40,9 @@ export default function EmpresaOfertaEditarPage() {
             ubicacion: res.data.ubicacion || '',
             remuneracion: res.data.remuneracion || 0,
             fechaInicio: res.data.fechaInicio || '',
-            empresaId: res.data.empresaId || ''
+            empresaId: res.data.empresaId || '',
+            latitude: res.data.latitude || -33.4489,
+            longitude: res.data.longitude || -70.6693
           });
         } else if (res.error) {
           console.error('API Error:', res.error);
@@ -139,6 +146,18 @@ export default function EmpresaOfertaEditarPage() {
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input id="remuneracion" type="number" required value={formData.remuneracion} onChange={handleInputChange} className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary" />
               </div>
+            </div>
+
+            <div className="pt-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Ubicación exacta en el mapa</label>
+              <LocationPicker 
+                apiKey={GOOGLE_MAPS_API_KEY}
+                initialLat={formData.latitude}
+                initialLng={formData.longitude}
+                onLocationChange={(lat, lng) => {
+                  setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                }}
+              />
             </div>
           </CardContent>
         </Card>

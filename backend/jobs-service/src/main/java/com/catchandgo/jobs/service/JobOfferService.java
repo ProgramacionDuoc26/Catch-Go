@@ -1,8 +1,12 @@
 package com.catchandgo.jobs.service;
 
 import com.catchandgo.jobs.dto.JobOfferDto;
+import com.catchandgo.jobs.dto.JobApplicationDto;
+import com.catchandgo.jobs.entity.JobOffer;
+import com.catchandgo.jobs.entity.JobApplication;
 import com.catchandgo.jobs.mapper.JobOfferMapper;
 import com.catchandgo.jobs.repository.JobOfferRepository;
+import com.catchandgo.jobs.repository.JobApplicationRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -10,12 +14,12 @@ import org.springframework.stereotype.Service;
 public class JobOfferService {
     private final JobOfferRepository repository;
     private final JobOfferMapper mapper;
-    private final com.catchandgo.jobs.repository.JobApplicationRepository applicationRepository;
+    private final JobApplicationRepository applicationRepository;
     private final NotificationPublisher notificationPublisher;
 
     public JobOfferService(JobOfferRepository repository, 
                            JobOfferMapper mapper, 
-                           com.catchandgo.jobs.repository.JobApplicationRepository applicationRepository,
+                           JobApplicationRepository applicationRepository,
                            NotificationPublisher notificationPublisher) {
         this.repository = repository;
         this.mapper = mapper;
@@ -40,15 +44,14 @@ public class JobOfferService {
             throw new RuntimeException("Ya has postulado a esta oferta");
         }
         
-        com.catchandgo.jobs.entity.JobOffer offer = repository.findById(jobId)
+        JobOffer offer = repository.findById(jobId)
             .orElseThrow(() -> new RuntimeException("Oferta no encontrada"));
 
         try {
-            com.catchandgo.jobs.entity.JobApplication application = new com.catchandgo.jobs.entity.JobApplication();
+            JobApplication application = new JobApplication();
             application.setJobId(jobId);
             application.setUserId(userId);
             application.setEstado("PENDIENTE");
-            application.setEmpresaId(offer.getEmpresaId()); // Asegurar que tenga el ID de la empresa
             applicationRepository.save(application);
 
             // Notificar a la Empresa
@@ -64,25 +67,37 @@ public class JobOfferService {
         }
     }
 
-    public List<com.catchandgo.jobs.dto.JobApplicationDto> findApplicationsByUserId(String userId) {
+    public List<JobApplicationDto> findApplicationsByUserId(String userId) {
         return applicationRepository.findByUserId(userId).stream()
             .map(app -> {
-                String title = repository.findById(app.getJobId())
-                    .map(com.catchandgo.jobs.entity.JobOffer::getTitulo)
-                    .orElse("Oferta no encontrada");
-                return new com.catchandgo.jobs.dto.JobApplicationDto(
+                JobOffer offer = repository.findById(app.getJobId())
+                    .orElse(null);
+                
+                String title = offer != null ? offer.getTitulo() : "Oferta no encontrada";
+                String location = offer != null ? offer.getUbicacion() : "";
+                Double lat = offer != null ? offer.getLatitude() : null;
+                Double lon = offer != null ? offer.getLongitude() : null;
+
+                return new JobApplicationDto(
                     app.getId(),
                     app.getJobId(),
                     title,
                     app.getUserId(),
                     app.getEstado(),
-                    app.getFechaPostulacion()
+                    app.getFechaPostulacion(),
+                    location,
+                    lat,
+                    lon
                 );
             }).toList();
     }
 
-    public List<com.catchandgo.jobs.entity.JobApplication> findApplicationsByEmpresaId(String empresaId) {
+    public List<JobApplication> findApplicationsByEmpresaId(String empresaId) {
         return applicationRepository.findAllByEmpresaId(empresaId);
+    }
+
+    public List<JobApplication> findAllApplications() {
+        return applicationRepository.findAll();
     }
 
     public void delete(Long id) {
@@ -90,12 +105,15 @@ public class JobOfferService {
     }
 
     public JobOfferDto update(Long id, JobOfferDto dto) {
-        com.catchandgo.jobs.entity.JobOffer entity = repository.findById(id).orElseThrow();
+        JobOffer entity = repository.findById(id).orElseThrow();
         entity.setTitulo(dto.titulo());
         entity.setDescripcion(dto.descripcion());
         entity.setUbicacion(dto.ubicacion());
         entity.setRemuneracion(dto.remuneracion());
         entity.setFechaInicio(dto.fechaInicio());
+        entity.setLatitude(dto.latitude());
+        entity.setLongitude(dto.longitude());
+        entity.setCategoria(dto.categoria());
         return mapper.toDto(repository.save(entity));
     }
 
@@ -104,7 +122,7 @@ public class JobOfferService {
     }
 
     public void updateApplicationStatus(Long id, String status) {
-        com.catchandgo.jobs.entity.JobApplication application = applicationRepository.findById(id).orElseThrow();
+        JobApplication application = applicationRepository.findById(id).orElseThrow();
         application.setEstado(status);
         applicationRepository.save(application);
 

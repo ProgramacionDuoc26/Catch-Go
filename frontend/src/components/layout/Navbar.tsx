@@ -13,9 +13,15 @@ export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [hasSession, setHasSession] = useState(false);
   const supabase = createClient();
 
-  const isDashboard = pathname.includes('/trabajador') || pathname.includes('/empresa') || pathname.includes('/admin');
+  React.useEffect(() => {
+    const session = localStorage.getItem('user_info');
+    setHasSession(!!session);
+  }, [pathname]);
+
+  const isDashboard = hasSession && (pathname.includes('/trabajador') || pathname.includes('/empresa') || pathname.includes('/admin'));
   const isTrabajador = pathname.includes('/trabajador');
   const isEmpresa = pathname.includes('/empresa');
   const isAdmin = pathname.includes('/admin');

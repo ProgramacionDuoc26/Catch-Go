@@ -8,5 +8,8 @@ public record JobApplicationDto(
     String jobTitle,
     String userId,
     String estado,
-    LocalDateTime fechaPostulacion
+    LocalDateTime fechaPostulacion,
+    String jobLocation,
+    Double latitude,
+    Double longitude
 ) {}

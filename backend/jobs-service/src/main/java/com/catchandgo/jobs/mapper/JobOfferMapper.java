@@ -18,7 +18,8 @@ public class JobOfferMapper {
             entity.getEstado(),
             entity.getEmpresaId(),
             entity.getLatitude(),
-            entity.getLongitude()
+            entity.getLongitude(),
+            entity.getCategoria()
         );
     }
 
@@ -31,10 +32,11 @@ public class JobOfferMapper {
         entity.setRemuneracion(dto.remuneracion());
         entity.setFechaInicio(dto.fechaInicio());
         entity.setFechaFin(dto.fechaFin());
-        entity.setEstado(dto.estado());
+        entity.setEstado(dto.estado() != null ? dto.estado() : "ABIERTA");
         entity.setEmpresaId(dto.empresaId());
         entity.setLatitude(dto.latitude());
         entity.setLongitude(dto.longitude());
+        entity.setCategoria(dto.categoria());
         return entity;
     }
 }

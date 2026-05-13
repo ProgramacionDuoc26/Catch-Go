@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { APIProvider, Map, Marker, useApiIsLoaded } from '@vis.gl/react-google-maps';
 import { Loader2, MapPin, Navigation } from 'lucide-react';
 
@@ -18,6 +18,13 @@ export default function LocationPicker({ initialLat, initialLng, onLocationChang
     lat: initialLat || DEFAULT_CENTER.lat, 
     lng: initialLng || DEFAULT_CENTER.lng 
   });
+
+  // Sincronizar posición si cambian los props iniciales (ej. después de cargar de API)
+  useEffect(() => {
+    if (initialLat && initialLng) {
+      setMarkerPos({ lat: initialLat, lng: initialLng });
+    }
+  }, [initialLat, initialLng]);
 
   const handleMapClick = useCallback((e: any) => {
     const newLat = e.detail.latLng.lat;

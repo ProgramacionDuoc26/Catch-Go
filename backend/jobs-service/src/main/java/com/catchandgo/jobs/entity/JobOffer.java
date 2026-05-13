@@ -22,6 +22,7 @@ public class JobOffer {
     private String empresaId;
     private Double latitude;
     private Double longitude;
+    private String categoria;
     
     // Getters and Setters
     public Long getId() { return id; }
@@ -47,4 +48,7 @@ public class JobOffer {
     public void setLatitude(Double latitude) { this.latitude = latitude; }
     public Double getLongitude() { return longitude; }
     public void setLongitude(Double longitude) { this.longitude = longitude; }
+
+    public String getCategoria() { return categoria; }
+    public void setCategoria(String categoria) { this.categoria = categoria; }
 }

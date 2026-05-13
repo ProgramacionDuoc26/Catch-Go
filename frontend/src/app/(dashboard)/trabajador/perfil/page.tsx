@@ -56,7 +56,8 @@ export default function TrabajadorPerfilPage() {
   const router = useRouter();
   const [formData, setFormData] = useState<Profile>({
     userId: '', name: '', email: '', phone: '+56 ', birthDate: '',
-    bankName: '', accountType: '', accountNumber: '', type: 'TRABAJADOR'
+    bankName: '', accountType: '', accountNumber: '', type: 'TRABAJADOR',
+    latitude: -33.4489, longitude: -70.6693
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
