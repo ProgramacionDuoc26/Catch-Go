@@ -13,7 +13,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   nombre: string;
-  tipo: 'EMPRESA' | 'TRABAJADOR';
+  tipo: 'EMPRESA' | 'TRABAJADOR' | 'ADMIN';
   telefono: string;
 }
 
@@ -27,7 +27,7 @@ export interface Usuario {
   id: string | number;
   email: string;
   nombre: string;
-  tipo: 'EMPRESA' | 'TRABAJADOR';
+  tipo: 'EMPRESA' | 'TRABAJADOR' | 'ADMIN';
   telefono?: string;
   avatar_url?: string;
   created_at: string;

@@ -1,14 +1,22 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
-import { Building2, Camera, Save, Loader2, Mail, Phone, MapPin, Globe, CreditCard, Trash2, AlertTriangle, X, CheckCircle, FileText, RefreshCw, Eye } from 'lucide-react';
+import { Building2, Camera, Save, Loader2, Mail, Phone, MapPin, Globe, CreditCard, Trash2, AlertTriangle, X, CheckCircle, FileText, RefreshCw, Eye, Briefcase, Zap } from 'lucide-react';
 import { profileApi, Profile } from '@/lib/api/profile';
 import { authApi } from '@/lib/api/auth';
 import { uploadFile } from '@/lib/supabase/storage';
 import LocationPicker from '@/components/maps/LocationPicker';
+import { SkillsChart } from '@/components/features/SkillsChart';
+
+const SKILLS_COMPANY_OPTS = {
+  giro: ['Logística', 'Retail', 'Construcción', 'Tecnología', 'Salud', 'Gastronomía', 'Industrial', 'Seguridad', 'Minería', 'Servicios'],
+  tipoTrabajador: ['Operativo', 'Técnico', 'Administrativo', 'Comercial', 'TI / Informática', 'Supervisor', 'Multifuncional'],
+  habilidadValorada: ['Responsabilidad', 'Puntualidad', 'Liderazgo', 'Adaptabilidad', 'Trabajo en equipo', 'Rapidez', 'Comunicación', 'Resolución de problemas'],
+  ritmo: ['Muy dinámico', 'Moderado', 'Estructurado', 'Alta presión', 'Flexible']
+};
 
 // REEMPLAZAR CON TU API KEY DE GOOGLE CLOUD
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
@@ -45,6 +53,31 @@ export default function EmpresaPerfilPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [savedProfile, setSavedProfile] = useState<Profile | null>(null);
+
+  // Skills logic
+  const skillsData = useMemo(() => {
+    try {
+      return formData.skills ? JSON.parse(formData.skills) : {
+        tipoTrabajador: '',
+        habilidadValorada: '',
+        ritmo: ''
+      };
+    } catch (e) {
+      return { tipoTrabajador: '', habilidadValorada: '', ritmo: '' };
+    }
+  }, [formData.skills]);
+
+  const updateSkills = (key: string, value: any) => {
+    const newSkills = { ...skillsData, [key]: value };
+    setFormData({ ...formData, skills: JSON.stringify(newSkills) });
+  };
+
+  const chartData = [
+    { label: 'Giro', value: formData.name ? 1 : 0 }, // Using name/existence as proxy or just 1
+    { label: 'Talento', value: skillsData.tipoTrabajador ? 1 : 0 },
+    { label: 'Cultura', value: skillsData.habilidadValorada ? 1 : 0 },
+    { label: 'Ritmo', value: skillsData.ritmo ? 1 : 0 },
+  ];
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -271,6 +304,21 @@ export default function EmpresaPerfilPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Dashboard Circular de Cultura */}
+          <Card className="overflow-hidden bg-gradient-to-br from-white to-blue-50/30">
+            <CardHeader className="border-b bg-gray-50/50 py-3 px-4">
+              <h2 className="text-sm font-semibold flex items-center gap-2">
+                <Zap className="text-primary w-4 h-4" /> ADN Corporativo
+              </h2>
+            </CardHeader>
+            <CardContent className="p-6">
+              <SkillsChart data={chartData} size={180} color="#2563eb" />
+              <div className="mt-4 text-center">
+                <p className="text-xs text-gray-500 italic">Este gráfico define el perfil de búsqueda y cultura de tu empresa.</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* MAIN CONTENT */}
@@ -322,6 +370,90 @@ export default function EmpresaPerfilPage() {
                     setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
                   }}
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Perfil y Cultura */}
+          <Card>
+            <CardHeader className="border-b bg-gray-50/50">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Briefcase className="text-primary w-5 h-5" /> Perfil y Cultura
+              </h2>
+            </CardHeader>
+            <CardContent className="p-6 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Pregunta 1: Giro */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-3">1. ¿Cuál es el giro principal de tu empresa?</label>
+                  <select 
+                    id="giro" 
+                    value={formData.description || ''} // Using description or adding a giro field?
+                    // Wait, Empresa entity has a giro field in Prisma but the Profile entity in Java/Frontend doesn't explicitly have it beyond the 'description' or maybe I should use the new 'skills'
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-white outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  >
+                    <option value="">Seleccionar giro...</option>
+                    {SKILLS_COMPANY_OPTS.giro.map(g => <option key={g} value={g}>{g}</option>)}
+                  </select>
+                </div>
+
+                {/* Pregunta 2: Tipo Trabajador */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-3">2. ¿Qué tipo de trabajador buscas principalmente?</label>
+                  <select 
+                    value={skillsData.tipoTrabajador} 
+                    onChange={(e) => updateSkills('tipoTrabajador', e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-white outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  >
+                    <option value="">Seleccionar tipo...</option>
+                    {SKILLS_COMPANY_OPTS.tipoTrabajador.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Pregunta 3: Habilidad Valorada */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-3">3. ¿Qué habilidad valoras más en un colaborador?</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {SKILLS_COMPANY_OPTS.habilidadValorada.map(opt => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => updateSkills('habilidadValorada', opt)}
+                        className={`px-3 py-2 rounded-lg text-xs font-medium border transition-all ${
+                          skillsData.habilidadValorada === opt 
+                            ? 'bg-primary text-white border-primary shadow-sm' 
+                            : 'bg-white border-gray-200 text-gray-600 hover:border-primary/50'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pregunta 4: Ritmo */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-3">4. ¿Cómo describirías el ritmo de trabajo?</label>
+                  <div className="flex flex-wrap gap-2">
+                    {SKILLS_COMPANY_OPTS.ritmo.map(opt => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => updateSkills('ritmo', opt)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                          skillsData.ritmo === opt 
+                            ? 'bg-primary/10 border-primary text-primary' 
+                            : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

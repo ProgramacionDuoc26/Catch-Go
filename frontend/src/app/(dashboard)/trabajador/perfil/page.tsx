@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
@@ -11,8 +11,16 @@ import { jobsApi } from '@/lib/api/jobs';
 import { createClient } from '@/lib/supabase/client';
 import { uploadFile } from '@/lib/supabase/storage';
 import { authApi } from '@/lib/api/auth';
-import { Trash2, AlertTriangle, X } from 'lucide-react';
+import { Trash2, AlertTriangle, X, CheckSquare, Square } from 'lucide-react';
 import LocationPicker from '@/components/maps/LocationPicker';
+import { SkillsChart } from '@/components/features/SkillsChart';
+
+const SKILLS_WORKER_OPTS = {
+  habilidades: ['Atención al cliente', 'Conducción', 'Manejo Excel', 'Inventario', 'Ventas', 'Programación', 'Diseño', 'Trabajo físico', 'Electricidad', 'Mecánica', 'Liderazgo', 'Logística'],
+  ambiente: ['Trabajo en equipo', 'Trabajo individual', 'Trabajo en terreno', 'Oficina', 'Alta presión', 'Flexible'],
+  caracteristica: ['Responsable', 'Rápido', 'Ordenado', 'Creativo', 'Líder', 'Comunicativo', 'Analítico'],
+  preferencia: ['Part Time', 'Turnos', 'Freelance', 'Temporal', 'Fines de semana']
+};
 
 // REEMPLAZAR CON TU API KEY DE GOOGLE CLOUD
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
@@ -61,6 +69,32 @@ export default function TrabajadorPerfilPage() {
   const [deletePassword, setDeletePassword] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+
+  // Skills logic
+  const skillsData = useMemo(() => {
+    try {
+      return formData.skills ? JSON.parse(formData.skills) : {
+        habilidades: [],
+        ambiente: '',
+        caracteristica: '',
+        preferencia: ''
+      };
+    } catch (e) {
+      return { habilidades: [], ambiente: '', caracteristica: '', preferencia: '' };
+    }
+  }, [formData.skills]);
+
+  const updateSkills = (key: string, value: any) => {
+    const newSkills = { ...skillsData, [key]: value };
+    setFormData({ ...formData, skills: JSON.stringify(newSkills) });
+  };
+
+  const chartData = [
+    { label: 'Habilidades', value: skillsData.habilidades.length / SKILLS_WORKER_OPTS.habilidades.length },
+    { label: 'Ambiente', value: skillsData.ambiente ? 1 : 0 },
+    { label: 'Perfil', value: skillsData.caracteristica ? 1 : 0 },
+    { label: 'Preferencia', value: skillsData.preferencia ? 1 : 0 },
+  ];
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -372,6 +406,21 @@ export default function TrabajadorPerfilPage() {
               </Link>
             </CardContent>
           </Card>
+
+          {/* Dashboard Circular de Habilidades */}
+          <Card className="overflow-hidden bg-gradient-to-br from-white to-blue-50/30">
+            <CardHeader className="border-b bg-gray-50/50 py-3 px-4">
+              <h2 className="text-sm font-semibold flex items-center gap-2">
+                <CheckCircle className="text-primary w-4 h-4" /> Perfil de Aptitudes
+              </h2>
+            </CardHeader>
+            <CardContent className="p-6">
+              <SkillsChart data={chartData} size={180} />
+              <div className="mt-4 text-center">
+                <p className="text-xs text-gray-500 italic">Visualización basada en tus habilidades y preferencias seleccionadas.</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* ═══ CONTENIDO PRINCIPAL ═══ */}
@@ -431,6 +480,111 @@ export default function TrabajadorPerfilPage() {
                       className={`w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary ${birthDateLocked ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''}`} />
                   </div>
                   {birthDateLocked && <p className="text-xs text-gray-400 mt-1">La fecha de nacimiento no se puede modificar</p>}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Habilidades y Preferencias */}
+          <Card>
+            <CardHeader className="border-b bg-gray-50/50">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Briefcase className="text-primary w-5 h-5" /> Habilidades y Preferencias
+              </h2>
+            </CardHeader>
+            <CardContent className="p-6 space-y-8">
+              {/* Pregunta 1: Habilidades (Múltiple) */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-3">1. ¿Cuáles son tus principales habilidades? (Selección múltiple)</label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {SKILLS_WORKER_OPTS.habilidades.map(skill => {
+                    const isSelected = skillsData.habilidades.includes(skill);
+                    return (
+                      <button
+                        key={skill}
+                        type="button"
+                        onClick={() => {
+                          const newHabs = isSelected 
+                            ? skillsData.habilidades.filter((s: string) => s !== skill)
+                            : [...skillsData.habilidades, skill];
+                          updateSkills('habilidades', newHabs);
+                        }}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium border transition-all ${
+                          isSelected 
+                            ? 'bg-primary/10 border-primary text-primary shadow-sm' 
+                            : 'bg-white border-gray-200 text-gray-600 hover:border-primary/50'
+                        }`}
+                      >
+                        {isSelected ? <CheckSquare size={14} /> : <Square size={14} />}
+                        {skill}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Pregunta 2: Ambiente */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-3">2. ¿En qué ambiente trabajas mejor?</label>
+                  <div className="space-y-2">
+                    {SKILLS_WORKER_OPTS.ambiente.map(opt => (
+                      <label key={opt} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                        skillsData.ambiente === opt ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:bg-gray-50'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="ambiente"
+                          checked={skillsData.ambiente === opt}
+                          onChange={() => updateSkills('ambiente', opt)}
+                          className="w-4 h-4 text-primary focus:ring-primary border-gray-300"
+                        />
+                        <span className="text-sm text-gray-700">{opt}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pregunta 3: Característica */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-3">3. ¿Qué te caracteriza más?</label>
+                  <div className="space-y-2">
+                    {SKILLS_WORKER_OPTS.caracteristica.map(opt => (
+                      <label key={opt} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                        skillsData.caracteristica === opt ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:bg-gray-50'
+                      }`}>
+                        <input
+                          type="radio"
+                          name="caracteristica"
+                          checked={skillsData.caracteristica === opt}
+                          onChange={() => updateSkills('caracteristica', opt)}
+                          className="w-4 h-4 text-primary focus:ring-primary border-gray-300"
+                        />
+                        <span className="text-sm text-gray-700">{opt}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Pregunta 4: Preferencia */}
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-3">4. ¿Qué tipo de trabajo prefieres?</label>
+                <div className="flex flex-wrap gap-2">
+                  {SKILLS_WORKER_OPTS.preferencia.map(opt => (
+                    <button
+                      key={opt}
+                      type="button"
+                      onClick={() => updateSkills('preferencia', opt)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                        skillsData.preferencia === opt 
+                          ? 'bg-primary text-white border-primary shadow-md' 
+                          : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
                 </div>
               </div>
             </CardContent>

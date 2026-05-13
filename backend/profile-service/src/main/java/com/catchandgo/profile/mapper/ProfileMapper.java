@@ -27,6 +27,7 @@ public class ProfileMapper {
         dto.setType(entity.getType());
         dto.setLatitude(entity.getLatitude());
         dto.setLongitude(entity.getLongitude());
+        dto.setSkills(entity.getSkills());
         return dto;
     }
 
@@ -50,6 +51,7 @@ public class ProfileMapper {
         entity.setType(dto.getType());
         entity.setLatitude(dto.getLatitude());
         entity.setLongitude(dto.getLongitude());
+        entity.setSkills(dto.getSkills());
         return entity;
     }
 }

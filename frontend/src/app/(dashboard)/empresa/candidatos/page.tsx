@@ -61,7 +61,22 @@ export default function EmpresaCandidatosPage() {
       }
     };
     fetchInitialData();
-  }, []);  const handleViewMap = async (candidato: any) => {
+  }, []);
+
+  const handleAction = async (applicationId: string, status: string) => {
+    try {
+      await jobsApi.updateApplicationStatus(applicationId, status);
+      // Actualizar estado local
+      setCandidatos(prev => prev.map(c => 
+        c.id === applicationId ? { ...c, estado: status } : c
+      ));
+    } catch (error) {
+      console.error('Error updating application status:', error);
+      alert('Error al actualizar el estado de la postulación');
+    }
+  };
+
+  const handleViewMap = async (candidato: any) => {
     setSelectedCandidateForMap(candidato);
     setCandidateProfileForMap(null); // Reset
     try {

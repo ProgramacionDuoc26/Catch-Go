@@ -15,9 +15,10 @@ export interface Profile {
   bankName?: string;
   accountType?: string;
   accountNumber?: string;
-  type: 'TRABAJADOR' | 'EMPRESA';
+  type: 'TRABAJADOR' | 'EMPRESA' | 'ADMIN';
   latitude?: number;
   longitude?: number;
+  skills?: string;
 }
 
 export const profileApi = {

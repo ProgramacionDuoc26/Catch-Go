@@ -48,6 +48,11 @@ public class JobOfferController {
         return service.findApplicationsByEmpresaId(employerId);
     }
 
+    @GetMapping("/applications")
+    public List<com.catchandgo.jobs.entity.JobApplication> findAllApplications() {
+        return service.findAllApplications();
+    }
+
     @org.springframework.web.bind.annotation.PutMapping("/{id}")
     public JobOfferDto update(@org.springframework.web.bind.annotation.PathVariable("id") Long id, @RequestBody JobOfferDto dto) {
         return service.update(id, dto);

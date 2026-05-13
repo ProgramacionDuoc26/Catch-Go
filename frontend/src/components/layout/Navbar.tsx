@@ -13,9 +13,10 @@ export function Navbar() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const supabase = createClient();
 
-  const isDashboard = pathname.includes('/trabajador') || pathname.includes('/empresa');
+  const isDashboard = pathname.includes('/trabajador') || pathname.includes('/empresa') || pathname.includes('/admin');
   const isTrabajador = pathname.includes('/trabajador');
   const isEmpresa = pathname.includes('/empresa');
+  const isAdmin = pathname.includes('/admin');
 
   const handleLogout = async () => {
     try {
@@ -63,13 +64,22 @@ export function Navbar() {
               </>
             ) : (
               <>
-                <Link href={isTrabajador ? "/trabajador/ofertas" : "/empresa/ofertas"} className="text-primary-dark font-medium hover:text-primary transition-colors flex items-center gap-1">
+                <Link 
+                  href={isAdmin ? "/admin" : (isTrabajador ? "/trabajador/ofertas" : "/empresa/ofertas")} 
+                  className="text-primary-dark font-medium hover:text-primary transition-colors flex items-center gap-1"
+                >
                   <LayoutDashboard size={18} />
                   Dashboard
                 </Link>
-                <Link href={isTrabajador ? "/trabajador/postulaciones" : "/empresa/candidatos"} className="text-primary-dark font-medium hover:text-primary transition-colors">
-                  {isTrabajador ? "Mis Postulaciones" : "Gestión Candidatos"}
-                </Link>
+                {isAdmin ? (
+                  <Link href="/admin?tab=reports" className="text-primary-dark font-medium hover:text-primary transition-colors">
+                    Reportes
+                  </Link>
+                ) : (
+                  <Link href={isTrabajador ? "/trabajador/postulaciones" : "/empresa/candidatos"} className="text-primary-dark font-medium hover:text-primary transition-colors">
+                    {isTrabajador ? "Mis Postulaciones" : "Gestión Candidatos"}
+                  </Link>
+                )}
               </>
             )}
           </nav>
@@ -85,11 +95,11 @@ export function Navbar() {
                   <span className="hidden lg:inline">Cerrar Sesión</span>
                 </button>
                 <Link
-                  href={isTrabajador ? "/trabajador/perfil" : "/empresa/perfil"}
+                  href={isAdmin ? "/admin/configuracion" : (isTrabajador ? "/trabajador/perfil" : "/empresa/perfil")}
                   className="flex items-center gap-2 bg-gray-100 text-text-main px-4 py-2 rounded-full hover:bg-gray-200 transition-colors font-medium border border-gray-200"
                 >
                   <User className="w-5 h-5 text-primary" />
-                  <span className="hidden sm:inline">Mi Perfil</span>
+                  <span className="hidden sm:inline">{isAdmin ? "Admin" : "Mi Perfil"}</span>
                 </Link>
               </>
             ) : (

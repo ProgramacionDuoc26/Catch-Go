@@ -33,6 +33,10 @@ public class Profile {
     private Double latitude;
     private Double longitude;
 
+    // Perfil de habilidades (JSON String)
+    @Column(columnDefinition = "TEXT")
+    private String skills;
+
     // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -65,4 +69,7 @@ public class Profile {
     public void setLatitude(Double latitude) { this.latitude = latitude; }
     public Double getLongitude() { return longitude; }
     public void setLongitude(Double longitude) { this.longitude = longitude; }
+
+    public String getSkills() { return skills; }
+    public void setSkills(String skills) { this.skills = skills; }
 }
