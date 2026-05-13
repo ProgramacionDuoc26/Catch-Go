@@ -150,6 +150,25 @@ services:
     networks:
       - catchgo-network
 
+  notification-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        MODULE: notification-service
+    container_name: catch-and-go-notifications
+    ports:
+      - "8088:8085"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-super-secret-key-for-development-must-be-long-enough}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - catchgo-network
+
   # ── Visualización de Base de Datos ──
   adminer:
     image: adminer:latest

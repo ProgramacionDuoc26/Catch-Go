@@ -7,6 +7,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from "@/components/ui/Button";
 
+import { NotificationBell } from "./NotificationBell";
+
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -94,6 +96,9 @@ export function Navbar() {
                   <LogOut className="w-4 h-4" />
                   <span className="hidden lg:inline">Cerrar Sesión</span>
                 </button>
+                
+                <NotificationBell />
+
                 <Link
                   href={isAdmin ? "/admin/configuracion" : (isTrabajador ? "/trabajador/perfil" : "/empresa/perfil")}
                   className="flex items-center gap-2 bg-gray-100 text-text-main px-4 py-2 rounded-full hover:bg-gray-200 transition-colors font-medium border border-gray-200"
