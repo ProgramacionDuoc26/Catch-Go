@@ -5,6 +5,7 @@
 # Next.js
 **/.next/
 **/out/
+*.tsbuildinfo
 
 # Environment Variables
 **/.env
@@ -31,3 +32,16 @@ yarn-error.log*
 # Database
 **/prisma/*.db
 **/prisma/*.db-journal
+
+# Java / Maven
+**/target/
+**/*.class
+**/*.jar
+**/*.war
+**/*.ear
+**/maven-archiver/
+**/maven-status/
+.factorypath
+.project
+.settings/
+.classpath/
