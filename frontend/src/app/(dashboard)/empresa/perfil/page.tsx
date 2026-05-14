@@ -42,6 +42,11 @@ export default function EmpresaPerfilPage() {
     bankName: '',
     accountType: '',
     accountNumber: '',
+    latitude: -33.4489,
+    longitude: -70.6693,
+    rut: '',
+    representativeName: '',
+    address: '',
     type: 'EMPRESA'
   });
 
@@ -84,17 +89,31 @@ export default function EmpresaPerfilPage() {
       setLoading(true);
       let realUserId = '';
       try {
-        const storedUser = localStorage.getItem('user_info');
-        let initialData = { name: '', email: '', phone: '+56 ' };
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+        let initialData = { name: '', email: '', phone: '+56 ', photo: '' };
 
-        if (storedUser) {
-          const userData = JSON.parse(storedUser);
-          realUserId = userData.id?.toString() || '';
+        if (supabaseUser) {
+          realUserId = supabaseUser.id;
           initialData = { 
-            name: userData.nombre || '', 
-            email: userData.email || '', 
-            phone: userData.telefono || '+56 ' 
+            name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || '', 
+            email: supabaseUser.email || '', 
+            phone: '+56 ',
+            photo: supabaseUser.user_metadata?.avatar_url || ''
           };
+        } else {
+          const storedUser = localStorage.getItem('user_info');
+          if (storedUser) {
+            const userData = JSON.parse(storedUser);
+            realUserId = userData.id?.toString() || '';
+            initialData = { 
+              name: userData.nombre || '', 
+              email: userData.email || '', 
+              phone: userData.telefono || '+56 ',
+              photo: userData.foto || ''
+            };
+          }
         }
 
         if (!realUserId) {
@@ -112,7 +131,10 @@ export default function EmpresaPerfilPage() {
             name: res.data.name || initialData.name || '',
             email: res.data.email || initialData.email || '',
             phone: res.data.phone || initialData.phone || '',
-            type: 'EMPRESA' as const
+            photoUrl: res.data.photoUrl || initialData.photo || '',
+            type: 'EMPRESA' as const,
+            // Recuperar datos extendidos del campo skills si existen
+            ...(res.data.skills ? JSON.parse(res.data.skills) : {})
           };
           setFormData(p);
           setSavedProfile(p);
@@ -122,17 +144,39 @@ export default function EmpresaPerfilPage() {
             userId: realUserId, 
             name: initialData.name, 
             email: initialData.email, 
-            phone: initialData.phone 
+            phone: initialData.phone,
+            photoUrl: initialData.photo
           }));
         }
       } catch (error) {
         console.error('Error fetching company profile:', error);
       } finally {
         setLoading(false);
+
+        // AUTO-DETECCION DE UBICACION (Solo si no hay coordenadas guardadas)
+        if (navigator.geolocation && !savedProfile?.latitude) {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              const { latitude, longitude } = position.coords;
+              setFormData(prev => ({ ...prev, latitude, longitude }));
+              
+              // También detectar dirección al inicio
+              try {
+                const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`);
+                const data = await response.json();
+                if (data.results && data.results[0]) {
+                  setFormData(prev => ({ ...prev, address: data.results[0].formatted_address }));
+                }
+              } catch (e) {}
+            },
+            (error) => console.warn('Error detectando ubicación de empresa:', error.message),
+            { enableHighAccuracy: true }
+          );
+        }
       }
     };
     fetchProfile();
-  }, [router]);
+  }, [router, savedProfile?.latitude]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     let { id, value } = e.target;
@@ -145,9 +189,43 @@ export default function EmpresaPerfilPage() {
   };
 
   const handleSave = async () => {
+    // VALIDACION DE CAMPOS OBLIGATORIOS
+    const required = [
+      { field: 'name', label: 'Nombre de la Empresa' },
+      { field: 'rut', label: 'RUT' },
+      { field: 'representativeName', label: 'Representante Legal' },
+      { field: 'address', label: 'Dirección' },
+      { field: 'phone', label: 'Teléfono' },
+      { field: 'description', label: 'Descripción/Aptitudes' },
+      { field: 'bankName', label: 'Banco' },
+      { field: 'accountType', label: 'Tipo de Cuenta' },
+      { field: 'accountNumber', label: 'Número de Cuenta' }
+    ];
+
+    const missing = required.filter(r => !formData[r.field as keyof typeof formData]);
+    if (missing.length > 0) {
+      alert(`Los siguientes campos son obligatorios para empresas:\n- ${missing.map(m => m.label).join('\n- ')}`);
+      return;
+    }
+
     setSaving(true);
     try {
-      const res = await profileApi.save(formData);
+      // Empaquetar RUT, Representante y Dirección en el campo skills para persistencia
+      const extendedData = {
+        rut: formData.rut,
+        representativeName: formData.representativeName,
+        address: formData.address
+      };
+      
+      const dataToSave = {
+        ...formData,
+        skills: JSON.stringify({
+          ...skillsData,
+          ...extendedData
+        })
+      };
+
+      const res = await profileApi.save(dataToSave);
       if (!res.error) {
         const updatedData = res.data || formData;
         setFormData(prev => ({ ...prev, ...updatedData }));
@@ -228,6 +306,26 @@ export default function EmpresaPerfilPage() {
     }
   };
 
+  const handleSearchAddress = async () => {
+    if (!formData.address) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(formData.address)}&key=${GOOGLE_MAPS_API_KEY}`);
+      const data = await response.json();
+      if (data.results && data.results[0]) {
+        const { lat, lng } = data.results[0].geometry.location;
+        setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+        console.log('Mapa actualizado desde dirección escrita:', lat, lng);
+      } else {
+        alert("No se pudo encontrar esa dirección en el mapa.");
+      }
+    } catch (e) {
+      console.error("Error buscando dirección:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
@@ -262,7 +360,8 @@ export default function EmpresaPerfilPage() {
               <div className="relative group mb-4">
                 <div className="w-36 h-36 rounded-2xl bg-gray-50 flex items-center justify-center border-2 border-dashed border-gray-200 overflow-hidden shadow-sm">
                   {formData.photoUrl ? (
-                    <img src={formData.photoUrl} alt="Logo" className="w-full h-full object-contain p-2" />
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={formData.photoUrl} alt="Logo de empresa" className="w-full h-full object-contain p-2" />
                   ) : (
                     <Building2 className="w-16 h-16 text-gray-300" />
                   )}
@@ -331,33 +430,67 @@ export default function EmpresaPerfilPage() {
             </CardHeader>
             <CardContent className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la Empresa / Razón Social</label>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Nombre de la Empresa <span className="text-red-500">*</span></label>
                   <input id="name" type="text" value={formData.name} onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" />
+                    placeholder="Nombre legal o fantasía"
+                    className="w-full border border-slate-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 placeholder:text-slate-400 shadow-sm" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico de Contacto</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">RUT de la Empresa <span className="text-red-500">*</span></label>
+                  <input id="rut" type="text" value={formData.rut} onChange={handleInputChange}
+                    placeholder="76.123.456-K"
+                    className="w-full border border-slate-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 placeholder:text-slate-400 shadow-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Nombre Representante Legal <span className="text-red-500">*</span></label>
+                  <input id="representativeName" type="text" value={formData.representativeName} onChange={handleInputChange}
+                    placeholder="Juan Perez"
+                    className="w-full border border-slate-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 placeholder:text-slate-400 shadow-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Correo Electrónico de Contacto <span className="text-red-500">*</span></label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4.5 h-4.5" />
                     <input id="email" type="email" value={formData.email} onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" />
+                      className="w-full pl-12 pr-5 py-3.5 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 shadow-sm bg-slate-50" readOnly />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono Corporativo</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Teléfono Corporativo <span className="text-red-500">*</span></label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4.5 h-4.5" />
                     <input id="phone" type="text" value={formData.phone} onChange={handleInputChange}
-                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" />
+                      className="w-full pl-12 pr-5 py-3.5 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 shadow-sm" />
+                  </div>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Dirección de la Empresa <span className="text-red-500">*</span></label>
+                  <div className="flex gap-3">
+                    <div className="relative flex-1">
+                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4.5 h-4.5" />
+                      <input id="address" type="text" value={formData.address} onChange={handleInputChange}
+                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSearchAddress())}
+                        placeholder="Calle Falsa 123, Santiago"
+                        className="w-full pl-12 pr-5 py-3.5 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 shadow-sm" />
+                    </div>
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      onClick={handleSearchAddress}
+                      className="rounded-2xl px-8 h-[54px] border-slate-200 text-slate-700 hover:bg-slate-50 font-bold shadow-sm"
+                    >
+                      Buscar
+                    </Button>
                   </div>
                 </div>
               </div>
+              <p className="text-[10px] text-gray-400 mt-1 italic">Puedes escribir la dirección y presionar &quot;Buscar&quot; o mover el pin en el mapa.</p>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción de la Empresa</label>
-                <textarea id="description" rows={3} value={formData.description} onChange={handleInputChange}
-                  placeholder="Describe la actividad de tu empresa..."
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none" />
+                <label className="block text-sm font-medium text-slate-700 mb-2.5">Descripción de la Empresa <span className="text-red-500">*</span></label>
+                <textarea id="description" value={formData.description} onChange={handleInputChange}
+                  rows={4} className="w-full border border-slate-200 rounded-3xl px-6 py-4 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 placeholder:text-slate-400 shadow-sm"
+                  placeholder="Describe la misión y visión de tu empresa..." />
               </div>
 
               {/* MAPA DE GEOLOCALIZACION */}
@@ -366,8 +499,20 @@ export default function EmpresaPerfilPage() {
                   apiKey={GOOGLE_MAPS_API_KEY}
                   initialLat={formData.latitude}
                   initialLng={formData.longitude}
-                  onLocationChange={(lat, lng) => {
+                  onLocationChange={async (lat, lng) => {
                     setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                    
+                    // Obtener dirección aproximada mediante Geocoding inverso
+                    try {
+                      const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`);
+                      const data = await response.json();
+                      if (data.results && data.results[0]) {
+                        const address = data.results[0].formatted_address;
+                        setFormData(prev => ({ ...prev, address }));
+                      }
+                    } catch (e) {
+                      console.error("Error obteniendo dirección:", e);
+                    }
                   }}
                 />
               </div>
@@ -498,29 +643,29 @@ export default function EmpresaPerfilPage() {
               </h2>
             </CardHeader>
             <CardContent className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Banco</label>
-                <select id="bankName" value={formData.bankName} onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-white outline-none focus:ring-2 focus:ring-primary/20 transition-all">
-                  <option value="">Seleccionar...</option>
-                  {BANCOS_CHILE.map(b => <option key={b} value={b}>{b}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Cuenta</label>
-                <select id="accountType" value={formData.accountType} onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-white outline-none focus:ring-2 focus:ring-primary/20 transition-all">
-                  <option value="">Seleccionar...</option>
-                  <option value="VISTA">Cuenta Vista / RUT</option>
-                  <option value="CORRIENTE">Cuenta Corriente</option>
-                  <option value="AHORRO">Cuenta de Ahorro</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Número de Cuenta</label>
-                <input id="accountNumber" type="text" value={formData.accountNumber} onChange={handleInputChange}
-                  className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none border-gray-300 focus:ring-2 focus:ring-primary/20 transition-all" />
-              </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Banco <span className="text-red-500">*</span></label>
+                  <select id="bankName" value={formData.bankName} onChange={handleInputChange}
+                    className="w-full border border-slate-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 shadow-sm bg-white">
+                    <option value="">Seleccionar banco...</option>
+                    {BANCOS_CHILE.map(b => <option key={b} value={b}>{b}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Tipo de Cuenta <span className="text-red-500">*</span></label>
+                  <select id="accountType" value={formData.accountType} onChange={handleInputChange}
+                    className="w-full border border-slate-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 shadow-sm bg-white">
+                    <option value="">Seleccionar...</option>
+                    <option value="VISTA">Cuenta Vista / RUT</option>
+                    <option value="CORRIENTE">Cuenta Corriente</option>
+                    <option value="AHORRO">Cuenta de Ahorro</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Número de Cuenta <span className="text-red-500">*</span></label>
+                  <input id="accountNumber" type="text" value={formData.accountNumber} onChange={handleInputChange}
+                    className="w-full border border-slate-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 shadow-sm" />
+                </div>
             </CardContent>
           </Card>
 

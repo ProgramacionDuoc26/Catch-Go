@@ -114,7 +114,7 @@ function Directions({
     }).catch(e => {
       console.error("Directions request failed", e);
     });
-  }, [directionsService, directionsRenderer, origin, destination]);
+  }, [directionsService, directionsRenderer, origin, destination, onRouteCalculated]);
 
   return null;
 }

@@ -59,27 +59,32 @@ export function NotificationBell() {
                     {notifications.map((notif) => (
                       <div 
                         key={notif.id}
-                        className={`p-5 hover:bg-slate-50 transition-colors relative group ${!notif.read ? 'bg-blue-50/30' : ''}`}
+                        className={`p-5 hover:bg-slate-50 transition-colors relative group 
+                          ${!notif.read && notif.type === 'success' ? 'bg-green-50/80 border-b border-green-100' : 
+                            !notif.read ? 'bg-blue-50/40' : ''}`}
                         onClick={() => markAsRead(notif.id)}
                       >
                         {!notif.read && (
-                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
+                          <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${notif.type === 'success' ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-blue-500'}`} />
                         )}
                         <div className="flex justify-between items-start mb-1">
-                          <p className={`font-bold text-sm ${!notif.read ? 'text-slate-900' : 'text-slate-600'}`}>
-                            {notif.title}
+                          <p className={`font-black text-sm ${
+                            !notif.read && notif.type === 'success' ? 'text-green-900 text-base' :
+                            !notif.read ? 'text-blue-900' : 'text-slate-600'
+                          }`}>
+                            {notif.type === 'success' ? '🏆 ' : '📝 '}{notif.title}
                           </p>
                           <span className="text-[10px] text-slate-400 flex items-center gap-1">
                             <Clock size={10} />
                             {new Date(notif.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-500 leading-relaxed">
+                        <p className={`text-xs leading-relaxed font-medium ${notif.type === 'success' ? 'text-green-800' : 'text-blue-800/70'}`}>
                           {notif.message}
                         </p>
                         {!notif.read && (
                           <button 
-                            className="mt-3 text-[10px] font-black text-primary uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1"
+                            className={`mt-3 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 ${notif.type === 'success' ? 'text-green-700' : 'text-blue-600'}`}
                           >
                             <Check size={10} /> Marcar como leída
                           </button>

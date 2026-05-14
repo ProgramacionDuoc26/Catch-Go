@@ -52,7 +52,7 @@ export const adminApi = {
       email: adminData.email,
       password: adminData.password,
       nombre: adminData.name,
-      tipo: 'ADMIN',
+      tipo: adminData.tipo || 'ADMIN',
       telefono: adminData.phone || '+56900000000'
     });
 
@@ -60,15 +60,14 @@ export const adminApi = {
       throw new Error(authRes.error || 'Error al crear cuenta de autenticación');
     }
 
-    // 2. Profile is automatically created by Auth Service in some setups, 
-    // but here we ensure it exists or update it
+    // 2. Profile
     const profileData = {
       userId: authRes.data.usuario.id.toString(),
       name: adminData.name,
       email: adminData.email,
       phone: adminData.phone || '+56900000000',
       birthDate: '1990-01-01',
-      type: 'ADMIN',
+      type: adminData.tipo || 'ADMIN',
       description: adminData.description || 'Administrador del Sistema',
       latitude: -33.4489,
       longitude: -70.6693

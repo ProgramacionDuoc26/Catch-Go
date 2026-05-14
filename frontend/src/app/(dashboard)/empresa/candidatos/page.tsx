@@ -9,15 +9,18 @@ import Link from 'next/link';
 import { jobsApi } from '@/lib/api/jobs';
 import { profileApi, Profile } from '@/lib/api/profile';
 import JobDistanceMap from '@/components/maps/JobDistanceMap';
+import { useNotifications } from '@/context/NotificationContext';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 export default function EmpresaCandidatosPage() {
+  const { addNotification } = useNotifications();
   const [candidatos, setCandidatos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [employerProfile, setEmployerProfile] = useState<Profile | null>(null);
   const [selectedCandidateForMap, setSelectedCandidateForMap] = useState<any | null>(null);
   const [candidateProfileForMap, setCandidateProfileForMap] = useState<Profile | null>(null);
+  const [activeTab, setActiveTab] = useState<'pendientes' | 'gestionados'>('pendientes');
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -41,18 +44,43 @@ export default function EmpresaCandidatosPage() {
 
         const response = await jobsApi.getApplicationsByEmployerId(realEmpresaId);
         if (response.data) {
-          const mapped = response.data.map((app: any) => ({
-            id: app.id,
-            userId: app.userId,
-            nombre: `Trabajador ID: ${app.userId.substring(0, 8)}...`,
-            score: 85,
-            ofertaPostulada: `Turno ID: ${app.jobId}`,
-            experiencia: 'Información en perfil',
-            certificaciones: [],
-            estado: app.estado,
-            jobId: app.jobId // Necesario para buscar la ubicación del trabajo
+          // Enriquecer datos con nombres de usuarios y títulos de trabajos
+          const enrichedCandidatos = await Promise.all(response.data.map(async (app: any) => {
+            let nombreReal = `Candidato (${app.userId.substring(0, 5)})`;
+            let tituloTrabajo = `Turno #${app.jobId}`;
+            let experiencia = 'Ver perfil para detalles';
+
+            try {
+              // Buscar perfil del trabajador
+              const profRes = await profileApi.getByUserId(app.userId);
+              if (profRes.data) {
+                nombreReal = profRes.data.name;
+                experiencia = profRes.data.description || 'Sin descripción detallada';
+              }
+
+              // Buscar detalles del trabajo
+              const jobRes = await jobsApi.getById(app.jobId);
+              if (jobRes.data) {
+                tituloTrabajo = jobRes.data.titulo;
+              }
+            } catch (e) {
+              console.error("Error enriqueciendo datos:", e);
+            }
+
+            return {
+              id: app.id,
+              userId: app.userId,
+              nombre: nombreReal,
+              score: 85, // Simulado, se podría calcular
+              ofertaPostulada: tituloTrabajo,
+              experiencia: experiencia,
+              certificaciones: [],
+              estado: app.estado,
+              jobId: app.jobId
+            };
           }));
-          setCandidatos(mapped);
+          
+          setCandidatos(enrichedCandidatos);
         }
       } catch (error) {
         console.error('Error fetching initial data:', error);
@@ -70,6 +98,22 @@ export default function EmpresaCandidatosPage() {
       setCandidatos(prev => prev.map(c => 
         c.id === applicationId ? { ...c, estado: status } : c
       ));
+
+      // Notificación según la acción
+      const cand = candidatos.find(c => c.id === applicationId);
+      if (status === 'ACEPTADO') {
+        addNotification(
+          'Candidato Seleccionado',
+          `Has aceptado a ${cand?.nombre || 'un candidato'} para el turno.`,
+          'success'
+        );
+      } else {
+        addNotification(
+          'Postulación Rechazada',
+          `Se ha procesado el rechazo del candidato.`,
+          'warning'
+        );
+      }
     } catch (error) {
       console.error('Error updating application status:', error);
       alert('Error al actualizar el estado de la postulación');
@@ -99,12 +143,32 @@ export default function EmpresaCandidatosPage() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Candidatos (Matches)</h1>
-        <p className="text-gray-500 text-sm mt-1">Revisa los trabajadores que hacen match con tus ofertas y selecciónalos.</p>
+        <h1 className="text-2xl font-bold text-gray-900">Gestión de Candidatos</h1>
+        <p className="text-gray-500 text-sm mt-1">Revisa y selecciona a los mejores trabajadores para tus turnos.</p>
+      </div>
+
+      <div className="bg-white p-1 rounded-2xl shadow-sm border border-gray-100 flex mb-6">
+        <button 
+          onClick={() => setActiveTab('pendientes')}
+          className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'pendientes' ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
+        >
+          <User size={18} />
+          Nuevos Candidatos ({candidatos.filter(c => c.estado === 'PENDIENTE').length})
+        </button>
+        <button 
+          onClick={() => setActiveTab('gestionados')}
+          className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'gestionados' ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
+        >
+          <Check size={18} />
+          Gestionados ({candidatos.filter(c => c.estado !== 'PENDIENTE').length})
+        </button>
       </div>
 
       <div className="space-y-4">
-        {candidatos.length > 0 ? candidatos.map((candidato) => (
+        {candidatos.filter(c => activeTab === 'pendientes' ? c.estado === 'PENDIENTE' : c.estado !== 'PENDIENTE').length > 0 
+          ? candidatos
+            .filter(c => activeTab === 'pendientes' ? c.estado === 'PENDIENTE' : c.estado !== 'PENDIENTE')
+            .map((candidato) => (
           <Card key={candidato.id} className={`hover:border-primary/50 transition-all ${candidato.estado === 'RECHAZADO' ? 'opacity-60 grayscale' : ''}`}>
             <CardContent className="p-4 sm:p-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
               <div className="flex-1 space-y-2">
@@ -120,7 +184,7 @@ export default function EmpresaCandidatosPage() {
                 <p className="text-sm text-gray-600 font-medium">Postula a: {candidato.ofertaPostulada}</p>
                 
                 <div className="text-sm text-gray-500">
-                  <span className="font-medium">Experiencia:</span> {candidato.experiencia}
+                  <span className="font-medium">Resumen profesional:</span> {candidato.experiencia}
                 </div>
               </div>
               

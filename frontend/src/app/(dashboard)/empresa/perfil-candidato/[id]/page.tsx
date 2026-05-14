@@ -85,7 +85,8 @@ export default function PerfilCandidatoPage() {
             <div className="flex flex-col md:flex-row gap-8 items-start">
               <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center border-4 border-white shadow-md overflow-hidden">
                 {profile.photoUrl ? (
-                  <img src={profile.photoUrl.startsWith('url_simulada_') ? '/placeholder-user.png' : profile.photoUrl} alt="Profile" className="w-full h-full object-cover" />
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={profile.photoUrl.startsWith('url_simulada_') ? '/placeholder-user.png' : profile.photoUrl} alt="Foto de Perfil del Candidato" className="w-full h-full object-cover" />
                 ) : (
                   <User className="w-16 h-16 text-gray-400" />
                 )}

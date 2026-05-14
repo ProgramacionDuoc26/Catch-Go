@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, CheckCircle2, Users, Building2, MapPin, Mail, Phone, ChevronLeft, ChevronRight, MessageSquare, Star, Shield, Zap, TrendingUp } from "lucide-react";
 
@@ -117,20 +118,23 @@ export default function LandingPage() {
               >
                 <div className="absolute -top-12 -left-12 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse" />
                 <div className="absolute -bottom-12 -right-12 w-64 h-64 bg-accent-red/10 rounded-full blur-3xl animate-pulse" />
-                <img 
-                  src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=800" 
-                  alt="Equipo Catch-Go" 
-                  className="relative rounded-[3rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.15)] z-10 object-cover aspect-[4/5] lg:aspect-square"
-                />
+                <div className="relative rounded-[3rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.15)] z-10 overflow-hidden aspect-[4/5] lg:aspect-square">
+                  <Image 
+                    src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=800" 
+                    alt="Equipo Catch-Go" 
+                    fill
+                    className="object-cover"
+                  />
+                </div>
                 <div className="absolute -bottom-8 -right-8 bg-white p-8 rounded-[2rem] shadow-2xl z-20 max-w-xs hidden md:block">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="p-3 bg-emerald-50 rounded-xl text-emerald-600">
                       <Shield size={24} />
                     </div>
-                    <p className="font-black text-slate-900 leading-tight">Verificación Garantizada</p>
+                    <p className="font-black text-slate-900 leading-tight">Visión 2027</p>
                   </div>
                   <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                    Auditamos cada perfil para asegurar la mayor calidad en cada turno.
+                    Esperamos ser la empresa con más demanda de empleos en 2027.
                   </p>
                 </div>
               </motion.div>

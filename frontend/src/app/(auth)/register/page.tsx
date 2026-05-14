@@ -80,7 +80,7 @@ export default function RegisterPage() {
       } else {
         if (res.data?.token) localStorage.setItem('auth_token', res.data.token);
         if (res.data?.usuario) localStorage.setItem('user_info', JSON.stringify(res.data.usuario));
-        router.push(accountType === 'trabajador' ? '/trabajador/ofertas' : '/empresa/ofertas');
+        router.push(accountType === 'trabajador' ? '/trabajador/perfil' : '/empresa/perfil');
       }
     } catch (err: any) {
       setGlobalError('Error de red al intentar registrar la cuenta');

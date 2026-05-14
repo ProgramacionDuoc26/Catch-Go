@@ -9,16 +9,19 @@ import { Oferta } from '@/lib/api/types';
 import { profileApi, Profile } from '@/lib/api/profile';
 import { Search, Filter, CheckCircle2, Loader2, MapPin, Calendar, Map as MapIcon, X } from 'lucide-react';
 import JobDistanceMap from '@/components/maps/JobDistanceMap';
+import { useNotifications } from '@/context/NotificationContext';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 export default function TrabajadorOfertasPage() {
+  const { addNotification } = useNotifications();
   const [ofertas, setOfertas] = useState<Oferta[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [appliedJobs, setAppliedJobs] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [workerProfile, setWorkerProfile] = useState<Profile | null>(null);
   const [selectedJobForMap, setSelectedJobForMap] = useState<Oferta | null>(null);
+  const [activeTab, setActiveTab] = useState<'todas' | 'postulaciones'>('todas');
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -27,12 +30,21 @@ export default function TrabajadorOfertasPage() {
         const jobsRes = await jobsApi.list();
         if (jobsRes.data) setOfertas(jobsRes.data);
 
-        // Intentar obtener el perfil del trabajador para las coordenadas
         const storedUser = localStorage.getItem('user_info');
         if (storedUser) {
           const userData = JSON.parse(storedUser);
-          const profRes = await profileApi.getByUserId(userData.id?.toString());
+          const userId = userData.id?.toString();
+          
+          // 1. Cargar perfil para el mapa
+          const profRes = await profileApi.getByUserId(userId);
           if (profRes.data) setWorkerProfile(profRes.data);
+
+          // 2. Cargar postulaciones reales del usuario
+          const appsRes = await jobsApi.getApplicationsByUserId(userId);
+          if (appsRes.data) {
+            const appliedIds = appsRes.data.map((app: any) => app.jobId);
+            setAppliedJobs(appliedIds);
+          }
         }
       } catch (error) {
         console.error('Error fetching initial data:', error);
@@ -69,7 +81,14 @@ export default function TrabajadorOfertasPage() {
       const response = await jobsApi.apply(id, realUserId);
       if (!response.error) {
         setAppliedJobs([...appliedJobs, id]);
-        alert('¡Postulación enviada con éxito!');
+        
+        // Notificación de éxito
+        const oferta = ofertas.find(o => o.id === id);
+        addNotification(
+          'Postulación Enviada',
+          `Tu interés por "${oferta?.titulo || 'la oferta'}" ha sido registrado correctamente.`,
+          'info'
+        );
       } else {
         alert('Error: ' + response.error);
       }
@@ -88,10 +107,16 @@ export default function TrabajadorOfertasPage() {
     return score;
   };
 
-  const filteredOfertas = ofertas.filter(o => 
-    o.estado !== 'CERRADA' && 
-    (o.titulo.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredOfertas = ofertas.filter(o => {
+    const matchesSearch = o.titulo.toLowerCase().includes(searchTerm.toLowerCase());
+    const isApplied = appliedJobs.includes(o.id);
+    
+    if (activeTab === 'postulaciones') {
+      return matchesSearch && isApplied;
+    }
+    // En 'explorar', mostramos lo que NO está cerrado Y lo que aún NO hemos postulado
+    return o.estado !== 'CERRADA' && matchesSearch && !isApplied;
+  });
 
   if (loading) {
     return (
@@ -118,6 +143,23 @@ export default function TrabajadorOfertasPage() {
         </div>
       </div>
 
+      <div className="bg-white p-1 rounded-xl shadow-sm border border-gray-100 flex mb-6">
+        <button 
+          onClick={() => setActiveTab('todas')}
+          className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'todas' ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
+        >
+          <Search size={18} />
+          Explorar Ofertas
+        </button>
+        <button 
+          onClick={() => setActiveTab('postulaciones')}
+          className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'postulaciones' ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
+        >
+          <CheckCircle2 size={18} />
+          Mis Postulaciones ({appliedJobs.length})
+        </button>
+      </div>
+
       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -140,16 +182,34 @@ export default function TrabajadorOfertasPage() {
       <div className="space-y-4">
         {filteredOfertas.length > 0 ? filteredOfertas.map((oferta) => {
           const matchScore = getMatchScore(oferta.id);
+          const isApplied = appliedJobs.includes(oferta.id);
+          
           return (
-            <Card key={oferta.id} className="hover:border-primary/30 transition-all hover:shadow-md">
+            <Card 
+              key={oferta.id} 
+              className={`transition-all duration-300 relative overflow-hidden ${
+                isApplied 
+                  ? 'bg-blue-50/50 border-blue-200 shadow-inner' 
+                  : 'bg-white hover:border-primary/30 hover:shadow-md'
+              }`}
+            >
+              {isApplied && (
+                <div className="absolute top-0 right-0 bg-blue-500 text-white text-[10px] font-black px-3 py-1 rounded-bl-lg uppercase tracking-widest shadow-sm z-10">
+                  Ya Postulaste
+                </div>
+              )}
               <CardHeader className="flex justify-between items-start pb-2">
                 <div>
-                  <h3 className="font-semibold text-xl text-gray-900">{oferta.titulo}</h3>
+                  <h3 className={`font-bold text-xl ${isApplied ? 'text-blue-900' : 'text-gray-900'}`}>{oferta.titulo}</h3>
                   <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
                     <span className="flex items-center gap-1 font-medium"><MapPin size={14} /> {oferta.ubicacion}</span>
                   </div>
                 </div>
-                <Badge variant={matchScore > 80 ? "success" : "info"}>Match: {matchScore}%</Badge>
+                {!isApplied && (
+                  <Badge variant={matchScore > 80 ? "success" : "info"}>
+                    Match: {matchScore}%
+                  </Badge>
+                )}
               </CardHeader>
               <CardContent className="py-2">
                 <p className="text-gray-700 text-sm mb-4">{oferta.descripcion}</p>

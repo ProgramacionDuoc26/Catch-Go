@@ -59,6 +59,12 @@ public class UserAccountService {
         return passwordEncoder.matches(rawPassword, user.getPassword());
     }
 
+    public AuthResponseDto.UserDto findById(Long id) {
+        UserAccount user = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        return mapper.toUserDto(user);
+    }
+
     public void deleteById(Long id) {
         repository.deleteById(id);
     }

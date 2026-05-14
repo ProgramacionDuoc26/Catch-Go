@@ -21,6 +21,7 @@
         <module>profile-service</module>
         <module>jobs-service</module>
         <module>matching-service</module>
+        <module>notification-service</module>
     </modules>
 
     <properties>

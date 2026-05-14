@@ -19,6 +19,10 @@ export interface Profile {
   latitude?: number;
   longitude?: number;
   skills?: string;
+  rut?: string;
+  address?: string;
+  representativeName?: string;
+  bankAddress?: string;
 }
 
 export const profileApi = {

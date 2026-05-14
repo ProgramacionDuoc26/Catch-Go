@@ -22,7 +22,8 @@ import {
   Settings,
   Mail,
   Phone,
-  LayoutDashboard
+  LayoutDashboard,
+  TrendingUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi, AdminStats } from '@/lib/api/admin';
@@ -65,7 +66,7 @@ export default function AdminDashboard() {
 
   // Form states for new admin
   const [showAddAdmin, setShowAddAdmin] = useState(false);
-  const [newAdmin, setNewAdmin] = useState({ name: '', email: '', password: '', phone: '' });
+  const [newAdmin, setNewAdmin] = useState({ name: '', email: '', password: '', phone: '', tipo: 'ADMIN' });
 
   useEffect(() => {
     const tab = searchParams.get('tab') as View;
@@ -101,7 +102,7 @@ export default function AdminDashboard() {
       await adminApi.createAdmin(newAdmin);
       await fetchInitialData();
       setShowAddAdmin(false);
-      setNewAdmin({ name: '', email: '', password: '', phone: '' });
+      setNewAdmin({ name: '', email: '', password: '', phone: '', tipo: 'ADMIN' });
     } catch (error) {
       alert("Error al crear administrador");
     } finally {
@@ -324,8 +325,8 @@ export default function AdminDashboard() {
                             </div>
                           </td>
                           <td className="py-5 px-4">
-                            <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-[10px] font-black uppercase tracking-wider">
-                              Full Admin
+                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${admin.type === 'ADMIN' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700'}`}>
+                              {admin.type === 'ADMIN' ? 'Full Admin' : 'Sub Admin'}
                             </span>
                           </td>
                           <td className="py-5 px-4 text-right">
@@ -392,6 +393,18 @@ export default function AdminDashboard() {
                   placeholder="••••••••"
                 />
               </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">Rol de Acceso</label>
+                <select 
+                  value={newAdmin.tipo}
+                  onChange={(e) => setNewAdmin({...newAdmin, tipo: e.target.value})}
+                  className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 focus:ring-4 focus:ring-blue-100 outline-none transition-all font-medium appearance-none"
+                >
+                  <option value="ADMIN">Full Admin (Acceso Total)</option>
+                  <option value="SUB_ADMIN">Sub Admin (Sólo Lectura/Limitado)</option>
+                </select>
+              </div>
               
               <div className="flex gap-4 pt-4">
                 <Button 
@@ -417,20 +430,3 @@ export default function AdminDashboard() {
   );
 }
 
-const TrendingUp = ({ className, size }: any) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width={size} 
-    height={size} 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-    <polyline points="17 6 23 6 23 12" />
-  </svg>
-);

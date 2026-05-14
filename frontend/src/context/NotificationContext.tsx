@@ -20,6 +20,7 @@ interface NotificationContextType {
   unreadCount: number;
   markAsRead: (id: string) => void;
   clearAll: () => void;
+  addNotification: (title: string, message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -58,51 +59,74 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   };
 
   useEffect(() => {
-    const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user_info') : null;
-    if (!storedUser) return;
+    let client: Client | null = null;
+    let checkInterval: NodeJS.Timeout;
 
-    const user = JSON.parse(storedUser);
-    const userId = user.id?.toString();
+    const connectWebSocket = (userId: string) => {
+      if (stompClient.current) return;
 
-    if (!userId) return;
+      console.log('Connecting to WebSocket for user:', userId);
+      const socket = new SockJS('http://localhost:8088/ws-notifications');
+      const stomp = new Client({
+        webSocketFactory: () => socket,
+        debug: (str) => console.log('STOMP: ' + str),
+        reconnectDelay: 5000,
+        onConnect: () => {
+          console.log('Connected to Notification Service');
+          stomp.subscribe(`/topic/user/${userId}`, (message) => {
+            const payload = JSON.parse(message.body);
+            addNotification(
+              payload.title || 'Nueva Notificación',
+              payload.message || '',
+              (payload.type as any) || 'info'
+            );
+          });
+        },
+        onStompError: (frame) => {
+          console.error('STOMP error', frame);
+        }
+      });
 
-    // Connect to Notification Service WebSocket
-    // Note: We use the direct port 8088 in dev, or via Gateway in prod
-    const socket = new SockJS('http://localhost:8088/ws-notifications');
-    const client = new Client({
-      webSocketFactory: () => socket,
-      debug: (str) => console.log('STOMP: ' + str),
-      reconnectDelay: 5000,
-      onConnect: () => {
-        console.log('Connected to Notification Service');
-        
-        // Subscribe to user-specific channel
-        client.subscribe(`/topic/user/${userId}`, (message) => {
-          const payload = JSON.parse(message.body);
-          addNotification(
-            payload.title || 'Nueva Notificación',
-            payload.message || '',
-            (payload.type as any) || 'info'
-          );
-        });
-      },
-      onStompError: (frame) => {
-        console.error('STOMP error', frame);
+      stomp.activate();
+      stompClient.current = stomp;
+      client = stomp;
+    };
+
+    const checkUser = () => {
+      const storedUser = localStorage.getItem('user_info');
+      if (storedUser) {
+        try {
+          const user = JSON.parse(storedUser);
+          const userId = user.id?.toString();
+          if (userId && !stompClient.current) {
+            connectWebSocket(userId);
+          }
+        } catch (e) {
+          console.error('Error parsing user_info', e);
+        }
+      } else if (stompClient.current) {
+        // User logged out
+        console.log('User logged out, deactivating WebSocket');
+        stompClient.current.deactivate();
+        stompClient.current = null;
       }
-    });
+    };
 
-    client.activate();
-    stompClient.current = client;
+    // Check immediately and then every 2 seconds for login/logout
+    checkUser();
+    checkInterval = setInterval(checkUser, 2000);
 
     return () => {
+      clearInterval(checkInterval);
       if (stompClient.current) {
         stompClient.current.deactivate();
+        stompClient.current = null;
       }
     };
   }, []);
 
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, markAsRead, clearAll }}>
+    <NotificationContext.Provider value={{ notifications, unreadCount, markAsRead, clearAll, addNotification }}>
       {children}
     </NotificationContext.Provider>
   );
