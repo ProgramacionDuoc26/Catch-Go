@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { User, LogIn, LayoutDashboard, LogOut } from "lucide-react";
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -14,17 +15,31 @@ export function Navbar() {
   const router = useRouter();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [hasSession, setHasSession] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
   const supabase = createClient();
 
   React.useEffect(() => {
     const session = localStorage.getItem('user_info');
-    setHasSession(!!session);
+    if (session) {
+      try {
+        setUserData(JSON.parse(session));
+        setHasSession(true);
+      } catch (e) {
+        setHasSession(false);
+      }
+    } else {
+      setHasSession(false);
+      setUserData(null);
+    }
   }, [pathname]);
 
   const isDashboard = hasSession && (pathname.includes('/trabajador') || pathname.includes('/empresa') || pathname.includes('/admin'));
-  const isTrabajador = pathname.includes('/trabajador');
-  const isEmpresa = pathname.includes('/empresa');
-  const isAdmin = pathname.includes('/admin');
+  
+  // Detectar rol tanto por URL como por datos de usuario
+  const userRole = userData?.tipo || userData?.type;
+  const isTrabajador = pathname.includes('/trabajador') || userRole === 'TRABAJADOR';
+  const isEmpresa = pathname.includes('/empresa') || userRole === 'EMPRESA';
+  const isAdmin = pathname.includes('/admin') || userRole === 'ADMIN';
 
   const handleLogout = async () => {
     try {
@@ -47,13 +62,15 @@ export function Navbar() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="Catch&Go" className="h-8 md:h-10 w-auto" 
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-              <span className="text-2xl font-bold text-primary-dark hidden">CATCH<span className="text-primary">AND</span>GO</span>
+              <div className="relative h-8 md:h-10 w-32">
+                <Image 
+                  src="/logo.png" 
+                  alt="Catch&Go logo" 
+                  fill
+                  style={{ objectFit: 'contain' }}
+                  priority
+                />
+              </div>
             </Link>
           </div>
           
@@ -105,10 +122,27 @@ export function Navbar() {
 
                 <Link
                   href={isAdmin ? "/admin/configuracion" : (isTrabajador ? "/trabajador/perfil" : "/empresa/perfil")}
-                  className="flex items-center gap-2 bg-gray-100 text-text-main px-4 py-2 rounded-full hover:bg-gray-200 transition-colors font-medium border border-gray-200"
+                  className="flex items-center gap-3 bg-white text-text-main pl-1.5 pr-4 py-1.5 rounded-full hover:bg-gray-50 transition-all font-medium border border-gray-200 shadow-sm group"
                 >
-                  <User className="w-5 h-5 text-primary" />
-                  <span className="hidden sm:inline">{isAdmin ? "Admin" : "Mi Perfil"}</span>
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden border border-primary/20 bg-gray-100 flex items-center justify-center">
+                    {userData?.foto || userData?.photoUrl ? (
+                      <img 
+                        src={userData.foto || userData.photoUrl} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-5 h-5 text-primary" />
+                    )}
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-[9px] uppercase font-bold text-primary tracking-wider leading-none mb-0.5">
+                      {isAdmin ? "Admin" : (isTrabajador ? "Mi Perfil Trabajador" : "Mi Perfil Empresa")}
+                    </span>
+                    <span className="text-sm text-slate-700 font-bold hidden sm:inline leading-none">
+                      {userData?.nombre || userData?.name || "Usuario"}
+                    </span>
+                  </div>
                 </Link>
               </>
             ) : (

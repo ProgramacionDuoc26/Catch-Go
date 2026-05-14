@@ -56,8 +56,16 @@ export default function TrabajadorPerfilPage() {
   const router = useRouter();
   const [formData, setFormData] = useState<Profile>({
     userId: '', name: '', email: '', phone: '+56 ', birthDate: '',
-    bankName: '', accountType: '', accountNumber: '', type: 'TRABAJADOR',
-    latitude: -33.4489, longitude: -70.6693
+    photoUrl: '',
+    cvUrl: '',
+    bankName: '',
+    accountType: '',
+    accountNumber: '',
+    latitude: -33.4489,
+    longitude: -70.6693,
+    rut: '',
+    address: '',
+    type: 'TRABAJADOR'
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -73,15 +81,22 @@ export default function TrabajadorPerfilPage() {
 
   // Skills logic
   const skillsData = useMemo(() => {
+    const defaultValue = {
+      habilidades: [],
+      ambiente: '',
+      caracteristica: '',
+      preferencia: ''
+    };
     try {
-      return formData.skills ? JSON.parse(formData.skills) : {
-        habilidades: [],
-        ambiente: '',
-        caracteristica: '',
-        preferencia: ''
+      if (!formData.skills) return defaultValue;
+      const parsed = JSON.parse(formData.skills);
+      return {
+        ...defaultValue,
+        ...parsed,
+        habilidades: Array.isArray(parsed.habilidades) ? parsed.habilidades : []
       };
     } catch (e) {
-      return { habilidades: [], ambiente: '', caracteristica: '', preferencia: '' };
+      return defaultValue;
     }
   }, [formData.skills]);
 
@@ -91,7 +106,7 @@ export default function TrabajadorPerfilPage() {
   };
 
   const chartData = [
-    { label: 'Habilidades', value: skillsData.habilidades.length / SKILLS_WORKER_OPTS.habilidades.length },
+    { label: 'Habilidades', value: (skillsData?.habilidades?.length || 0) / (SKILLS_WORKER_OPTS.habilidades.length || 1) },
     { label: 'Ambiente', value: skillsData.ambiente ? 1 : 0 },
     { label: 'Perfil', value: skillsData.caracteristica ? 1 : 0 },
     { label: 'Preferencia', value: skillsData.preferencia ? 1 : 0 },
@@ -104,22 +119,27 @@ export default function TrabajadorPerfilPage() {
       try {
         const supabase = createClient();
         const { data: { user: supabaseUser } } = await supabase.auth.getUser();
-        let initialData = { name: '', email: '', phone: '+56 ' };
+        let initialData = { name: '', email: '', phone: '+56 ', photo: '' };
 
         if (supabaseUser) {
           realUserId = supabaseUser.id;
-          initialData = { name: supabaseUser.user_metadata?.full_name || '', email: supabaseUser.email || '', phone: '+56 ' };
+          initialData = { 
+            name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || '', 
+            email: supabaseUser.email || '', 
+            phone: '+56 ',
+            photo: supabaseUser.user_metadata?.avatar_url || ''
+          };
         } else {
           const storedUser = localStorage.getItem('user_info');
           if (storedUser) {
             const userData = JSON.parse(storedUser);
             realUserId = userData.id?.toString() || '';
-            console.log('DEBUG: Loading profile for userId:', realUserId);
-            
-            if (!realUserId) {
-              console.warn('DEBUG: No userId found in user_info');
-            }
-            initialData = { name: userData.nombre || '', email: userData.email || '', phone: userData.telefono || '+56 ' };
+            initialData = { 
+              name: userData.nombre || '', 
+              email: userData.email || '', 
+              phone: userData.telefono || '+56 ',
+              photo: userData.foto || ''
+            };
           }
         }
 
@@ -135,20 +155,55 @@ export default function TrabajadorPerfilPage() {
 
         if (res.data) {
           const p = {
-            ...res.data, userId: realUserId,
-            birthDate: res.data.birthDate || '', name: res.data.name || initialData.name || '',
-            email: res.data.email || initialData.email || '', phone: res.data.phone || initialData.phone || '',
-            bankName: res.data.bankName || '', accountType: res.data.accountType || '', accountNumber: res.data.accountNumber || ''
+            ...res.data,
+            userId: realUserId,
+            name: res.data.name || initialData.name || '',
+            email: res.data.email || initialData.email || '',
+            phone: res.data.phone || initialData.phone || '',
+            photoUrl: res.data.photoUrl || initialData.photo || '',
+            type: 'TRABAJADOR' as const,
+            // Recuperar datos extendidos del campo skills (RUT, Dirección)
+            ...(res.data.skills && res.data.skills.startsWith('{') ? JSON.parse(res.data.skills) : {})
           };
           setFormData(p);
           setSavedProfile(p);
           if (res.data.birthDate) setBirthDateLocked(true);
         } else {
           console.log('No se encontró perfil previo, usando datos iniciales.');
-          setFormData(prev => ({ ...prev, userId: realUserId, name: initialData.name, email: initialData.email, phone: initialData.phone }));
+          setFormData(prev => ({ 
+            ...prev, 
+            userId: realUserId, 
+            name: initialData.name, 
+            email: initialData.email, 
+            phone: initialData.phone,
+            photoUrl: initialData.photo 
+          }));
         }
       } catch (error) { console.error('Error fetching profile:', error); }
-      finally { setLoading(false); }
+      finally { 
+        setLoading(false); 
+        
+        // AUTO-DETECCION DE UBICACION (Solo si no hay coordenadas guardadas previamente)
+        if (navigator.geolocation && !savedProfile?.latitude) {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              const { latitude, longitude } = position.coords;
+              setFormData(prev => ({ ...prev, latitude, longitude }));
+              
+              // Detectar dirección inicial
+              try {
+                const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`);
+                const data = await response.json();
+                if (data.results && data.results[0]) {
+                  setFormData(prev => ({ ...prev, address: data.results[0].formatted_address }));
+                }
+              } catch (e) {}
+            },
+            (error) => console.warn('Error detectando ubicación:', error.message),
+            { enableHighAccuracy: true }
+          );
+        }
+      }
 
       // Cargar postulaciones reales (independiente del perfil)
       if (realUserId) {
@@ -173,7 +228,7 @@ export default function TrabajadorPerfilPage() {
       }
     };
     fetchProfile();
-  }, [router]);
+  }, [router, savedProfile?.latitude]);
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -187,19 +242,41 @@ export default function TrabajadorPerfilPage() {
   };
 
   const handleSave = async () => {
-    // Validación de fecha de nacimiento
-    if (formData.birthDate) {
-      const selectedDate = new Date(formData.birthDate);
-      const today = new Date();
-      if (selectedDate > today) {
-        alert('La fecha de nacimiento no puede ser una fecha futura.');
-        return;
-      }
+    // VALIDACION DE CAMPOS OBLIGATORIOS
+    const required = [
+      { field: 'name', label: 'Nombre' },
+      { field: 'rut', label: 'RUT' },
+      { field: 'address', label: 'Dirección' },
+      { field: 'phone', label: 'Teléfono' },
+      { field: 'birthDate', label: 'Fecha de Nacimiento' },
+      { field: 'bankName', label: 'Banco' },
+      { field: 'accountType', label: 'Tipo de Cuenta' },
+      { field: 'accountNumber', label: 'Número de Cuenta' }
+    ];
+
+    const missing = required.filter(r => !formData[r.field as keyof typeof formData]);
+    if (missing.length > 0) {
+      alert(`Los siguientes campos son obligatorios:\n- ${missing.map(m => m.label).join('\n- ')}`);
+      return;
     }
 
     setSaving(true);
     try {
-      const res = await profileApi.save(formData);
+      // Persistir datos extendidos en skills
+      const extendedData = {
+        rut: formData.rut,
+        address: formData.address
+      };
+
+      const dataToSave = {
+        ...formData,
+        skills: JSON.stringify({
+          ...(formData.skills && formData.skills.startsWith('{') ? JSON.parse(formData.skills) : {}),
+          ...extendedData
+        })
+      };
+
+      const res = await profileApi.save(dataToSave);
       if (!res.error) {
         // Actualizamos con los datos devueltos por el servidor (pueden tener IDs generados)
         const updatedData = res.data || formData;
@@ -216,6 +293,25 @@ export default function TrabajadorPerfilPage() {
       alert('Error de conexión al guardar el perfil.'); 
     }
     finally { setSaving(false); }
+  };
+
+  const handleSearchAddress = async () => {
+    if (!formData.address) return;
+    setLoading(true);
+    try {
+      const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(formData.address)}&key=${GOOGLE_MAPS_API_KEY}`);
+      const data = await response.json();
+      if (data.results && data.results[0]) {
+        const { lat, lng } = data.results[0].geometry.location;
+        setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+      } else {
+        alert("No se pudo encontrar esa dirección.");
+      }
+    } catch (e) {
+      console.error("Error buscando dirección:", e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePhotoUpload = () => {
@@ -321,7 +417,8 @@ export default function TrabajadorPerfilPage() {
               <div className="relative group mb-4">
                 <div className="w-36 h-36 rounded-full bg-gray-200 flex items-center justify-center border-4 border-white shadow-lg overflow-hidden">
                   {formData.photoUrl ? (
-                    <img src={formData.photoUrl} alt="Profile" className="w-full h-full object-cover" />
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={formData.photoUrl} alt="Foto de perfil" className="w-full h-full object-cover" />
                   ) : (
                     <User className="w-16 h-16 text-gray-400" />
                   )}
@@ -437,8 +534,14 @@ export default function TrabajadorPerfilPage() {
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo <span className="text-red-500">*</span></label>
                   <input id="name" type="text" value={formData.name} onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary" />
+                </div>
+                <div>
+                  <label htmlFor="rut" className="block text-sm font-medium text-gray-700 mb-1">RUT <span className="text-red-500">*</span></label>
+                  <input id="rut" type="text" value={formData.rut} onChange={handleInputChange}
+                    placeholder="12.345.678-9"
                     className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary" />
                 </div>
                 <div className="md:col-span-2">
@@ -451,27 +554,36 @@ export default function TrabajadorPerfilPage() {
                 {/* MAPA DE GEOLOCALIZACION */}
                 <div className="md:col-span-2 pt-4 border-t border-gray-100">
                   <LocationPicker 
-                    apiKey={GOOGLE_MAPS_API_KEY}
-                    initialLat={formData.latitude}
-                    initialLng={formData.longitude}
-                    onLocationChange={(lat, lng) => {
-                      setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
-                    }}
-                  />
+                  apiKey={GOOGLE_MAPS_API_KEY}
+                  initialLat={formData.latitude}
+                  initialLng={formData.longitude}
+                  onLocationChange={async (lat, lng) => {
+                    setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
+                    
+                    // Geocoding inverso
+                    try {
+                      const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_MAPS_API_KEY}`);
+                      const data = await response.json();
+                      if (data.results && data.results[0]) {
+                        setFormData(prev => ({ ...prev, address: data.results[0].formatted_address }));
+                      }
+                    } catch (e) {}
+                  }}
+                />
                 </div>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico <span className="text-red-500">*</span></label>
                   <input id="email" type="email" value={formData.email} onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary" />
+                    className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary bg-gray-50" readOnly />
                 </div>
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Teléfono <span className="text-red-500">*</span></label>
                   <input id="phone" type="text" value={formData.phone} onChange={handleInputChange}
                     className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary" />
                 </div>
                 <div>
-                  <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-                    Fecha de Nacimiento {birthDateLocked && <Lock className="w-3 h-3 text-gray-400" />}
+                  <label htmlFor="birthDate" className="flex items-center gap-1 text-sm font-medium text-gray-700 mb-1">
+                    Fecha de Nacimiento <span className="text-red-500">*</span> {birthDateLocked && <Lock className="w-3 h-3 text-gray-400" />}
                   </label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -481,6 +593,17 @@ export default function TrabajadorPerfilPage() {
                       className={`w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary ${birthDateLocked ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''}`} />
                   </div>
                   {birthDateLocked && <p className="text-xs text-gray-400 mt-1">La fecha de nacimiento no se puede modificar</p>}
+                </div>
+                <div className="md:col-span-2">
+                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Dirección <span className="text-red-500">*</span></label>
+                  <div className="flex gap-2">
+                    <input id="address" type="text" value={formData.address} onChange={handleInputChange}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSearchAddress())}
+                      placeholder="Ej: Alameda 123, Santiago"
+                      className="flex-1 border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary" />
+                    <Button type="button" variant="outline" onClick={handleSearchAddress}>Buscar</Button>
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-1 italic">Escribe tu dirección y presiona Buscar para centrar el mapa.</p>
                 </div>
               </div>
             </CardContent>
@@ -614,7 +737,8 @@ export default function TrabajadorPerfilPage() {
                   {formData.cvUrl && (
                     <div className="mb-3 p-3 bg-white rounded-lg border border-gray-100">
                       {formData.cvUrl.match(/\.(jpg|jpeg|png|gif|webp)/) ? (
-                        <img src={formData.cvUrl} alt="CV Preview" className="w-full h-32 object-cover rounded" />
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={formData.cvUrl} alt="Vista previa de CV" className="w-full h-32 object-cover rounded" />
                       ) : (
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <FileText className="w-8 h-8 text-red-500" />
@@ -649,7 +773,8 @@ export default function TrabajadorPerfilPage() {
                   {formData.description && (
                     <div className="mb-3 p-3 bg-white rounded-lg border border-gray-100">
                       {formData.description.match(/\.(jpg|jpeg|png|gif|webp)/) ? (
-                        <img src={formData.description} alt="Cert Preview" className="w-full h-32 object-cover rounded" />
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={formData.description} alt="Vista previa de certificado" className="w-full h-32 object-cover rounded" />
                       ) : (
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <FileText className="w-8 h-8 text-blue-500" />
@@ -681,9 +806,9 @@ export default function TrabajadorPerfilPage() {
               </h2>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="bankName" className="block text-sm font-medium text-gray-700 mb-1">Banco</label>
+                  <label htmlFor="bankName" className="block text-sm font-medium text-gray-700 mb-1">Banco <span className="text-red-500">*</span></label>
                   <select id="bankName" value={formData.bankName} onChange={handleInputChange}
                     className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary bg-white">
                     <option value="">Seleccionar banco...</option>
@@ -691,9 +816,9 @@ export default function TrabajadorPerfilPage() {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="accountType" className="block text-sm font-medium text-gray-700 mb-1">Tipo de Cuenta</label>
+                  <label htmlFor="accountType" className="block text-sm font-medium text-gray-700 mb-1">Tipo de Cuenta <span className="text-red-500">*</span></label>
                   <select id="accountType" value={formData.accountType} onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary bg-white">
+                    className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary">
                     <option value="">Seleccionar...</option>
                     <option value="VISTA">Cuenta Vista / RUT</option>
                     <option value="CORRIENTE">Cuenta Corriente</option>
@@ -701,8 +826,13 @@ export default function TrabajadorPerfilPage() {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-700 mb-1">Número de Cuenta</label>
+                  <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-700 mb-1">Número de Cuenta <span className="text-red-500">*</span></label>
                   <input id="accountNumber" type="text" value={formData.accountNumber} onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary" />
+                </div>
+                <div>
+                  <label htmlFor="bankAddress" className="block text-sm font-medium text-gray-700 mb-1">Dirección de facturación (Opcional)</label>
+                  <input id="bankAddress" type="text" value={formData.bankAddress || ''} onChange={handleInputChange}
                     className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary" />
                 </div>
               </div>
