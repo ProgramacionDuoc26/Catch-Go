@@ -1,0 +1,3 @@
+ALTER TABLE profiles 
+ADD COLUMN rating DOUBLE PRECISION,
+ADD COLUMN rating_count INTEGER;

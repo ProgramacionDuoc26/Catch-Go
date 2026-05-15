@@ -1,0 +1,2 @@
+ALTER TABLE profiles 
+ADD COLUMN rut VARCHAR(255);
