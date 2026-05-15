@@ -533,9 +533,8 @@ export default function EmpresaPerfilPage() {
                   <label className="block text-sm font-bold text-gray-700 mb-3">1. ¿Cuál es el giro principal de tu empresa?</label>
                   <select 
                     id="giro" 
-                    value={formData.description || ''} // Using description or adding a giro field?
-                    // Wait, Empresa entity has a giro field in Prisma but the Profile entity in Java/Frontend doesn't explicitly have it beyond the 'description' or maybe I should use the new 'skills'
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    value={skillsData.giro || ''}
+                    onChange={(e) => updateSkills('giro', e.target.value)}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2.5 bg-white outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   >
                     <option value="">Seleccionar giro...</option>

@@ -10,6 +10,7 @@ import { jobsApi } from '@/lib/api/jobs';
 import { profileApi, Profile } from '@/lib/api/profile';
 import JobDistanceMap from '@/components/maps/JobDistanceMap';
 import { useNotifications } from '@/context/NotificationContext';
+import { calculateMatchScore } from '@/lib/matchEngine';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
@@ -27,6 +28,7 @@ export default function EmpresaCandidatosPage() {
       setLoading(true);
       try {
         let realEmpresaId = '';
+        let localEmployerProfile: Profile | null = null;
         const storedUser = localStorage.getItem('user_info');
         if (storedUser) {
           const parsed = JSON.parse(storedUser);
@@ -34,7 +36,10 @@ export default function EmpresaCandidatosPage() {
           
           // Cargar perfil del empleador para coordenadas
           const empProfRes = await profileApi.getByUserId(realEmpresaId);
-          if (empProfRes.data) setEmployerProfile(empProfRes.data);
+          if (empProfRes.data) {
+            setEmployerProfile(empProfRes.data);
+            localEmployerProfile = empProfRes.data;
+          }
         }
 
         if (!realEmpresaId) {
@@ -50,37 +55,51 @@ export default function EmpresaCandidatosPage() {
             let tituloTrabajo = `Turno #${app.jobId}`;
             let experiencia = 'Ver perfil para detalles';
 
-            try {
-              // Buscar perfil del trabajador
-              const profRes = await profileApi.getByUserId(app.userId);
-              if (profRes.data) {
-                nombreReal = profRes.data.name;
-                experiencia = profRes.data.description || 'Sin descripción detallada';
+              let matchScore = 85;
+
+              try {
+                // Buscar perfil del trabajador
+                const profRes = await profileApi.getByUserId(app.userId);
+                let workerProfile = null;
+                if (profRes.data) {
+                  workerProfile = profRes.data;
+                  nombreReal = profRes.data.name;
+                  experiencia = profRes.data.description || 'Sin descripción detallada';
+                }
+
+                // Buscar detalles del trabajo
+                const jobRes = await jobsApi.getById(app.jobId);
+                let jobOffer = null;
+                if (jobRes.data) {
+                  jobOffer = jobRes.data;
+                  tituloTrabajo = jobRes.data.titulo;
+                }
+                
+                // Calcular MATCH REAL
+                if (workerProfile && localEmployerProfile) {
+                  const scoreObj = calculateMatchScore(workerProfile, localEmployerProfile, jobOffer);
+                  matchScore = scoreObj.total;
+                }
+              } catch (e) {
+                console.error("Error enriqueciendo datos:", e);
               }
 
-              // Buscar detalles del trabajo
-              const jobRes = await jobsApi.getById(app.jobId);
-              if (jobRes.data) {
-                tituloTrabajo = jobRes.data.titulo;
-              }
-            } catch (e) {
-              console.error("Error enriqueciendo datos:", e);
-            }
-
-            return {
-              id: app.id,
-              userId: app.userId,
-              nombre: nombreReal,
-              score: 85, // Simulado, se podría calcular
-              ofertaPostulada: tituloTrabajo,
-              experiencia: experiencia,
-              certificaciones: [],
-              estado: app.estado,
-              jobId: app.jobId
-            };
-          }));
-          
-          setCandidatos(enrichedCandidatos);
+              return {
+                id: app.id,
+                userId: app.userId,
+                nombre: nombreReal,
+                score: matchScore,
+                ofertaPostulada: tituloTrabajo,
+                experiencia: experiencia,
+                certificaciones: [],
+                estado: app.estado,
+                jobId: app.jobId
+              };
+            }));
+            
+            // Ordenar por score de mayor a menor
+            enrichedCandidatos.sort((a, b) => b.score - a.score);
+            setCandidatos(enrichedCandidatos);
         }
       } catch (error) {
         console.error('Error fetching initial data:', error);

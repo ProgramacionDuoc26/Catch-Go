@@ -7,19 +7,22 @@ import { Badge } from '@/components/ui/Badge';
 import { jobsApi } from '@/lib/api/jobs';
 import { Oferta } from '@/lib/api/types';
 import { profileApi, Profile } from '@/lib/api/profile';
-import { Search, Filter, CheckCircle2, Loader2, MapPin, Calendar, Map as MapIcon, X } from 'lucide-react';
+import { Search, CheckCircle2, Loader2, MapPin, Map as MapIcon, X } from 'lucide-react';
 import JobDistanceMap from '@/components/maps/JobDistanceMap';
 import { useNotifications } from '@/context/NotificationContext';
+import { calculateMatchScore } from '@/lib/matchEngine';
+import { calculateProfileCompletion } from '@/lib/profileUtils';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 export default function TrabajadorOfertasPage() {
   const { addNotification } = useNotifications();
-  const [ofertas, setOfertas] = useState<Oferta[]>([]);
+  const [ofertas, setOfertas] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [appliedJobs, setAppliedJobs] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [workerProfile, setWorkerProfile] = useState<Profile | null>(null);
+  const [profileCompletion, setProfileCompletion] = useState(0);
   const [selectedJobForMap, setSelectedJobForMap] = useState<Oferta | null>(null);
   const [activeTab, setActiveTab] = useState<'todas' | 'postulaciones'>('todas');
 
@@ -27,17 +30,19 @@ export default function TrabajadorOfertasPage() {
     const fetchInitialData = async () => {
       setLoading(true);
       try {
-        const jobsRes = await jobsApi.list();
-        if (jobsRes.data) setOfertas(jobsRes.data);
-
         const storedUser = localStorage.getItem('user_info');
+        let workerProf: Profile | null = null;
         if (storedUser) {
           const userData = JSON.parse(storedUser);
           const userId = userData.id?.toString();
           
-          // 1. Cargar perfil para el mapa
+          // 1. Cargar perfil para el mapa y completitud
           const profRes = await profileApi.getByUserId(userId);
-          if (profRes.data) setWorkerProfile(profRes.data);
+          if (profRes.data) {
+            workerProf = profRes.data;
+            setWorkerProfile(workerProf);
+            setProfileCompletion(calculateProfileCompletion(workerProf));
+          }
 
           // 2. Cargar postulaciones reales del usuario
           const appsRes = await jobsApi.getApplicationsByUserId(userId);
@@ -45,6 +50,30 @@ export default function TrabajadorOfertasPage() {
             const appliedIds = appsRes.data.map((app: any) => app.jobId);
             setAppliedJobs(appliedIds);
           }
+        }
+        
+        const jobsRes = await jobsApi.list();
+        if (jobsRes.data) {
+          // Fetch employer profiles and calculate matches
+          const enrichedOfertas = await Promise.all(jobsRes.data.map(async (offer: any) => {
+            let matchScore = 0;
+            if (workerProf) {
+               try {
+                 const empProfRes = await profileApi.getByUserId(offer.empresaId);
+                 if (empProfRes.data) {
+                    const scoreObj = calculateMatchScore(workerProf, empProfRes.data, offer);
+                    matchScore = scoreObj.total;
+                 }
+               } catch(e) {
+                 console.error("Failed to load company profile for match");
+               }
+            }
+            return { ...offer, matchScore };
+          }));
+          
+          // Sort by match score
+          enrichedOfertas.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+          setOfertas(enrichedOfertas);
         }
       } catch (error) {
         console.error('Error fetching initial data:', error);
@@ -96,16 +125,7 @@ export default function TrabajadorOfertasPage() {
       console.error('Error applying:', error);
       alert('Error al enviar la postulación.');
     }
-  };  // Simulación de completitud de perfil (esto vendría de un estado global o API)
-  const [profileCompletion, setProfileCompletion] = useState(65); // 65% base
-
-  const getMatchScore = (jobId: string) => {
-    // El score base es la completitud del perfil
-    // Sumamos un factor "aleatorio pero consistente" basado en el ID del trabajo
-    const jobFactor = (parseInt(jobId) % 20); 
-    const score = Math.min(100, profileCompletion + jobFactor);
-    return score;
-  };
+  };  // profileCompletion is calculated dynamically now
 
   const filteredOfertas = ofertas.filter(o => {
     const matchesSearch = o.titulo.toLowerCase().includes(searchTerm.toLowerCase());
@@ -180,8 +200,8 @@ export default function TrabajadorOfertasPage() {
       </div>
 
       <div className="space-y-4">
-        {filteredOfertas.length > 0 ? filteredOfertas.map((oferta) => {
-          const matchScore = getMatchScore(oferta.id);
+        {filteredOfertas.length > 0 ? filteredOfertas.map((oferta: any) => {
+          const matchScore = oferta.matchScore || 0;
           const isApplied = appliedJobs.includes(oferta.id);
           
           return (
