@@ -169,7 +169,7 @@ export default function EmpresaOfertasPage() {
           <Card className="border-none bg-transparent h-full shadow-none">
             <CardContent className="p-4 flex flex-col items-center justify-center">
               <span className="block text-2xl font-bold text-primary">
-                {allOfertas.filter(o => o.estado !== 'COMPLETADA').length}
+                {allOfertas.filter(o => o.estado === 'ABIERTA').length}
               </span>
               <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider mt-1">Turnos Activos</span>
             </CardContent>
