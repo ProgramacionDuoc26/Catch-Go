@@ -123,7 +123,7 @@ export default function EmpresaOfertasPage() {
           </Card>
         </Link>
 
-        <Link href="/empresa/candidatos" className="block transition-all hover:scale-[1.02]">
+        <Link href="/empresa/candidatos?tab=activos" className="block transition-all hover:scale-[1.02]">
           <Card className="bg-white border-none shadow-sm hover:shadow-md cursor-pointer h-full">
             <CardContent className="p-4 flex flex-col items-center justify-center">
               <span className="block text-2xl font-bold text-green-600">{porPagarCount}</span>
@@ -132,7 +132,7 @@ export default function EmpresaOfertasPage() {
           </Card>
         </Link>
 
-        <Link href="/empresa/candidatos" className="block transition-all hover:scale-[1.02]">
+        <Link href="/empresa/candidatos?tab=pendientes" className="block transition-all hover:scale-[1.02]">
           <Card className="bg-white border-none shadow-sm hover:shadow-md cursor-pointer h-full">
             <CardContent className="p-4 flex flex-col items-center justify-center">
               <span className="block text-2xl font-bold text-amber-600">{enRevisionCount}</span>
