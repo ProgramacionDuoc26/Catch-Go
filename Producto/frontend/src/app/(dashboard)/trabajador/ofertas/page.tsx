@@ -139,17 +139,25 @@ function TrabajadorOfertasContent() {
     try {
       // Obtener el ID real del trabajador
       let realUserId = '';
-      const { createClient } = await import('@/lib/supabase/client');
-      const supabase = createClient();
-      const { data: { user: supabaseUser } } = await supabase.auth.getUser();
       
-      if (supabaseUser) {
-        realUserId = supabaseUser.id;
-      } else {
-        const storedUser = localStorage.getItem('user_info');
-        if (storedUser) {
+      // 1. Intentar primero con localStorage (fuente de verdad de la sesión activa en el frontend)
+      const storedUser = localStorage.getItem('user_info');
+      if (storedUser) {
+        try {
           const parsed = JSON.parse(storedUser);
           realUserId = parsed.id?.toString() || '';
+        } catch (e) {
+          console.error('Error al parsear user_info de localStorage:', e);
+        }
+      }
+
+      // 2. Si no hay en localStorage, usar Supabase como fallback
+      if (!realUserId) {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+        if (supabaseUser) {
+          realUserId = supabaseUser.id;
         }
       }
 

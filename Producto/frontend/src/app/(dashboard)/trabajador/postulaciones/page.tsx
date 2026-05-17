@@ -19,25 +19,25 @@ export default function TrabajadorPostulacionesPage() {
         // Obtener el ID real del usuario
         let realUserId = '';
         
-        // 1. Intentar con Supabase
-        try {
-          const { createClient } = await import('@/lib/supabase/client');
-          const supabase = createClient();
-          const { data: { user: supabaseUser } } = await supabase.auth.getUser();
-          if (supabaseUser) {
-            realUserId = supabaseUser.id;
-          }
-        } catch { /* ignore supabase errors */ }
+        // 1. Intentar primero con localStorage (fuente de verdad de la sesión activa en el frontend)
+        const storedUser = localStorage.getItem('user_info');
+        if (storedUser) {
+          try {
+            const parsed = JSON.parse(storedUser);
+            realUserId = parsed.id?.toString() || '';
+          } catch { /* ignore */ }
+        }
 
-        // 2. Intentar con localStorage (para login local)
+        // 2. Si no hay en localStorage, usar Supabase como fallback
         if (!realUserId) {
-          const storedUser = localStorage.getItem('user_info');
-          if (storedUser) {
-            try {
-              const parsed = JSON.parse(storedUser);
-              realUserId = parsed.id?.toString() || '';
-            } catch { /* ignore */ }
-          }
+          try {
+            const { createClient } = await import('@/lib/supabase/client');
+            const supabase = createClient();
+            const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+            if (supabaseUser) {
+              realUserId = supabaseUser.id;
+            }
+          } catch { /* ignore supabase errors */ }
         }
 
         if (!realUserId) {

@@ -31,6 +31,15 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
+      // Limpiar cualquier sesión anterior de Supabase/OAuth
+      try {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        await supabase.auth.signOut();
+      } catch (err) {
+        console.warn('Error al limpiar sesión de Supabase anterior:', err);
+      }
+
       const { authApi } = await import('@/lib/api/auth');
       const res = await authApi.login({
         email: formData.email,

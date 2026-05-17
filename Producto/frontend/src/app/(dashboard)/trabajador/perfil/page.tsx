@@ -119,28 +119,36 @@ export default function TrabajadorPerfilPage() {
       setLoading(true);
       let realUserId = '';
       try {
-        const supabase = createClient();
-        const { data: { user: supabaseUser } } = await supabase.auth.getUser();
         let initialData = { name: '', email: '', phone: '+56 ', photo: '' };
 
-        if (supabaseUser) {
-          realUserId = supabaseUser.id;
-          initialData = { 
-            name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || '', 
-            email: supabaseUser.email || '', 
-            phone: '+56 ',
-            photo: supabaseUser.user_metadata?.avatar_url || ''
-          };
-        } else {
-          const storedUser = localStorage.getItem('user_info');
-          if (storedUser) {
+        // 1. Intentar primero con localStorage (fuente de verdad de la sesión activa en el frontend)
+        const storedUser = localStorage.getItem('user_info');
+        if (storedUser) {
+          try {
             const userData = JSON.parse(storedUser);
             realUserId = userData.id?.toString() || '';
             initialData = { 
-              name: userData.nombre || '', 
+              name: userData.nombre || userData.name || '', 
               email: userData.email || '', 
-              phone: userData.telefono || '+56 ',
-              photo: userData.foto || ''
+              phone: userData.telefono || userData.phone || '+56 ',
+              photo: userData.foto || userData.photoUrl || ''
+            };
+          } catch (e) {
+            console.error('Error al parsear user_info de localStorage:', e);
+          }
+        }
+
+        // 2. Si no hay en localStorage, usar Supabase como fallback
+        if (!realUserId) {
+          const supabase = createClient();
+          const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+          if (supabaseUser) {
+            realUserId = supabaseUser.id;
+            initialData = { 
+              name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || '', 
+              email: supabaseUser.email || '', 
+              phone: '+56 ',
+              photo: supabaseUser.user_metadata?.avatar_url || ''
             };
           }
         }

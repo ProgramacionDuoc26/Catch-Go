@@ -20,19 +20,23 @@ export default function TrabajadorSuscripcionPage() {
       setLoading(true);
       try {
         let uid = '';
-        try {
-          const { createClient } = await import('@/lib/supabase/client');
-          const supabase = createClient();
-          const { data: { user: supabaseUser } } = await supabase.auth.getUser();
-          if (supabaseUser) uid = supabaseUser.id;
-        } catch { /* ignore */ }
-
-        if (!uid) {
-          const storedUser = localStorage.getItem('user_info');
-          if (storedUser) {
+        // 1. Intentar primero con localStorage (fuente de verdad de la sesión activa en el frontend)
+        const storedUser = localStorage.getItem('user_info');
+        if (storedUser) {
+          try {
             const parsed = JSON.parse(storedUser);
             uid = parsed.id?.toString() || '';
-          }
+          } catch { /* ignore */ }
+        }
+
+        // 2. Si no hay en localStorage, usar Supabase como fallback
+        if (!uid) {
+          try {
+            const { createClient } = await import('@/lib/supabase/client');
+            const supabase = createClient();
+            const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+            if (supabaseUser) uid = supabaseUser.id;
+          } catch { /* ignore */ }
         }
         
         setUserId(uid);

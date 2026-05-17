@@ -39,17 +39,24 @@ export default function EmpresaOfertasPage() {
       // Obtener el ID real de la empresa
       let realEmpresaId = '';
       
-      const { createClient } = await import('@/lib/supabase/client');
-      const supabase = createClient();
-      const { data: { user: supabaseUser } } = await supabase.auth.getUser();
-      
-      if (supabaseUser) {
-        realEmpresaId = supabaseUser.id;
-      } else {
-        const storedUser = localStorage.getItem('user_info');
-        if (storedUser) {
+      // 1. Intentar primero con localStorage (fuente de verdad de la sesión activa en el frontend)
+      const storedUser = localStorage.getItem('user_info');
+      if (storedUser) {
+        try {
           const parsed = JSON.parse(storedUser);
           realEmpresaId = parsed.id?.toString() || '';
+        } catch (e) {
+          console.error('Error al parsear user_info de localStorage:', e);
+        }
+      }
+
+      // 2. Si no hay en localStorage, usar Supabase como fallback
+      if (!realEmpresaId) {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+        if (supabaseUser) {
+          realEmpresaId = supabaseUser.id;
         }
       }
  
