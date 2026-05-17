@@ -15,6 +15,7 @@ import PaymentGatewayModal from '@/components/modals/PaymentGatewayModal';
 import RatingModal from '@/components/modals/RatingModal';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { paymentApi } from '@/lib/api/payment';
+import { useSettings } from '@/context/SettingsContext';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
@@ -28,6 +29,7 @@ export default function EmpresaCandidatosPage() {
 
 function EmpresaCandidatosContent() {
   const { addNotification } = useNotifications();
+  const { t } = useSettings();
   const [candidatos, setCandidatos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [employerProfile, setEmployerProfile] = useState<Profile | null>(null);
@@ -391,8 +393,8 @@ function EmpresaCandidatosContent() {
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Gestión de Candidatos</h1>
-        <p className="text-gray-500 text-sm mt-1">Revisa y selecciona a los mejores trabajadores para tus turnos.</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t.candidatesManagement}</h1>
+        <p className="text-gray-500 text-sm mt-1">{t.candidatesSubtitle}</p>
       </div>
 
       <div className="bg-white p-1 rounded-2xl shadow-sm border border-gray-100 flex flex-wrap mb-6 gap-1">
@@ -401,28 +403,28 @@ function EmpresaCandidatosContent() {
           className={`flex-1 min-w-[120px] py-3 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'pendientes' ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
         >
           <User size={18} />
-          Nuevos ({candidatos.filter(c => c.estado === 'PENDIENTE').length})
+          {t.tabNew} ({candidatos.filter(c => c.estado === 'PENDIENTE').length})
         </button>
         <button 
           onClick={() => setActiveTab('activos')}
           className={`flex-1 min-w-[120px] py-3 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'activos' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
         >
           <Briefcase size={18} />
-          En Proceso ({candidatos.filter(c => ['ACEPTADO', 'TRABAJO_FINALIZADO', 'PAGO_ENVIADO'].includes(c.estado)).length})
+          {t.tabInProcess} ({candidatos.filter(c => ['ACEPTADO', 'TRABAJO_FINALIZADO', 'PAGO_ENVIADO'].includes(c.estado)).length})
         </button>
         <button 
           onClick={() => setActiveTab('por_calificar')}
           className={`flex-1 min-w-[120px] py-3 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'por_calificar' ? 'bg-amber-500 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
         >
           <Star size={18} />
-          Por Calificar ({candidatos.filter(c => ['PAGO_CONFIRMADO', 'CALIFICADO_TRABAJADOR'].includes(c.estado)).length})
+          {t.tabToRate} ({candidatos.filter(c => ['PAGO_CONFIRMADO', 'CALIFICADO_TRABAJADOR'].includes(c.estado)).length})
         </button>
         <button 
           onClick={() => setActiveTab('historial')}
           className={`flex-1 min-w-[120px] py-3 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'historial' ? 'bg-gray-800 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
         >
           <Check size={18} />
-          Historial ({candidatos.filter(c => ['CALIFICADO_EMPRESA', 'RECHAZADO', 'FINALIZADA'].includes(c.estado)).length})
+          {t.tabHistory} ({candidatos.filter(c => ['CALIFICADO_EMPRESA', 'RECHAZADO', 'FINALIZADA'].includes(c.estado)).length})
         </button>
       </div>
 
@@ -451,20 +453,20 @@ function EmpresaCandidatosContent() {
                   <Badge variant={candidato.score >= 90 ? 'success' : candidato.score >= 70 ? 'info' : 'warning'}>
                     Match: {candidato.score}%
                   </Badge>
-                  {candidato.estado === 'ACEPTADO' && <Badge variant="info" className="bg-blue-100 text-blue-700 border-blue-200">Seleccionado</Badge>}
-                  {candidato.estado === 'TRABAJO_FINALIZADO' && <Badge variant="info" className="bg-indigo-100 text-indigo-700 border-indigo-200">Trabajo Realizado</Badge>}
-                  {candidato.estado === 'PAGO_ENVIADO' && <Badge variant="info" className="bg-blue-50 text-blue-600 border-blue-100 italic">Esperando Validación</Badge>}
-                  {candidato.estado === 'PAGO_CONFIRMADO' && <Badge variant="success" className="bg-green-100 text-green-700 border-green-200"><Check size={12}/> Pago Confirmado</Badge>}
-                  {candidato.estado === 'CALIFICADO_TRABAJADOR' && <Badge variant="info" className="bg-blue-100 text-blue-700 border-blue-200">Trabajador te Calificó</Badge>}
-                  {candidato.estado === 'CALIFICADO_EMPRESA' && <Badge variant="default" className="bg-purple-100 text-purple-700 border-purple-200"><Star size={12} className="mr-1"/> Ya Calificaste</Badge>}
-                  {candidato.estado === 'FINALIZADA' && <Badge variant="success" className="bg-green-100 text-green-700 border-green-200"><Check size={12} className="mr-1"/> Completado</Badge>}
-                  {candidato.estado === 'RECHAZADO' && <Badge variant="warning" className="bg-red-100 text-red-700 border-red-200">Rechazado</Badge>}
+                  {candidato.estado === 'ACEPTADO' && <Badge variant="info" className="bg-blue-100 text-blue-700 border-blue-200">{t.statusSelected}</Badge>}
+                  {candidato.estado === 'TRABAJO_FINALIZADO' && <Badge variant="info" className="bg-indigo-100 text-indigo-700 border-indigo-200">{t.statusWorkDone}</Badge>}
+                  {candidato.estado === 'PAGO_ENVIADO' && <Badge variant="info" className="bg-blue-50 text-blue-600 border-blue-100 italic">{t.statusWaitingValidation}</Badge>}
+                  {candidato.estado === 'PAGO_CONFIRMADO' && <Badge variant="success" className="bg-green-100 text-green-700 border-green-200"><Check size={12}/> {t.statusPaymentConfirmed}</Badge>}
+                  {candidato.estado === 'CALIFICADO_TRABAJADOR' && <Badge variant="info" className="bg-blue-100 text-blue-700 border-blue-200">{t.statusWorkerRated}</Badge>}
+                  {candidato.estado === 'CALIFICADO_EMPRESA' && <Badge variant="default" className="bg-purple-100 text-purple-700 border-purple-200"><Star size={12} className="mr-1"/> {t.statusYouRated}</Badge>}
+                  {candidato.estado === 'FINALIZADA' && <Badge variant="success" className="bg-green-100 text-green-700 border-green-200"><Check size={12} className="mr-1"/> {t.statusCompleted}</Badge>}
+                  {candidato.estado === 'RECHAZADO' && <Badge variant="warning" className="bg-red-100 text-red-700 border-red-200">{t.statusRejected}</Badge>}
                 </div>
                 
-                <p className="text-sm text-gray-600 font-medium">Postula a: {candidato.ofertaPostulada}</p>
+                <p className="text-sm text-gray-600 font-medium">{t.appliesTo} {candidato.ofertaPostulada}</p>
                 
                 <div className="text-sm text-gray-500">
-                  <span className="font-medium">Resumen profesional:</span> {candidato.experiencia}
+                  <span className="font-medium">{t.professionalSummary}</span> {candidato.experiencia}
                 </div>
               </div>
               
@@ -476,12 +478,12 @@ function EmpresaCandidatosContent() {
                   onClick={() => handleViewMap(candidato)}
                 >
                   <MapIcon size={16} />
-                  Ver Mapa
+                  {t.btnViewMap}
                 </Button>
                 <Link href={`/empresa/perfil-candidato/${candidato.userId}`}>
                   <Button variant="outline" size="sm" className="gap-2 w-full">
                     <User size={16} />
-                    Ver Perfil
+                    {t.btnViewProfile}
                   </Button>
                 </Link>
                 {candidato.estado === 'PENDIENTE' && (
@@ -493,7 +495,7 @@ function EmpresaCandidatosContent() {
                       onClick={() => handleAction(candidato.id, 'ACEPTADO')}
                     >
                       <Check size={16} />
-                      Aceptar
+                      {t.btnAccept}
                     </Button>
                     <Button 
                       variant="ghost" 
@@ -502,7 +504,7 @@ function EmpresaCandidatosContent() {
                       onClick={() => handleAction(candidato.id, 'RECHAZADO')}
                     >
                       <X size={16} />
-                      Rechazar
+                      {t.btnReject}
                     </Button>
                   </>
                 )}
@@ -514,7 +516,7 @@ function EmpresaCandidatosContent() {
                     onClick={() => handleAction(candidato.id, 'TRABAJO_FINALIZADO')}
                   >
                     <CheckCircle2 size={16} />
-                    Validar Trabajo
+                    {t.btnValidateWork}
                   </Button>
                 )}
                 {candidato.estado === 'TRABAJO_FINALIZADO' && (
@@ -525,7 +527,7 @@ function EmpresaCandidatosContent() {
                     onClick={() => setSelectedCandidateForPayment(candidato)}
                   >
                     <DollarSign size={16} />
-                    Pagar Trabajador
+                    {t.btnPayWorker}
                   </Button>
                 )}
                 {['PAGO_CONFIRMADO', 'CALIFICADO_TRABAJADOR'].includes(candidato.estado) && (
@@ -536,7 +538,7 @@ function EmpresaCandidatosContent() {
                     onClick={() => setSelectedCandidateForRating(candidato)}
                   >
                     <Star size={16} />
-                    Calificar Trabajador
+                    {t.btnRateWorker}
                   </Button>
                 )}
               </div>
@@ -548,8 +550,8 @@ function EmpresaCandidatosContent() {
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto text-gray-400">
                 <Briefcase size={32} />
               </div>
-              <h3 className="text-lg font-medium text-gray-900">Aún no hay candidatos</h3>
-              <p className="text-gray-500 text-sm">Las postulaciones aparecerán aquí a medida que los trabajadores se interesen.</p>
+              <h3 className="text-lg font-medium text-gray-900">{t.noCandidatesTitle}</h3>
+              <p className="text-gray-500 text-sm">{t.noCandidatesDesc}</p>
             </div>
           </div>
         )}

@@ -53,3 +53,50 @@
   @apply bg-slate-800 border-slate-700 text-white placeholder-slate-500 focus:ring-primary !important;
 }
 
+/* Gray styling for previous bright white layouts and cards */
+.dark .bg-slate-50 {
+  @apply bg-slate-950 text-slate-100 !important;
+}
+.dark .bg-slate-50\/50 {
+  @apply bg-slate-900/50 !important;
+}
+.dark .text-slate-700 {
+  @apply text-slate-300 !important;
+}
+.dark .text-slate-850 {
+  @apply text-slate-300 !important;
+}
+.dark .text-slate-900 {
+  @apply text-slate-100 !important;
+}
+.dark .text-slate-800 {
+  @apply text-slate-200 !important;
+}
+.dark .border-slate-200 {
+  @apply border-slate-800 !important;
+}
+.dark .bg-slate-100 {
+  @apply bg-slate-800 !important;
+}
+.dark .hover\:bg-slate-50:hover {
+  @apply hover:bg-slate-800 !important;
+}
+.dark .border-slate-100 {
+  @apply border-slate-800 !important;
+}
+.dark .bg-gradient-to-br.from-white.to-blue-50\/30 {
+  @apply from-slate-900 to-slate-900/40 !important;
+}
+.dark .bg-green-50 {
+  @apply bg-green-950/20 text-green-300 border-green-900/50 !important;
+}
+.dark .text-green-700 {
+  @apply text-green-400 !important;
+}
+.dark .border-green-100 {
+  @apply border-green-900/50 !important;
+}
+.dark .border-slate-150, .dark .border-slate-255 {
+  @apply border-slate-800 !important;
+}
+

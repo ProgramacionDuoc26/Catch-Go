@@ -14,6 +14,7 @@ import { authApi } from '@/lib/api/auth';
 import { Trash2, AlertTriangle, X, CheckSquare, Square } from 'lucide-react';
 import LocationPicker from '@/components/maps/LocationPicker';
 import { SkillsChart } from '@/components/features/SkillsChart';
+import { useSettings } from '@/context/SettingsContext';
 
 const SKILLS_WORKER_OPTS = {
   habilidades: ['Atención al cliente', 'Conducción', 'Manejo Excel', 'Inventario', 'Ventas', 'Programación', 'Diseño', 'Trabajo físico', 'Electricidad', 'Mecánica', 'Liderazgo', 'Logística'],
@@ -54,6 +55,7 @@ const estadoLabel: Record<string, string> = {
 
 export default function TrabajadorPerfilPage() {
   const router = useRouter();
+  const { t } = useSettings();
   const [formData, setFormData] = useState<Profile>({
     userId: '', name: '', email: '', phone: '+56 ', birthDate: '',
     photoUrl: '',
@@ -387,7 +389,7 @@ export default function TrabajadorPerfilPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
         <Loader2 className="w-10 h-10 text-primary animate-spin" />
-        <p className="text-gray-500">Cargando tu perfil...</p>
+        <p className="text-gray-500">{t("loadingProfile")}</p>
       </div>
     );
   }
@@ -398,10 +400,10 @@ export default function TrabajadorPerfilPage() {
   return (
     <div className="max-w-7xl mx-auto pb-20 px-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Mi Perfil</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t("myProfile")}</h1>
         <div className="flex gap-2 text-sm text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-100">
           <span className="w-2 h-2 bg-green-500 rounded-full mt-1.5 animate-pulse"></span>
-          Perfil Público Activo
+          {t("publicProfileActive")}
         </div>
       </div>
 
@@ -418,7 +420,7 @@ export default function TrabajadorPerfilPage() {
                 <div className="w-36 h-36 rounded-full bg-gray-200 flex items-center justify-center border-4 border-white shadow-lg overflow-hidden">
                   {formData.photoUrl ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={formData.photoUrl} alt="Foto de perfil" className="w-full h-full object-cover" />
+                    <img src={formData.photoUrl} alt={t("myProfile")} className="w-full h-full object-cover" />
                   ) : (
                     <User className="w-16 h-16 text-gray-400" />
                   )}
@@ -433,7 +435,7 @@ export default function TrabajadorPerfilPage() {
                   <Camera size={18} />
                 </button>
               </div>
-              <h2 className="text-lg font-bold text-gray-900">{formData.name || 'Sin nombre'}</h2>
+              <h2 className="text-lg font-bold text-gray-900">{formData.name || t("notLoggedIn")}</h2>
               <p className="text-sm text-gray-500">{formData.email}</p>
               <p className="text-xs text-gray-400 mt-1">{formData.phone !== '+56 ' ? formData.phone : ''}</p>
             </CardContent>
@@ -443,7 +445,7 @@ export default function TrabajadorPerfilPage() {
           <Card>
             <CardHeader className="border-b bg-gray-50/50 py-3 px-4">
               <h2 className="text-sm font-semibold flex items-center gap-2">
-                <CreditCard className="text-primary w-4 h-4" /> Método de Pago
+                <CreditCard className="text-primary w-4 h-4" /> {t("paymentMethod")}
               </h2>
             </CardHeader>
             <CardContent className="p-4">
@@ -462,11 +464,11 @@ export default function TrabajadorPerfilPage() {
                     <span>N° {maskedAccount}</span>
                   </div>
                   <div className="mt-3 px-3 py-2 bg-green-50 rounded-lg border border-green-100">
-                    <p className="text-xs text-green-700 font-medium">✅ Datos bancarios verificados</p>
+                    <p className="text-xs text-green-700 font-medium">✅ {t("bankVerified")}</p>
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-gray-400 text-center py-2">Sin datos bancarios aún. Completa la sección de transferencia.</p>
+                <p className="text-sm text-gray-400 text-center py-2">{t("noBankData")}</p>
               )}
             </CardContent>
           </Card>
@@ -475,7 +477,7 @@ export default function TrabajadorPerfilPage() {
           <Card>
             <CardHeader className="border-b bg-gray-50/50 py-3 px-4">
               <h2 className="text-sm font-semibold flex items-center gap-2">
-                <Clock className="text-primary w-4 h-4" /> Historial de Postulaciones
+                <Clock className="text-primary w-4 h-4" /> {t("applicationHistory")}
               </h2>
             </CardHeader>
             <CardContent className="p-4 space-y-3">
@@ -495,11 +497,11 @@ export default function TrabajadorPerfilPage() {
                   </div>
                 ))
               ) : (
-                <p className="text-xs text-gray-400 text-center py-4">No tienes postulaciones recientes.</p>
+                <p className="text-xs text-gray-400 text-center py-4">{t("noApplications")}</p>
               )}
               <Link href="/trabajador/postulaciones">
                 <button className="w-full text-xs text-primary hover:text-primary-dark flex items-center justify-center gap-1 pt-2">
-                  Ver todas <ArrowRight className="w-3 h-3" />
+                  {t("viewAll")} <ArrowRight className="w-3 h-3" />
                 </button>
               </Link>
             </CardContent>
@@ -509,13 +511,13 @@ export default function TrabajadorPerfilPage() {
           <Card className="overflow-hidden bg-gradient-to-br from-white to-blue-50/30">
             <CardHeader className="border-b bg-gray-50/50 py-3 px-4">
               <h2 className="text-sm font-semibold flex items-center gap-2">
-                <CheckCircle className="text-primary w-4 h-4" /> Perfil de Aptitudes
+                <CheckCircle className="text-primary w-4 h-4" /> {t("skillsAptitudes")}
               </h2>
             </CardHeader>
             <CardContent className="p-6">
               <SkillsChart data={chartData} size={180} />
               <div className="mt-4 text-center">
-                <p className="text-xs text-gray-500 italic">Visualización basada en tus habilidades y preferencias seleccionadas.</p>
+                <p className="text-xs text-gray-500 italic">{t("skillsChartHelper")}</p>
               </div>
             </CardContent>
           </Card>
@@ -528,26 +530,26 @@ export default function TrabajadorPerfilPage() {
           <Card>
             <CardHeader className="border-b bg-gray-50/50">
               <h2 className="text-lg font-semibold flex items-center gap-2">
-                <User className="text-primary w-5 h-5" /> Información Personal
+                <User className="text-primary w-5 h-5" /> {t("personalInfo")}
               </h2>
             </CardHeader>
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo <span className="text-red-500">*</span></label>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">{t("fullName")} <span className="text-red-500">*</span></label>
                   <input id="name" type="text" value={formData.name} onChange={handleInputChange}
                     className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary" />
                 </div>
                 <div>
-                  <label htmlFor="rut" className="block text-sm font-medium text-gray-700 mb-1">RUT <span className="text-red-500">*</span></label>
+                  <label htmlFor="rut" className="block text-sm font-medium text-gray-700 mb-1">{t("rut")} <span className="text-red-500">*</span></label>
                   <input id="rut" type="text" value={formData.rut} onChange={handleInputChange}
                     placeholder="12.345.678-9"
                     className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary" />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Sobre mí / Resumen profesional</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t("aboutMe")}</label>
                   <textarea id="description" rows={3} value={formData.description} onChange={handleInputChange}
-                    placeholder="Cuéntanos sobre tu experiencia y habilidades..."
+                    placeholder={t("aboutMePlaceholder")}
                     className="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none" />
                 </div>
 
@@ -572,18 +574,18 @@ export default function TrabajadorPerfilPage() {
                 />
                 </div>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico <span className="text-red-500">*</span></label>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">{t("emailAddress")} <span className="text-red-500">*</span></label>
                   <input id="email" type="email" value={formData.email} onChange={handleInputChange}
                     className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary bg-gray-50" readOnly />
                 </div>
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Teléfono <span className="text-red-500">*</span></label>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">{t("phoneNumber")} <span className="text-red-500">*</span></label>
                   <input id="phone" type="text" value={formData.phone} onChange={handleInputChange}
                     className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary" />
                 </div>
                 <div>
                   <label htmlFor="birthDate" className="flex items-center gap-1 text-sm font-medium text-gray-700 mb-1">
-                    Fecha de Nacimiento <span className="text-red-500">*</span> {birthDateLocked && <Lock className="w-3 h-3 text-gray-400" />}
+                    {t("birthDate")} <span className="text-red-500">*</span> {birthDateLocked && <Lock className="w-3 h-3 text-gray-400" />}
                   </label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -592,18 +594,18 @@ export default function TrabajadorPerfilPage() {
                       max={new Date().toISOString().split('T')[0]}
                       className={`w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary ${birthDateLocked ? 'bg-gray-100 cursor-not-allowed text-gray-500' : ''}`} />
                   </div>
-                  {birthDateLocked && <p className="text-xs text-gray-400 mt-1">La fecha de nacimiento no se puede modificar</p>}
+                  {birthDateLocked && <p className="text-xs text-gray-400 mt-1">{t("birthDateLockedText")}</p>}
                 </div>
                 <div className="md:col-span-2">
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">Dirección <span className="text-red-500">*</span></label>
+                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">{t("addressLabel")} <span className="text-red-500">*</span></label>
                   <div className="flex gap-2">
                     <input id="address" type="text" value={formData.address} onChange={handleInputChange}
                       onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSearchAddress())}
-                      placeholder="Ej: Alameda 123, Santiago"
+                      placeholder={t("addressPlaceholder")}
                       className="flex-1 border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary" />
-                    <Button type="button" variant="outline" onClick={handleSearchAddress}>Buscar</Button>
+                    <Button type="button" variant="outline" onClick={handleSearchAddress}>{t("searchBtn")}</Button>
                   </div>
-                  <p className="text-[10px] text-gray-400 mt-1 italic">Escribe tu dirección y presiona Buscar para centrar el mapa.</p>
+                  <p className="text-[10px] text-gray-400 mt-1 italic">{t("addressHelper")}</p>
                 </div>
               </div>
             </CardContent>
@@ -613,13 +615,13 @@ export default function TrabajadorPerfilPage() {
           <Card>
             <CardHeader className="border-b bg-gray-50/50">
               <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Briefcase className="text-primary w-5 h-5" /> Habilidades y Preferencias
+                <Briefcase className="text-primary w-5 h-5" /> {t("skillsPreferences")}
               </h2>
             </CardHeader>
             <CardContent className="p-6 space-y-8">
               {/* Pregunta 1: Habilidades (Múltiple) */}
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-3">1. ¿Cuáles son tus principales habilidades? (Selección múltiple)</label>
+                <label className="block text-sm font-bold text-gray-700 mb-3">{t("skillsQ1")}</label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                   {SKILLS_WORKER_OPTS.habilidades.map(skill => {
                     const isSelected = skillsData.habilidades.includes(skill);
@@ -650,7 +652,7 @@ export default function TrabajadorPerfilPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Pregunta 2: Ambiente */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-3">2. ¿En qué ambiente trabajas mejor?</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-3">{t("skillsQ2")}</label>
                   <div className="space-y-2">
                     {SKILLS_WORKER_OPTS.ambiente.map(opt => (
                       <label key={opt} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
@@ -671,7 +673,7 @@ export default function TrabajadorPerfilPage() {
 
                 {/* Pregunta 3: Característica */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-3">3. ¿Qué te caracteriza más?</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-3">{t("skillsQ3")}</label>
                   <div className="space-y-2">
                     {SKILLS_WORKER_OPTS.caracteristica.map(opt => (
                       <label key={opt} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
@@ -693,7 +695,7 @@ export default function TrabajadorPerfilPage() {
 
               {/* Pregunta 4: Preferencia */}
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-3">4. ¿Qué tipo de trabajo prefieres?</label>
+                <label className="block text-sm font-bold text-gray-700 mb-3">{t("skillsQ4")}</label>
                 <div className="flex flex-wrap gap-2">
                   {SKILLS_WORKER_OPTS.preferencia.map(opt => (
                     <button
@@ -718,7 +720,7 @@ export default function TrabajadorPerfilPage() {
           <Card>
             <CardHeader className="border-b bg-gray-50/50">
               <h2 className="text-lg font-semibold flex items-center gap-2">
-                <FileText className="text-primary w-5 h-5" /> Mis Documentos
+                <FileText className="text-primary w-5 h-5" /> {t("myDocuments")}
               </h2>
             </CardHeader>
             <CardContent className="p-6">
@@ -730,8 +732,8 @@ export default function TrabajadorPerfilPage() {
                       {uploading === 'cvUrl' ? <Loader2 className="w-5 h-5 text-primary animate-spin" /> : <Save className={`w-5 h-5 ${formData.cvUrl ? 'text-primary' : 'text-gray-400'}`} />}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-gray-900">Currículum Vitae</h3>
-                      <p className="text-xs text-gray-500">{formData.cvUrl ? 'Documento cargado' : 'PDF, DOCX hasta 10MB'}</p>
+                      <h3 className="text-sm font-semibold text-gray-900">{t("curriculumVitae")}</h3>
+                      <p className="text-xs text-gray-500">{formData.cvUrl ? t("documentLoaded") : t("documentHelper")}</p>
                     </div>
                   </div>
                   {formData.cvUrl && (
@@ -743,9 +745,9 @@ export default function TrabajadorPerfilPage() {
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <FileText className="w-8 h-8 text-red-500" />
                           <div>
-                            <p className="font-medium">Documento PDF</p>
+                            <p className="font-medium">{t("pdfDocument")}</p>
                             <a href={formData.cvUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
-                              <Eye className="w-3 h-3" /> Ver documento
+                              <Eye className="w-3 h-3" /> {t("viewDocument")}
                             </a>
                           </div>
                         </div>
@@ -755,7 +757,7 @@ export default function TrabajadorPerfilPage() {
                   <input type="file" id="cv-upload" className="hidden" accept=".pdf,.doc,.docx,image/*" onChange={(e) => handleFileUpload(e, 'cvUrl')} />
                   <Button variant="ghost" size="sm" disabled={uploading !== null}
                     onClick={() => document.getElementById('cv-upload')?.click()}>
-                    <RefreshCw className="w-3 h-3 mr-1" /> {formData.cvUrl ? 'Cambiar archivo' : 'Subir CV'}
+                    <RefreshCw className="w-3 h-3 mr-1" /> {formData.cvUrl ? t("changeFile") : t("uploadCV")}
                   </Button>
                 </div>
 
@@ -766,8 +768,8 @@ export default function TrabajadorPerfilPage() {
                       {uploading === 'description' ? <Loader2 className="w-5 h-5 text-primary animate-spin" /> : formData.description ? <CheckCircle className="w-5 h-5 text-primary" /> : <Briefcase className="w-5 h-5 text-gray-400" />}
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-gray-900">Cursos y Certificados</h3>
-                      <p className="text-xs text-gray-500">{formData.description ? 'Certificado cargado' : 'OS10, SEC u otros'}</p>
+                      <h3 className="text-sm font-semibold text-gray-900">{t("coursesCertificates")}</h3>
+                      <p className="text-xs text-gray-500">{formData.description ? t("certLoaded") : t("certHelper")}</p>
                     </div>
                   </div>
                   {formData.description && (
@@ -781,7 +783,7 @@ export default function TrabajadorPerfilPage() {
                           <div>
                             <p className="font-medium">Certificado</p>
                             <a href={formData.description} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
-                              <Eye className="w-3 h-3" /> Ver documento
+                              <Eye className="w-3 h-3" /> {t("viewDocument")}
                             </a>
                           </div>
                         </div>
@@ -791,7 +793,7 @@ export default function TrabajadorPerfilPage() {
                   <input type="file" id="cert-upload" className="hidden" accept=".pdf,.doc,.docx,image/*" onChange={(e) => handleFileUpload(e, 'description')} />
                   <Button variant="ghost" size="sm" disabled={uploading !== null}
                     onClick={() => document.getElementById('cert-upload')?.click()}>
-                    <RefreshCw className="w-3 h-3 mr-1" /> {formData.description ? 'Cambiar archivo' : 'Subir Certificado'}
+                    <RefreshCw className="w-3 h-3 mr-1" /> {formData.description ? t("changeFile") : t("uploadCert")}
                   </Button>
                 </div>
               </div>
@@ -849,7 +851,7 @@ export default function TrabajadorPerfilPage() {
             </button>
             <Button variant="primary" size="lg" className="px-8 gap-2 shadow-lg shadow-primary/20" disabled={saving} onClick={handleSave}>
               {saving ? <Loader2 className="animate-spin" /> : <Save size={20} />}
-              {saving ? 'Guardando...' : 'Guardar Todos los Cambios'}
+              {saving ? 'Guardando...' : t("saveProfileBtn")}
             </Button>
           </div>
         </div>
@@ -906,7 +908,7 @@ export default function TrabajadorPerfilPage() {
                     className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold shadow-lg shadow-red-200 transition-colors flex items-center justify-center gap-2"
                   >
                     {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 size={16} />}
-                    {deleting ? 'Eliminando...' : 'Eliminar Cuenta'}
+                    {deleting ? 'Eliminando...' : t("deleteAccountBtn")}
                   </button>
                 </div>
               </div>
