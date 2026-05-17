@@ -13,7 +13,8 @@ import { useNotifications } from '@/context/NotificationContext';
 import { calculateMatchScore } from '@/lib/matchEngine';
 import PaymentGatewayModal from '@/components/modals/PaymentGatewayModal';
 import RatingModal from '@/components/modals/RatingModal';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { paymentApi } from '@/lib/api/payment';
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
@@ -33,8 +34,10 @@ function EmpresaCandidatosContent() {
   const [selectedCandidateForMap, setSelectedCandidateForMap] = useState<any | null>(null);
   const [candidateProfileForMap, setCandidateProfileForMap] = useState<Profile | null>(null);
   const searchParams = useSearchParams();
+  const router = useRouter();
   const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState<'pendientes' | 'activos' | 'por_calificar' | 'historial'>('pendientes');
+  const [isProcessingWebpay, setIsProcessingWebpay] = useState(false);
 
   useEffect(() => {
     if (tabParam && ['pendientes', 'activos', 'por_calificar', 'historial'].includes(tabParam)) {
@@ -46,6 +49,47 @@ function EmpresaCandidatosContent() {
   // Payment & Rating States
   const [selectedCandidateForPayment, setSelectedCandidateForPayment] = useState<any | null>(null);
   const [selectedCandidateForRating, setSelectedCandidateForRating] = useState<any | null>(null);
+
+  useEffect(() => {
+    const confirmWebpayPayout = async () => {
+      const tokenWs = searchParams.get('token_ws');
+      const appId = searchParams.get('applicationId');
+      if (tokenWs && appId) {
+        setLoading(true);
+        try {
+          const response = await paymentApi.confirmWebpay(tokenWs);
+          if (response.data && response.data.status === 'AUTHORIZED') {
+            await jobsApi.updateApplicationStatus(appId, 'PAGO_CONFIRMADO');
+            
+            addNotification(
+              'Pago Exitoso',
+              'El pago se procesó de forma segura con Webpay Plus y el estado del turno se actualizó a Pago Confirmado.',
+              'success',
+              '/empresa/candidatos?tab=por_calificar'
+            );
+            
+            // Recargar datos locales
+            setCandidatos(prev => prev.map(c => 
+              c.id === appId ? { ...c, estado: 'PAGO_CONFIRMADO' } : c
+            ));
+            
+            setActiveTab('por_calificar');
+            router.push('/empresa/candidatos?tab=por_calificar');
+          } else {
+            alert('El pago de Webpay fue rechazado o fallido.');
+            router.push('/empresa/candidatos?tab=activos');
+          }
+        } catch (err) {
+          console.error("Error confirmando pago de Webpay:", err);
+          alert('Hubo un error de conexión al confirmar el pago.');
+          router.push('/empresa/candidatos?tab=activos');
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    confirmWebpayPayout();
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -146,6 +190,13 @@ function EmpresaCandidatosContent() {
         c.id === applicationId ? { ...c, estado: status } : c
       ));
 
+      // Navegación automática de tabs para evitar F5
+      if (status === 'ACEPTADO') {
+        setActiveTab('activos');
+      } else if (status === 'RECHAZADO') {
+        setActiveTab('historial');
+      }
+
       // Notificación según la acción
       const cand = candidatos.find(c => c.id === applicationId);
       if (status === 'ACEPTADO') {
@@ -192,6 +243,7 @@ function EmpresaCandidatosContent() {
       setCandidatos(prev => prev.map(c => 
         c.id === selectedCandidateForPayment.id ? { ...c, estado: 'PAGO_ENVIADO' } : c
       ));
+      setActiveTab('activos');
       addNotification(
         'Pago Enviado',
         `Has enviado el comprobante de pago a ${selectedCandidateForPayment.nombre}.`,
@@ -203,6 +255,45 @@ function EmpresaCandidatosContent() {
       alert('Error al registrar el pago');
     } finally {
       setSelectedCandidateForPayment(null);
+    }
+  };
+
+  const handleWebpayPayment = async () => {
+    if (!selectedCandidateForPayment) return;
+    setIsProcessingWebpay(true);
+    try {
+      const storedUser = localStorage.getItem('user_info');
+      if (!storedUser) return;
+      const parsed = JSON.parse(storedUser);
+      const userId = parsed.id?.toString() || '';
+      
+      const returnUrl = `${window.location.origin}/empresa/candidatos?applicationId=${selectedCandidateForPayment.id}`;
+      const response = await paymentApi.initWebpay(userId, selectedCandidateForPayment.remuneracion, returnUrl);
+      
+      if (response.data && response.data.token && response.data.url) {
+        const { token, url } = response.data;
+        
+        // POST redirect a Webpay Plus
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = url;
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'token_ws';
+        input.value = token;
+        
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+      } else {
+        alert('Error al conectar con Webpay. Inténtalo de nuevo.');
+        setIsProcessingWebpay(false);
+      }
+    } catch (err) {
+      console.error("Error iniciando Webpay:", err);
+      alert("Error de conexión al iniciar Webpay.");
+      setIsProcessingWebpay(false);
     }
   };
 
@@ -235,6 +326,7 @@ function EmpresaCandidatosContent() {
       setCandidatos(prev => prev.map(c => 
         c.id === selectedCandidateForRating.id ? { ...c, estado: 'CALIFICADO_EMPRESA' } : c
       ));
+      setActiveTab('historial');
       addNotification(
         'Calificación Enviada',
         `Has calificado a ${selectedCandidateForRating.nombre} con ${stars} estrellas.`,
@@ -507,6 +599,8 @@ function EmpresaCandidatosContent() {
           onSubmit={handlePaymentSubmit}
           workerProfile={selectedCandidateForPayment.workerProfile}
           amount={selectedCandidateForPayment.remuneracion}
+          onPayWithWebpay={handleWebpayPayment}
+          isProcessingWebpay={isProcessingWebpay}
         />
       )}
 

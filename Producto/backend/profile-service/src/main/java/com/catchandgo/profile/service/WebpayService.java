@@ -163,16 +163,20 @@ public class WebpayService {
             tx.setStatus("COMPLETED");
             transactionRepository.save(tx);
 
-            // 4. Actualizar plan del perfil de usuario a ENTERPRISE
-            Optional<Profile> profileOpt = profileRepository.findByUserId(tx.getUserId());
-            if (profileOpt.isPresent()) {
-                Profile profile = profileOpt.get();
-                profile.setPlan("ENTERPRISE");
-                profile.setPlanExpiry(LocalDateTime.now().plusDays(30)); // 30 días de suscripción
-                profileRepository.save(profile);
-                log.info("Plan de usuario {} actualizado a ENTERPRISE hasta {}", profile.getUserId(), profile.getPlanExpiry());
+            // 4. Actualizar plan del perfil de usuario a ENTERPRISE solo si es suscripción (Monto = 99000)
+            if (tx.getAmount() == 99000) {
+                Optional<Profile> profileOpt = profileRepository.findByUserId(tx.getUserId());
+                if (profileOpt.isPresent()) {
+                    Profile profile = profileOpt.get();
+                    profile.setPlan("ENTERPRISE");
+                    profile.setPlanExpiry(LocalDateTime.now().plusDays(30)); // 30 días de suscripción
+                    profileRepository.save(profile);
+                    log.info("Plan de usuario {} actualizado a ENTERPRISE hasta {}", profile.getUserId(), profile.getPlanExpiry());
+                } else {
+                    log.error("Perfil de usuario {} no encontrado para actualizar plan.", tx.getUserId());
+                }
             } else {
-                log.error("Perfil de usuario {} no encontrado para actualizar plan.", tx.getUserId());
+                log.info("Transaccion de pago directo (monto: {}). Omitiendo actualizacion de plan.", tx.getAmount());
             }
             
             responseData.put("status", "AUTHORIZED");

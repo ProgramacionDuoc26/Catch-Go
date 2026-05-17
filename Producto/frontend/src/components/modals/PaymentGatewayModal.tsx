@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Upload, CheckCircle2, DollarSign, Building2, CreditCard } from 'lucide-react';
+import { X, Upload, CheckCircle2, DollarSign, Building2, CreditCard, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 interface PaymentGatewayModalProps {
@@ -8,9 +8,20 @@ interface PaymentGatewayModalProps {
   onSubmit: (receiptData: { file: File, dataUrl: string }) => void;
   workerProfile: any;
   amount: number;
+  onPayWithWebpay: () => Promise<void>;
+  isProcessingWebpay: boolean;
 }
 
-export default function PaymentGatewayModal({ isOpen, onClose, onSubmit, workerProfile, amount }: PaymentGatewayModalProps) {
+export default function PaymentGatewayModal({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  workerProfile, 
+  amount,
+  onPayWithWebpay,
+  isProcessingWebpay
+}: PaymentGatewayModalProps) {
+  const [paymentMethod, setPaymentMethod] = useState<'transfer' | 'webpay'>('transfer');
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -45,102 +56,177 @@ export default function PaymentGatewayModal({ isOpen, onClose, onSubmit, workerP
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-[24px] max-w-lg w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+      <div className="bg-white rounded-[28px] max-w-lg w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200 border border-gray-100">
         <div className="p-6 sm:p-8">
           <div className="flex justify-between items-start mb-6">
             <div>
-              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <DollarSign className="text-green-600" />
+              <h3 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <DollarSign className="text-green-600 w-6 h-6" />
                 Pago de Honorarios
               </h3>
-              <p className="text-gray-500 text-sm mt-1">Sube el comprobante de transferencia al trabajador.</p>
+              <p className="text-gray-500 text-sm mt-1">Selecciona el método de pago para transferir al trabajador.</p>
             </div>
             <button 
               onClick={onClose}
               className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-all"
+              disabled={isUploading || isProcessingWebpay}
             >
               <X size={18} />
             </button>
           </div>
 
-          <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-6">
+          <div className="bg-blue-50/70 border border-blue-100/50 p-4 rounded-2xl mb-6">
             <h4 className="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
               <Building2 size={16} />
               Datos Bancarios del Trabajador
             </h4>
             <div className="grid grid-cols-2 gap-y-2 text-sm">
-              <span className="text-blue-700">Trabajador:</span>
-              <span className="font-semibold text-gray-900">{workerProfile?.name || 'Nombre no disponible'}</span>
+              <span className="text-blue-700 font-medium">Trabajador:</span>
+              <span className="font-semibold text-gray-900 text-right sm:text-left">{workerProfile?.name || 'Nombre no disponible'}</span>
               
-              <span className="text-blue-700">RUT:</span>
-              <span className="font-semibold text-gray-900">{workerProfile?.rut || 'No registrado'}</span>
+              <span className="text-blue-700 font-medium">RUT:</span>
+              <span className="font-semibold text-gray-900 text-right sm:text-left">{workerProfile?.rut || 'No registrado'}</span>
               
-              <span className="text-blue-700">Banco:</span>
-              <span className="font-semibold text-gray-900">{workerProfile?.bankName || 'No registrado'}</span>
+              <span className="text-blue-700 font-medium">Banco:</span>
+              <span className="font-semibold text-gray-900 text-right sm:text-left">{workerProfile?.bankName || 'No registrado'}</span>
               
-              <span className="text-blue-700">Tipo de Cuenta:</span>
-              <span className="font-semibold text-gray-900">{workerProfile?.accountType || 'No registrado'}</span>
+              <span className="text-blue-700 font-medium">Tipo Cuenta:</span>
+              <span className="font-semibold text-gray-900 text-right sm:text-left">{workerProfile?.accountType || 'No registrado'}</span>
               
-              <span className="text-blue-700">N° de Cuenta:</span>
-              <span className="font-semibold text-gray-900">{workerProfile?.accountNumber || 'No registrado'}</span>
+              <span className="text-blue-700 font-medium">N° de Cuenta:</span>
+              <span className="font-semibold text-gray-900 text-right sm:text-left">{workerProfile?.accountNumber || 'No registrado'}</span>
               
-              <span className="text-blue-700">Monto a Pagar:</span>
-              <span className="font-bold text-green-700">${amount.toLocaleString('es-CL')}</span>
+              <span className="text-blue-700 font-medium">Monto a Pagar:</span>
+              <span className="font-extrabold text-green-700 text-right sm:text-left">${amount.toLocaleString('es-CL')}</span>
             </div>
           </div>
 
-          <div className="mb-8">
-            <label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-              <CreditCard size={16} className="text-primary" />
-              Evidencia de Pago
-            </label>
-            <div className={`border-2 border-dashed rounded-xl p-6 text-center transition-colors ${file ? 'border-green-300 bg-green-50' : 'border-gray-300 hover:border-primary/50'}`}>
-              <input 
-                type="file" 
-                id="receipt-upload" 
-                className="hidden" 
-                accept="image/*,.pdf"
-                onChange={handleFileChange}
-              />
-              {file ? (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                    <CheckCircle2 size={24} />
-                  </div>
-                  <p className="font-medium text-green-800 text-sm">{file.name}</p>
-                  <p className="text-xs text-green-600">Comprobante adjuntado correctamente</p>
-                  <button 
-                    onClick={() => setFile(null)}
-                    className="text-xs text-red-500 font-medium hover:underline mt-2"
-                  >
-                    Quitar archivo
-                  </button>
-                </div>
-              ) : (
-                <label htmlFor="receipt-upload" className="cursor-pointer flex flex-col items-center gap-2">
-                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                    <Upload size={24} />
-                  </div>
-                  <p className="font-medium text-gray-700 text-sm">Haz clic para subir comprobante</p>
-                  <p className="text-xs text-gray-500">Formato JPG, PNG o PDF (Max. 5MB)</p>
-                </label>
-              )}
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={onClose} className="flex-1">
-              Cancelar
-            </Button>
-            <Button 
-              variant="primary" 
-              onClick={handleSubmit} 
-              className="flex-1" 
-              disabled={!file || isUploading}
+          {/* Tab Selector de Métodos de Pago */}
+          <div className="flex border-b border-gray-100 mb-6">
+            <button
+              onClick={() => setPaymentMethod('transfer')}
+              className={`flex-1 pb-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${paymentMethod === 'transfer' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+              disabled={isUploading || isProcessingWebpay}
             >
-              {isUploading ? 'Procesando...' : 'Confirmar Pago'}
-            </Button>
+              <Upload size={16} />
+              Transferencia Manual
+            </button>
+            <button
+              onClick={() => setPaymentMethod('webpay')}
+              className={`flex-1 pb-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${paymentMethod === 'webpay' ? 'border-amber-500 text-amber-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+              disabled={isUploading || isProcessingWebpay}
+            >
+              <CreditCard size={16} />
+              Webpay Plus
+            </button>
           </div>
+
+          {paymentMethod === 'transfer' ? (
+            /* Método 1: Transferencia Manual */
+            <>
+              <div className="mb-8">
+                <label className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <CreditCard size={16} className="text-primary" />
+                  Evidencia de Pago
+                </label>
+                <div className={`border-2 border-dashed rounded-2xl p-6 text-center transition-colors ${file ? 'border-green-300 bg-green-50/50' : 'border-gray-300 hover:border-primary/50'}`}>
+                  <input 
+                    type="file" 
+                    id="receipt-upload" 
+                    className="hidden" 
+                    accept="image/*,.pdf"
+                    onChange={handleFileChange}
+                    disabled={isUploading}
+                  />
+                  {file ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 shadow-inner">
+                        <CheckCircle2 size={24} />
+                      </div>
+                      <p className="font-medium text-green-800 text-sm">{file.name}</p>
+                      <p className="text-xs text-green-600">Comprobante adjuntado correctamente</p>
+                      <button 
+                        onClick={() => setFile(null)}
+                        className="text-xs text-red-500 font-medium hover:underline mt-2"
+                        disabled={isUploading}
+                      >
+                        Quitar archivo
+                      </button>
+                    </div>
+                  ) : (
+                    <label htmlFor="receipt-upload" className="cursor-pointer flex flex-col items-center gap-2">
+                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                        <Upload size={24} />
+                      </div>
+                      <p className="font-medium text-gray-700 text-sm">Haz clic para subir comprobante</p>
+                      <p className="text-xs text-gray-500">Formato JPG, PNG o PDF (Max. 5MB)</p>
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={onClose} className="flex-1" disabled={isUploading}>
+                  Cancelar
+                </Button>
+                <Button 
+                  variant="primary" 
+                  onClick={handleSubmit} 
+                  className="flex-1" 
+                  disabled={!file || isUploading}
+                >
+                  {isUploading ? (
+                    <span className="flex items-center gap-2 justify-center">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Procesando...
+                    </span>
+                  ) : 'Confirmar Pago'}
+                </Button>
+              </div>
+            </>
+          ) : (
+            /* Método 2: Webpay Plus */
+            <>
+              <div className="mb-8 space-y-4">
+                <div className="bg-amber-50 border border-amber-100/50 p-6 rounded-2xl text-center relative overflow-hidden">
+                  <div className="absolute top-0 right-0 bg-amber-500 text-white text-[9px] font-bold px-2.5 py-0.5 rounded-bl-lg uppercase tracking-wider flex items-center gap-0.5 shadow-sm">
+                    <Sparkles size={8} />
+                    Instantáneo
+                  </div>
+                  <p className="text-sm text-amber-800 leading-relaxed max-w-xs mx-auto">
+                    Transfiere mediante **Webpay Plus**. El estado del pago del turno se actualizará y notificará automáticamente al instante sin tener que subir comprobantes manuales.
+                  </p>
+                  <div className="text-3xl font-black text-gray-900 mt-4 flex justify-center items-baseline gap-0.5">
+                    ${amount.toLocaleString('es-CL')}
+                    <span className="text-xs text-gray-500 font-normal">CLP</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={onClose} className="flex-1" disabled={isProcessingWebpay}>
+                  Cancelar
+                </Button>
+                <Button 
+                  variant="primary" 
+                  onClick={onPayWithWebpay} 
+                  className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold border-none shadow-md" 
+                  disabled={isProcessingWebpay}
+                >
+                  {isProcessingWebpay ? (
+                    <span className="flex items-center gap-2 justify-center">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Conectando...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1">
+                      Pagar con Webpay Plus
+                    </span>
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
