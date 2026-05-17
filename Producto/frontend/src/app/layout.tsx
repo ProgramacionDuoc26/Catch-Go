@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { NotificationProvider } from "@/context/NotificationContext";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -19,11 +21,14 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${inter.variable} min-h-screen bg-background font-sans flex flex-col`}>
-        <Navbar />
-        <main className="flex-grow flex flex-col">
-          {children}
-        </main>
-        <Footer />
+        <NotificationProvider>
+          <Toaster position="top-right" expand={false} richColors />
+          <Navbar />
+          <main className="flex-grow flex flex-col">
+            {children}
+          </main>
+          <Footer />
+        </NotificationProvider>
       </body>
     </html>
   );

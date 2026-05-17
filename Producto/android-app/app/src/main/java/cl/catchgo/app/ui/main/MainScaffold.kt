@@ -21,9 +21,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import cl.catchgo.app.domain.model.UserRole
 import cl.catchgo.app.domain.model.UserSession
 import cl.catchgo.app.ui.applications.ApplicationsScreen
 import cl.catchgo.app.ui.detail.OfferDetailScreen
+import cl.catchgo.app.ui.empresa.CrearOfertaScreen
 import cl.catchgo.app.ui.feed.FeedScreen
 import cl.catchgo.app.ui.messages.MessagesPlaceholderScreen
 import cl.catchgo.app.ui.profile.ProfilePlaceholderScreen
@@ -35,6 +37,7 @@ import cl.catchgo.app.ui.theme.White
 
 private const val ROUTE_OFFER_DETAIL = "offer/{id}"
 private const val ROUTE_SKILLS_SETUP = "skills_setup"
+private const val ROUTE_CREAR_OFERTA = "crear_oferta"
 private fun offerDetailRoute(id: String) = "offer/$id"
 
 @Composable
@@ -96,7 +99,8 @@ fun MainScaffold(
             composable(MainTab.Feed.route) {
                 FeedScreen(
                     role = session.user.role,
-                    onOfferClick = { offerId -> navController.navigate(offerDetailRoute(offerId)) }
+                    onOfferClick = { offerId -> navController.navigate(offerDetailRoute(offerId)) },
+                    onCrearOferta = { navController.navigate(ROUTE_CREAR_OFERTA) }
                 )
             }
             composable(MainTab.Applications.route) {
@@ -109,11 +113,18 @@ fun MainScaffold(
             composable(MainTab.Profile.route) {
                 ProfilePlaceholderScreen(
                     session = session,
-                    onNavigateToSkills = { navController.navigate(ROUTE_SKILLS_SETUP) }
+                    onNavigateToSkills = {
+                        if (session.user.role != UserRole.EMPRESA) {
+                            navController.navigate(ROUTE_SKILLS_SETUP)
+                        }
+                    }
                 )
             }
             composable(ROUTE_SKILLS_SETUP) {
                 SkillsSetupScreen(onBack = { navController.popBackStack() })
+            }
+            composable(ROUTE_CREAR_OFERTA) {
+                CrearOfertaScreen(onBack = { navController.popBackStack() })
             }
             composable(
                 route = ROUTE_OFFER_DETAIL,

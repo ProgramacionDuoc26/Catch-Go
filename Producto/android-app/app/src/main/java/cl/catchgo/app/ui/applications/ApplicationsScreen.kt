@@ -34,6 +34,7 @@ import cl.catchgo.app.domain.model.JobApplication
 import cl.catchgo.app.domain.model.UserRole
 import cl.catchgo.app.ui.applications.ApplicationsPlaceholderScreen
 import cl.catchgo.app.ui.components.EmptyState
+import cl.catchgo.app.ui.empresa.CandidatosScreen
 import cl.catchgo.app.ui.components.StatusBadge
 import cl.catchgo.app.ui.components.StatusType
 import cl.catchgo.app.ui.theme.Gray500
@@ -51,6 +52,7 @@ fun ApplicationsScreen(
             onApplicationClick = onApplicationClick,
             modifier = modifier
         )
+        UserRole.EMPRESA -> CandidatosScreen(modifier = modifier)
         else -> ApplicationsPlaceholderScreen(role = role, modifier = modifier)
     }
 }

@@ -15,7 +15,14 @@ data class ProfileRemoteDto(
     val description: String? = null,
     val type: String? = null,
     val latitude: Double? = null,
-    val longitude: Double? = null
+    val longitude: Double? = null,
+    val skills: String? = null,
+    val rating: Double? = null,
+    val ratingCount: Int? = null,
+    val rut: String? = null,
+    val bankName: String? = null,
+    val accountType: String? = null,
+    val accountNumber: String? = null
 )
 
 @Serializable

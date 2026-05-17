@@ -41,6 +41,7 @@ import cl.catchgo.app.domain.model.JobOffer
 import cl.catchgo.app.domain.model.UserRole
 import cl.catchgo.app.ui.components.EmptyState
 import cl.catchgo.app.ui.components.OfferCard
+import cl.catchgo.app.ui.empresa.EmpresaOfertasScreen
 import cl.catchgo.app.ui.components.SkeletonBox
 import cl.catchgo.app.ui.theme.BrandBlue50
 import cl.catchgo.app.ui.theme.BrandBlue600
@@ -58,10 +59,12 @@ import cl.catchgo.app.ui.theme.White
 fun FeedScreen(
     role: UserRole,
     onOfferClick: (String) -> Unit = {},
+    onCrearOferta: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     when (role) {
         UserRole.WORKER -> WorkerFeedRoute(onOfferClick = onOfferClick, modifier = modifier)
+        UserRole.EMPRESA -> EmpresaOfertasScreen(onCrearOferta = onCrearOferta, modifier = modifier)
         else -> FeedPlaceholderScreen(role = role, modifier = modifier)
     }
 }

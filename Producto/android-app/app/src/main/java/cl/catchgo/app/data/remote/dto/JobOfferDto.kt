@@ -10,6 +10,7 @@ data class JobOfferDto(
     val titulo: String? = null,
     val descripcion: String? = null,
     val ubicacion: String? = null,
+    val categoria: String? = null,
     val remuneracion: Int? = null,
     val fechaInicio: String? = null,
     val fechaFin: String? = null,
