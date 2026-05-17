@@ -255,23 +255,29 @@ function TrabajadorOfertasContent() {
 
   const filteredOfertas = ofertas.filter(o => {
     const matchesSearch = o.titulo.toLowerCase().includes(searchTerm.toLowerCase());
-    const isApplied = appliedJobs.includes(o.id);
-    const application = applications.find(a => a.jobId === o.id);
+    
+    // Sort applications descending to always get the most recent attempt
+    const sortedApps = [...applications].sort((a, b) => b.id - a.id);
+    const application = sortedApps.find(a => a.jobId === o.id);
+    
+    // An application is considered active if it is not in a finished/rejected state
+    const isActiveApplication = application && !['FINALIZADA', 'RECHAZADO', 'CALIFICADO_TRABAJADOR'].includes(application.estado);
+    const isApplied = !!application;
     
     if (activeTab === 'por_calificar') {
       return matchesSearch && isApplied && ['PAGO_ENVIADO', 'PAGO_CONFIRMADO', 'CALIFICADO_EMPRESA'].includes(application?.estado);
     }
     
     if (activeTab === 'postulaciones') {
-      return matchesSearch && isApplied && ['PENDIENTE', 'ACEPTADO', 'RECHAZADO'].includes(application?.estado);
+      return matchesSearch && isApplied && ['PENDIENTE', 'ACEPTADO'].includes(application?.estado);
     }
     
     if (activeTab === 'completadas') {
-      return matchesSearch && isApplied && ['CALIFICADO_TRABAJADOR', 'FINALIZADA'].includes(application?.estado);
+      return matchesSearch && isApplied && ['CALIFICADO_TRABAJADOR', 'FINALIZADA', 'RECHAZADO'].includes(application?.estado);
     }
 
-    // En 'explorar', mostramos lo que NO está cerrado Y lo que aún NO hemos postulado
-    return o.estado !== 'CERRADA' && matchesSearch && !isApplied;
+    // En 'explorar', mostramos lo que NO está cerrado Y lo que no tiene una postulación ACTIVA
+    return o.estado !== 'CERRADA' && matchesSearch && !isActiveApplication;
   });
 
   if (loading) {
@@ -352,8 +358,11 @@ function TrabajadorOfertasContent() {
       <div className="space-y-4">
         {filteredOfertas.length > 0 ? filteredOfertas.map((oferta: any) => {
           const matchScore = oferta.matchScore || 0;
-          const isApplied = appliedJobs.includes(oferta.id);
-          const application = applications.find(a => a.jobId === oferta.id);
+          const sortedApps = [...applications].sort((a, b) => b.id - a.id);
+          const application = sortedApps.find(a => a.jobId === oferta.id);
+          
+          const isActiveApplication = application && !['FINALIZADA', 'RECHAZADO', 'CALIFICADO_TRABAJADOR'].includes(application.estado);
+          const isApplied = !!isActiveApplication;
           const appEstado = application?.estado;
           
           // Check if it is a new offer (less than 24 hours old)

@@ -9,7 +9,7 @@ import java.util.List;
 public interface JobApplicationRepository extends JpaRepository<JobApplication, Long> {
     List<JobApplication> findByJobId(Long jobId);
     List<JobApplication> findByUserId(String userId);
-    java.util.Optional<JobApplication> findByUserIdAndJobId(String userId, Long jobId);
+    List<JobApplication> findByUserIdAndJobId(String userId, Long jobId);
 
     @Query("SELECT a FROM JobApplication a WHERE a.jobId IN (SELECT o.id FROM JobOffer o WHERE o.empresaId = :empresaId)")
     List<JobApplication> findAllByEmpresaId(@Param("empresaId") String empresaId);

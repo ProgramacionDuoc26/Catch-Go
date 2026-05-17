@@ -40,8 +40,13 @@ public class JobOfferService {
     }
 
     public void apply(Long jobId, String userId) {
-        if (applicationRepository.findByUserIdAndJobId(userId, jobId).isPresent()) {
-            throw new RuntimeException("Ya has postulado a esta oferta");
+        List<JobApplication> existingApps = applicationRepository.findByUserIdAndJobId(userId, jobId);
+        boolean hasActiveApp = existingApps.stream().anyMatch(app -> {
+            String state = app.getEstado();
+            return !state.equals("RECHAZADO") && !state.equals("FINALIZADA") && !state.equals("CALIFICADO_TRABAJADOR");
+        });
+        if (hasActiveApp) {
+            throw new RuntimeException("Ya tienes una postulación activa a esta oferta");
         }
         
         JobOffer offer = repository.findById(jobId)
