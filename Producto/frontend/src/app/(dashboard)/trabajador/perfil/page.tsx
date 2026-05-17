@@ -67,6 +67,7 @@ export default function TrabajadorPerfilPage() {
     longitude: -70.6693,
     rut: '',
     address: '',
+    certificateUrl: '',
     type: 'TRABAJADOR'
   });
   const [loading, setLoading] = useState(true);
@@ -275,7 +276,8 @@ export default function TrabajadorPerfilPage() {
       // Persistir datos extendidos en skills
       const extendedData = {
         rut: formData.rut,
-        address: formData.address
+        address: formData.address,
+        certificateUrl: formData.certificateUrl
       };
 
       const dataToSave = {
@@ -830,27 +832,27 @@ export default function TrabajadorPerfilPage() {
                 </div>
 
                 {/* Certificados */}
-                <div className={`border-2 rounded-xl p-5 transition-colors ${formData.description ? 'border-primary/30 bg-primary/5' : 'border-dashed border-gray-200'}`}>
+                <div className={`border-2 rounded-xl p-5 transition-colors ${formData.certificateUrl ? 'border-primary/30 bg-primary/5' : 'border-dashed border-gray-200'}`}>
                   <div className="flex items-start gap-3 mb-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${formData.description ? 'bg-primary/10' : 'bg-gray-100'}`}>
-                      {uploading === 'description' ? <Loader2 className="w-5 h-5 text-primary animate-spin" /> : formData.description ? <CheckCircle className="w-5 h-5 text-primary" /> : <Briefcase className="w-5 h-5 text-gray-400" />}
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${formData.certificateUrl ? 'bg-primary/10' : 'bg-gray-100'}`}>
+                      {uploading === 'certificateUrl' ? <Loader2 className="w-5 h-5 text-primary animate-spin" /> : formData.certificateUrl ? <CheckCircle className="w-5 h-5 text-primary" /> : <Briefcase className="w-5 h-5 text-gray-400" />}
                     </div>
                     <div className="flex-1">
                       <h3 className="text-sm font-semibold text-gray-900">{t("coursesCertificates")}</h3>
-                      <p className="text-xs text-gray-500">{formData.description ? t("certLoaded") : t("certHelper")}</p>
+                      <p className="text-xs text-gray-500">{formData.certificateUrl ? t("certLoaded") : t("certHelper")}</p>
                     </div>
                   </div>
-                  {formData.description && (
+                  {formData.certificateUrl && (
                     <div className="mb-3 p-3 bg-white rounded-lg border border-gray-100">
-                      {formData.description.match(/\.(jpg|jpeg|png|gif|webp)/) ? (
+                      {formData.certificateUrl.match(/\.(jpg|jpeg|png|gif|webp)/) ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={formData.description} alt="Vista previa de certificado" className="w-full h-32 object-cover rounded" />
+                        <img src={formData.certificateUrl} alt="Vista previa de certificado" className="w-full h-32 object-cover rounded" />
                       ) : (
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                           <FileText className="w-8 h-8 text-blue-500" />
                           <div>
                             <p className="font-medium">Certificado</p>
-                            <a href={formData.description} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
+                            <a href={formData.certificateUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline flex items-center gap-1">
                               <Eye className="w-3 h-3" /> {t("viewDocument")}
                             </a>
                           </div>
@@ -858,10 +860,10 @@ export default function TrabajadorPerfilPage() {
                       )}
                     </div>
                   )}
-                  <input type="file" id="cert-upload" className="hidden" accept=".pdf,.doc,.docx,image/*" onChange={(e) => handleFileUpload(e, 'description')} />
+                  <input type="file" id="cert-upload" className="hidden" accept=".pdf,.doc,.docx,image/*" onChange={(e) => handleFileUpload(e, 'certificateUrl')} />
                   <Button variant="ghost" size="sm" disabled={uploading !== null}
                     onClick={() => document.getElementById('cert-upload')?.click()}>
-                    <RefreshCw className="w-3 h-3 mr-1" /> {formData.description ? t("changeFile") : t("uploadCert")}
+                    <RefreshCw className="w-3 h-3 mr-1" /> {formData.certificateUrl ? t("changeFile") : t("uploadCert")}
                   </Button>
                 </div>
               </div>

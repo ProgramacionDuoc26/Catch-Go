@@ -27,6 +27,7 @@ export interface Profile {
   ratingCount?: number;
   plan?: string;
   planExpiry?: string;
+  certificateUrl?: string;
 }
 
 export const profileApi = {
