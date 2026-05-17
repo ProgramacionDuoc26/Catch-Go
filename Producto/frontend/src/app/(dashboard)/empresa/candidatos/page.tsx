@@ -148,7 +148,7 @@ function EmpresaCandidatosContent() {
               
               // Calcular MATCH REAL
               if (workerProfile && localEmployerProfile) {
-                const scoreObj = calculateMatchScore(workerProfile, localEmployerProfile, jobOffer);
+                const scoreObj = calculateMatchScore(workerProfile, localEmployerProfile, jobOffer, localEmployerProfile?.plan || 'FREE');
                 matchScore = scoreObj.total;
               }
             } catch (e) {

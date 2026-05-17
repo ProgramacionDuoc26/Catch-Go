@@ -87,7 +87,7 @@ function TrabajadorOfertasContent() {
              try {
                const empProfRes = await profileApi.getByUserId(offer.empresaId);
                if (empProfRes.data) {
-                  const scoreObj = calculateMatchScore(workerProf, empProfRes.data, offer);
+                  const scoreObj = calculateMatchScore(workerProf, empProfRes.data, offer, workerProf?.plan || 'FREE');
                   matchScore = scoreObj.total;
                   // Adjuntar el rating real de la empresa
                   offer.companyRating = empProfRes.data.rating || 0;

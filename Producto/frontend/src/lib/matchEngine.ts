@@ -25,7 +25,16 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return R * c;
 }
 
-export function calculateMatchScore(workerProfile: any, companyProfile: any, jobOffer: any): MatchScore {
+/**
+ * Calcula el puntaje de compatibilidad entre un trabajador y una oferta/empresa.
+ * @param workerProfile  Perfil del trabajador
+ * @param companyProfile Perfil de la empresa
+ * @param jobOffer       Oferta de trabajo
+ * @param callerPlan     Plan del usuario que realiza la búsqueda ('FREE' | 'PREMIUM' | 'ENTERPRISE')
+ */
+export function calculateMatchScore(workerProfile: any, companyProfile: any, jobOffer: any, callerPlan: string = 'FREE'): MatchScore {
+  const isPremium = callerPlan === 'PREMIUM' || callerPlan === 'ENTERPRISE';
+
   let score: MatchScore = {
     total: 0,
     breakdown: { habilidades: 0, experiencia: 0, distancia: 0, disponibilidad: 0, calificacion: 0 }
@@ -90,7 +99,9 @@ export function calculateMatchScore(workerProfile: any, companyProfile: any, job
   }
   score.breakdown.experiencia = expScore;
 
-  // 3. DISTANCIA (20%)
+  // 3. DISTANCIA (20%) — Diferenciada por plan
+  // FREE:    ≤5 km = 20 pts | >5 km = 0 pts (fuera de rango gratuito)
+  // PREMIUM: ≤5 km = 20 pts | ≤10 km = 15 pts | ≤15 km = 10 pts | >15 km = 5 pts
   let distScore = 0;
   const targetLat = jobOffer?.latitude || companyProfile?.latitude;
   const targetLng = jobOffer?.longitude || companyProfile?.longitude;
@@ -98,13 +109,25 @@ export function calculateMatchScore(workerProfile: any, companyProfile: any, job
   const dist = calculateDistance(workerProfile?.latitude, workerProfile?.longitude, targetLat, targetLng);
   
   if (dist === -1) {
-    distScore = 10; // Default if no coords
-  } else if (dist <= 10) {
-    distScore = 20;
-  } else if (dist <= 25) {
-    distScore = 10;
+    distScore = 10; // Default if no coords available
+  } else if (isPremium) {
+    // PREMIUM: escalonado completo hasta 15 km
+    if (dist <= 5) {
+      distScore = 20;
+    } else if (dist <= 10) {
+      distScore = 15;
+    } else if (dist <= 15) {
+      distScore = 10;
+    } else {
+      distScore = 5;
+    }
   } else {
-    distScore = 5;
+    // FREE: solo puntaje dentro de 5 km, fuera = 0
+    if (dist <= 5) {
+      distScore = 20;
+    } else {
+      distScore = 0;
+    }
   }
   score.breakdown.distancia = distScore;
 
@@ -138,9 +161,14 @@ export function calculateMatchScore(workerProfile: any, companyProfile: any, job
   }
   score.breakdown.calificacion = califScore;
 
-  // Total
+  // Total base
   score.total = score.breakdown.habilidades + score.breakdown.experiencia + score.breakdown.distancia + score.breakdown.disponibilidad + score.breakdown.calificacion;
   
+  // PREMIUM BONUS: +20% al puntaje total
+  if (isPremium) {
+    score.total = Math.round(score.total * 1.20);
+  }
+
   // Ensure it doesn't exceed 100
   score.total = Math.min(100, Math.round(score.total));
 
