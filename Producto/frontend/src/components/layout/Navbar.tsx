@@ -116,15 +116,18 @@ export function Navbar() {
           </nav>
 
           <div className="flex items-center space-x-4">
-            {isDashboard ? (
+            {hasSession ? (
               <>
-                <button
-                  onClick={() => setShowLogoutConfirm(true)}
-                  className="flex items-center gap-2 text-text-muted hover:text-red-600 transition-colors font-medium text-sm mr-2"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span className="hidden lg:inline">{t("signOut")}</span>
-                </button>
+                {/* Botón para volver al Dashboard si estamos en página pública */}
+                {!isDashboard && (
+                  <Link
+                    href={isAdmin ? "/admin" : (isTrabajador ? "/trabajador/ofertas" : "/empresa/ofertas")}
+                    className="hidden sm:flex items-center gap-1.5 text-xs bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all font-semibold px-3 py-1.5 rounded-full animate-fade-in"
+                  >
+                    <LayoutDashboard size={14} />
+                    Volver al Panel
+                  </Link>
+                )}
                 
                 <NotificationBell />
 
@@ -190,6 +193,14 @@ export function Navbar() {
                     </div>
                   </div>
                 )}
+
+                <button
+                  onClick={() => setShowLogoutConfirm(true)}
+                  className="p-2 text-text-muted hover:text-red-600 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full"
+                  title={t("signOut")}
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
               </>
             ) : (
               <>

@@ -2,11 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Sun, Moon, Volume2, VolumeX, RefreshCw, User, RotateCcw, Languages, Type } from "lucide-react";
+import { X, Sun, Moon, Volume2, VolumeX, RefreshCw, User, RotateCcw, Languages, Type, LogOut } from "lucide-react";
 import { useSettings, Theme, FontSize } from "@/context/SettingsContext";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import Image from "next/image";
+import { createClient } from "@/lib/supabase/client";
 
 interface SettingsDrawerProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ export function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps) {
 
   const router = useRouter();
   const [userData, setUserData] = useState<any>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -47,6 +49,22 @@ export function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps) {
   }, [isOpen]);
 
   if (!isMounted) return null;
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    try {
+      await supabase.auth.signOut();
+      localStorage.clear();
+      sessionStorage.clear();
+      onClose();
+      router.push('/login');
+      router.refresh();
+      toast.success(language === "en" ? "Logged out successfully" : "Sesión cerrada correctamente");
+    } catch (e) {
+      console.error('Error logging out in drawer:', e);
+      toast.error("Error al cerrar sesión");
+    }
+  };
 
   const handleEditProfile = () => {
     onClose();
@@ -320,10 +338,17 @@ export function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps) {
                       
                       <button
                         onClick={handleEditProfile}
-                        className="w-full py-2.5 bg-primary text-white rounded-lg hover:bg-primary-dark font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2"
+                        className="w-full py-2.5 bg-primary text-white rounded-lg hover:bg-primary-dark font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2 mb-2"
                       >
                         <User className="w-4 h-4" />
                         {(userData.tipo === 'ADMIN' || userData.tipo === 'SUB_ADMIN' || userData.type === 'ADMIN' || userData.type === 'SUB_ADMIN') ? "Cuentas Admin" : t("editProfileBtn")}
+                      </button>
+                      <button
+                        onClick={() => setShowLogoutConfirm(true)}
+                        className="w-full py-2.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-2"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        {t("signOut") || "Cerrar Sesión"}
                       </button>
                     </div>
                   ) : (
@@ -366,6 +391,39 @@ export function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps) {
                 {t("closeDrawer")}
               </button>
             </div>
+
+            {/* Modal de Confirmación de Cierre de Sesión dentro del Drawer */}
+            {showLogoutConfirm && (
+              <div className="absolute inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-6">
+                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl p-6 space-y-4 max-w-xs w-full text-center animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-700">
+                  <div className="flex justify-center text-red-600 mb-2">
+                    <div className="p-3 bg-red-50 dark:bg-red-950/20 rounded-full">
+                      <LogOut className="w-8 h-8" />
+                    </div>
+                  </div>
+                  <h4 className="text-base font-bold text-slate-900 dark:text-white leading-snug">
+                    ¿Seguro que deseas cerrar sesión?
+                  </h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Tendrás que ingresar tus credenciales nuevamente para acceder.
+                  </p>
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={() => setShowLogoutConfirm(false)}
+                      className="flex-1 py-2 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/60 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold shadow-md shadow-red-200 dark:shadow-none transition-colors"
+                    >
+                      Cerrar Sesión
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </motion.div>
         </>
       )}
