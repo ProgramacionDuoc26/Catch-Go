@@ -127,8 +127,26 @@ public class JobOfferService {
 
     public void updateJobOfferStatus(Long id, String status) {
         JobOffer entity = repository.findById(id).orElseThrow();
+        String oldStatus = entity.getEstado();
         entity.setEstado(status);
         repository.save(entity);
+
+        // Si se reactiva la oferta a ABIERTA desde COMPLETADA o PAUSADA,
+        // archivamos las postulaciones antiguas para habilitar el nuevo ciclo
+        if (status.equals("ABIERTA") && (oldStatus.equals("COMPLETADA") || oldStatus.equals("PAUSADA"))) {
+            List<JobApplication> apps = applicationRepository.findByJobId(id);
+            for (JobApplication app : apps) {
+                String appState = app.getEstado();
+                if (appState.equals("FINALIZADA") || 
+                    appState.equals("CALIFICADO_TRABAJADOR") || 
+                    appState.equals("CALIFICADO_EMPRESA") || 
+                    appState.equals("RECHAZADO") || 
+                    appState.equals("PAGO_CONFIRMADO")) {
+                    app.setEstado("ARCHIVADA");
+                    applicationRepository.save(app);
+                }
+            }
+        }
     }
 
     public void deleteApplication(Long id) {

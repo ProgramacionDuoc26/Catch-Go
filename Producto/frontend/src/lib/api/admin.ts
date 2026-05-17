@@ -43,7 +43,7 @@ export const adminApi = {
 
   getAdmins: async (): Promise<Profile[]> => {
     const res = await api.get<Profile[]>(`${PROFILE_BASE}/profiles`);
-    return (res.data || []).filter(p => p.type === 'ADMIN');
+    return (res.data || []).filter(p => p.type === 'ADMIN' || p.type === 'SUB_ADMIN' || p.type === 'FULL_ADMIN');
   },
 
   createAdmin: async (adminData: any) => {
@@ -53,7 +53,7 @@ export const adminApi = {
       password: adminData.password,
       nombre: adminData.name,
       tipo: adminData.tipo || 'ADMIN',
-      telefono: adminData.phone || '+56900000000'
+      telefono: adminData.phone || ''
     });
 
     if (!authRes.data || !authRes.data.usuario) {
@@ -65,7 +65,7 @@ export const adminApi = {
       userId: authRes.data.usuario.id.toString(),
       name: adminData.name,
       email: adminData.email,
-      phone: adminData.phone || '+56900000000',
+      phone: adminData.phone || '',
       birthDate: '1990-01-01',
       type: adminData.tipo || 'ADMIN',
       description: adminData.description || 'Administrador del Sistema',

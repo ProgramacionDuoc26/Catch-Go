@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { jobsApi } from '@/lib/api/jobs';
+import { profileApi } from '@/lib/api/profile';
 import { Oferta } from '@/lib/api/types';
 import { Plus, Users, Calendar, MapPin, Loader2, Trash2, Edit, Pause, Play, CheckCircle, Eye, X } from 'lucide-react';
 
@@ -12,13 +13,28 @@ export default function EmpresaOfertasPage() {
   const [allOfertas, setAllOfertas] = useState<Oferta[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [appsCount, setAppsCount] = useState(0);
-  const [porPagarCount, setPorPagarCount] = useState(0);
   const [viewTab, setViewTab] = useState<'activos' | 'completados'>('activos');
   const [selectedJobForDetails, setSelectedJobForDetails] = useState<Oferta | null>(null);
 
-  const fetchData = async () => {
-    setLoading(true);
+  // Variables calculadas de manera reactiva para evitar desincronización
+  const activeApplications = applications.filter((app: any) => {
+    const isAppActive = !['FINALIZADA', 'RECHAZADO'].includes(app.estado);
+    const offer = allOfertas.find(o => String(o.id) === String(app.jobId));
+    const isOfferActive = offer ? offer.estado !== 'COMPLETADA' : true;
+    return isAppActive && isOfferActive;
+  });
+  
+  const appsCount = activeApplications.length;
+  
+  const porPagarCount = applications.filter((app: any) => {
+    const isPendingPayment = app.estado === 'TRABAJO_FINALIZADO' || app.estado === 'PAGO_ENVIADO';
+    const offer = allOfertas.find(o => String(o.id) === String(app.jobId));
+    const isOfferActive = offer ? offer.estado !== 'COMPLETADA' : true;
+    return isPendingPayment && isOfferActive;
+  }).length;
+
+  const fetchData = async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
     try {
       // Obtener el ID real de la empresa
       let realEmpresaId = '';
@@ -36,13 +52,13 @@ export default function EmpresaOfertasPage() {
           realEmpresaId = parsed.id?.toString() || '';
         }
       }
-
+ 
       if (!realEmpresaId) {
         console.warn('No se encontró sesión de empresa.');
-        setLoading(false);
+        if (!isSilent) setLoading(false);
         return;
       }
-
+ 
       // Fetch ofertas y ordenar por ID de forma descendente (más nuevo arriba)
       const response = await jobsApi.list();
       if (response.data) {
@@ -51,24 +67,40 @@ export default function EmpresaOfertasPage() {
           .sort((a, b) => Number(b.id) - Number(a.id));
         setAllOfertas(sorted);
       }
-
+ 
       // Fetch applications count and calculate sub-states
       const res = await jobsApi.getApplicationsByEmployerId(realEmpresaId);
       if (res.data) {
-        const activeApps = res.data.filter((app: any) => !['FINALIZADA', 'RECHAZADO'].includes(app.estado));
-        setApplications(res.data);
-        setAppsCount(activeApps.length);
-        setPorPagarCount(res.data.filter((app: any) => app.estado === 'TRABAJO_FINALIZADO' || app.estado === 'PAGO_ENVIADO').length);
+        // Enriquecer postulaciones con el nombre real del trabajador para el historial
+        const enrichedApps = await Promise.all(res.data.map(async (app: any) => {
+          try {
+            const profRes = await profileApi.getByUserId(app.userId);
+            return {
+              ...app,
+              workerName: profRes.data ? profRes.data.name : `Trabajador (${app.userId.substring(0, 5)})`
+            };
+          } catch (e) {
+            return { ...app, workerName: `Trabajador (${app.userId.substring(0, 5)})` };
+          }
+        }));
+        setApplications(enrichedApps);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   };
-
+ 
   useEffect(() => {
-    fetchData();
+    fetchData(false);
+ 
+    // Polling cada 8 segundos en segundo plano para actualización reactiva en tiempo real de los candidatos y estados
+    const interval = setInterval(() => {
+      fetchData(true);
+    }, 8000);
+ 
+    return () => clearInterval(interval);
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -109,9 +141,18 @@ export default function EmpresaOfertasPage() {
           if (realEmpresaId) {
             const appsRes = await jobsApi.getApplicationsByEmployerId(realEmpresaId);
             if (appsRes.data) {
-              setApplications(appsRes.data);
-              setAppsCount(appsRes.data.length);
-              setPorPagarCount(appsRes.data.filter((app: any) => app.estado === 'TRABAJO_FINALIZADO' || app.estado === 'PAGO_ENVIADO').length);
+              const enrichedApps = await Promise.all(appsRes.data.map(async (app: any) => {
+                try {
+                  const profRes = await profileApi.getByUserId(app.userId);
+                  return {
+                    ...app,
+                    workerName: profRes.data ? profRes.data.name : `Trabajador (${app.userId.substring(0, 5)})`
+                  };
+                } catch (e) {
+                  return { ...app, workerName: `Trabajador (${app.userId.substring(0, 5)})` };
+                }
+              }));
+              setApplications(enrichedApps);
             }
           }
         }
@@ -240,27 +281,42 @@ export default function EmpresaOfertasPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4">
-        {displayedOfertas.length > 0 ? displayedOfertas.map((oferta) => (
-          <Card key={oferta.id} className="hover:border-primary/30 transition-all border-gray-100 shadow-sm overflow-hidden">
-            <CardHeader className="flex justify-between items-start pb-2">
-              <div>
-                <h3 className="font-semibold text-xl text-gray-900">{oferta.titulo}</h3>
-                <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                  <span className="flex items-center gap-1"><MapPin size={14} /> {oferta.ubicacion}</span>
-                  <span className="flex items-center gap-1"><Calendar size={14} /> {oferta.fechaInicio}</span>
+        {displayedOfertas.length > 0 ? displayedOfertas.map((oferta) => {
+          // Buscar si hay una postulación finalizada para mostrar quién realizó el turno
+          const completedApp = applications.find((app: any) => 
+            String(app.jobId) === String(oferta.id) && 
+            ['FINALIZADA', 'CALIFICADO_TRABAJADOR', 'CALIFICADO_EMPRESA', 'ARCHIVADA', 'PAGO_CONFIRMADO'].includes(app.estado)
+          );
+
+          return (
+            <Card key={oferta.id} className="hover:border-primary/30 transition-all border-gray-100 shadow-sm overflow-hidden">
+              <CardHeader className="flex justify-between items-start pb-2">
+                <div>
+                  <h3 className="font-semibold text-xl text-gray-900">{oferta.titulo}</h3>
+                  <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                    <span className="flex items-center gap-1"><MapPin size={14} /> {oferta.ubicacion}</span>
+                    <span className="flex items-center gap-1"><Calendar size={14} /> {oferta.fechaInicio}</span>
+                  </div>
                 </div>
-              </div>
-              <span className={`px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide uppercase border ${
-                oferta.estado === 'ABIERTA' ? 'bg-green-50 text-green-700 border-green-200' :
-                oferta.estado === 'PAUSADA' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                'bg-blue-50 text-blue-700 border-blue-200'
-              }`}>
-                {oferta.estado}
-              </span>
-            </CardHeader>
-            <CardContent className="py-2">
-              <p className="text-gray-600 text-sm line-clamp-2">{oferta.descripcion}</p>
-              <div className="mt-4 flex gap-6 border-t pt-4">
+                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide uppercase border ${
+                  oferta.estado === 'ABIERTA' ? 'bg-green-50 text-green-700 border-green-200' :
+                  oferta.estado === 'PAUSADA' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                  'bg-blue-50 text-blue-700 border-blue-200'
+                }`}>
+                  {oferta.estado}
+                </span>
+              </CardHeader>
+              <CardContent className="py-2">
+                <p className="text-gray-600 text-sm line-clamp-2">{oferta.descripcion}</p>
+                
+                {oferta.estado === 'COMPLETADA' && completedApp && (
+                  <div className="mt-3 p-3 bg-blue-50/50 rounded-xl border border-blue-100/30 flex items-center gap-2 text-xs font-semibold text-blue-700">
+                    <Users size={14} className="text-blue-500" />
+                    <span>Realizado por: <span className="font-extrabold">{completedApp.workerName}</span></span>
+                  </div>
+                )}
+
+                <div className="mt-4 flex gap-6 border-t pt-4">
                 <div className="text-center">
                   <span className="block text-lg font-bold text-primary flex items-center justify-center gap-1.5">
                     <Users className="w-4 h-4 mb-0.5" />
@@ -332,13 +388,16 @@ export default function EmpresaOfertasPage() {
                   </>
                 )}
 
-                <Button variant="ghost" size="sm" className="text-red-600 hover:bg-red-50 p-2" onClick={() => handleDelete(oferta.id)}>
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
+                {oferta.estado !== 'COMPLETADA' && (
+                  <Button variant="ghost" size="sm" className="text-red-600 hover:bg-red-50 p-2" onClick={() => handleDelete(oferta.id)}>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                )}
               </div>
             </CardFooter>
           </Card>
-        )) : (
+        );
+      }) : (
           <div className="text-center py-20 bg-white rounded-xl border-2 border-dashed border-gray-100">
             <div className="max-w-xs mx-auto space-y-4">
               <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-300">

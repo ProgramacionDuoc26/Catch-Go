@@ -15,7 +15,7 @@ export interface Profile {
   bankName?: string;
   accountType?: string;
   accountNumber?: string;
-  type: 'TRABAJADOR' | 'EMPRESA' | 'ADMIN';
+  type: 'TRABAJADOR' | 'EMPRESA' | 'ADMIN' | 'SUB_ADMIN' | 'FULL_ADMIN';
   latitude?: number;
   longitude?: number;
   skills?: string;

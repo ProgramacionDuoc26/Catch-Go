@@ -33,6 +33,45 @@ export default function PaymentGatewayModal({
     }
   };
 
+  // Helper para comprimir imágenes y evitar exceder la cuota de localStorage (5MB)
+  const compressImage = (dataUrl: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        // Redimensionar a un máximo de 600px para comprobantes
+        const MAX_SIZE = 600;
+        if (width > MAX_SIZE || height > MAX_SIZE) {
+          if (width > height) {
+            height = Math.round((height * MAX_SIZE) / width);
+            width = MAX_SIZE;
+          } else {
+            width = Math.round((width * MAX_SIZE) / height);
+            height = MAX_SIZE;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          // Exportar como JPEG de calidad media (50%) - reduce de 4MB a ~40KB
+          resolve(canvas.toDataURL('image/jpeg', 0.5));
+        } else {
+          resolve(dataUrl);
+        }
+      };
+      img.onerror = () => {
+        resolve(dataUrl);
+      };
+      img.src = dataUrl;
+    });
+  };
+
   const handleSubmit = async () => {
     if (!file) {
       alert("Debes subir un comprobante de pago para continuar.");
@@ -41,10 +80,19 @@ export default function PaymentGatewayModal({
     
     setIsUploading(true);
 
-    // Convertimos a Base64 para simular envío de archivo
     const reader = new FileReader();
-    reader.onloadend = () => {
-      const dataUrl = reader.result as string;
+    reader.onloadend = async () => {
+      let dataUrl = reader.result as string;
+      
+      // Comprimir si es una imagen
+      if (file.type.startsWith('image/')) {
+        try {
+          dataUrl = await compressImage(dataUrl);
+        } catch (err) {
+          console.error("Error al comprimir comprobante:", err);
+        }
+      }
+
       setTimeout(() => {
         onSubmit({ file, dataUrl });
         setIsUploading(false);

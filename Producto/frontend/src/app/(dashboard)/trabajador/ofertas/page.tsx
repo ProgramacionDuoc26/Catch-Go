@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import { jobsApi } from '@/lib/api/jobs';
 import { Oferta } from '@/lib/api/types';
 import { profileApi, Profile } from '@/lib/api/profile';
-import { Search, CheckCircle2, Loader2, MapPin, Map as MapIcon, X, DollarSign, Star, CheckCircle2 as CheckCircle } from 'lucide-react';
+import { Search, CheckCircle2, Loader2, MapPin, Map as MapIcon, X, DollarSign, Star, CheckCircle2 as CheckCircle, AlertCircle } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import JobDistanceMap from '@/components/maps/JobDistanceMap';
 import { useNotifications } from '@/context/NotificationContext';
@@ -183,8 +183,38 @@ function TrabajadorOfertasContent() {
     if (!selectedAppForValidation) return;
     
     if (!isValid) {
-      alert("Por favor, comunícate con soporte o revisa nuevamente más tarde.");
-      setSelectedAppForValidation(null);
+      const reason = prompt("Describe el problema con el pago (ej: no se ve el comprobante, el monto no coincide, no he recibido la transferencia):");
+      if (reason === null) return; // cancelado
+      if (!reason.trim()) {
+        alert("Debes ingresar un motivo para reportar la discrepancia.");
+        return;
+      }
+
+      try {
+        await jobsApi.updateApplicationStatus(selectedAppForValidation.id, 'PAGO_DISPUTADO');
+        
+        // Guardar detalles de la disputa en localStorage para el panel del admin
+        localStorage.setItem(`payment_dispute_${selectedAppForValidation.id}`, JSON.stringify({
+          reason: reason,
+          date: new Date().toISOString()
+        }));
+
+        setApplications(prev => prev.map(a => 
+          String(a.id) === String(selectedAppForValidation.id) ? { ...a, estado: 'PAGO_DISPUTADO' } : a
+        ));
+        
+        addNotification(
+          'Disputa de Pago Registrada',
+          `Se ha enviado una alerta al Administrador para revisar el pago de honorarios.`,
+          'warning',
+          '/trabajador/ofertas?tab=pagos'
+        );
+      } catch (error) {
+        console.error('Error reporting payment dispute:', error);
+        alert('Error al reportar el problema con el pago');
+      } finally {
+        setSelectedAppForValidation(null);
+      }
       return;
     }
 
@@ -238,12 +268,12 @@ function TrabajadorOfertasContent() {
       setApplications(prev => prev.map(a => 
         String(a.id) === String(selectedAppForRating.id) ? { ...a, estado: newStatus } : a
       ));
-      setActiveTab('por_calificar');
+      setActiveTab('completadas');
       addNotification(
         'Calificación Enviada',
         `Has calificado a la empresa con ${stars} estrellas.`,
         'success',
-        '/trabajador/ofertas?tab=por_calificar'
+        '/trabajador/ofertas?tab=completadas'
       );
     } catch (error) {
       console.error('Error submitting rating:', error);
@@ -260,12 +290,12 @@ function TrabajadorOfertasContent() {
     const sortedApps = [...applications].sort((a, b) => b.id - a.id);
     const application = sortedApps.find(a => a.jobId === o.id);
     
-    // An application is considered active if it is not in a finished/rejected state
-    const isActiveApplication = application && !['FINALIZADA', 'RECHAZADO', 'CALIFICADO_TRABAJADOR'].includes(application.estado);
+    // An application is considered active if it is not in a finished/rejected/archived state
+    const isActiveApplication = application && !['FINALIZADA', 'RECHAZADO', 'CALIFICADO_TRABAJADOR', 'ARCHIVADA'].includes(application.estado);
     const isApplied = !!application;
     
     if (activeTab === 'pagos') {
-      return matchesSearch && isApplied && ['PAGO_ENVIADO'].includes(application?.estado);
+      return matchesSearch && isApplied && ['PAGO_ENVIADO', 'PAGO_DISPUTADO'].includes(application?.estado);
     }
     
     if (activeTab === 'por_calificar') {
@@ -277,11 +307,13 @@ function TrabajadorOfertasContent() {
     }
     
     if (activeTab === 'completadas') {
-      return matchesSearch && isApplied && ['CALIFICADO_TRABAJADOR', 'FINALIZADA', 'RECHAZADO'].includes(application?.estado);
+      return matchesSearch && isApplied && ['CALIFICADO_TRABAJADOR', 'FINALIZADA', 'RECHAZADO', 'ARCHIVADA'].includes(application?.estado);
     }
 
-    // En 'explorar', mostramos lo que NO está cerrado Y lo que no tiene una postulación ACTIVA
-    return o.estado !== 'CERRADA' && matchesSearch && !isActiveApplication;
+    // En 'explorar', solo mostramos ofertas con estado 'ABIERTA' (activas o reactivadas).
+    // Si el trabajador ya tiene una postulación, solo se muestra si esta fue archivada (reactivación) o si no tiene ninguna postulación.
+    const canApply = !application || application.estado === 'ARCHIVADA';
+    return o.estado === 'ABIERTA' && matchesSearch && canApply;
   });
 
   if (loading) {
@@ -372,8 +404,9 @@ function TrabajadorOfertasContent() {
           const sortedApps = [...applications].sort((a, b) => b.id - a.id);
           const application = sortedApps.find(a => a.jobId === oferta.id);
           
-          const isActiveApplication = application && !['FINALIZADA', 'RECHAZADO', 'CALIFICADO_TRABAJADOR'].includes(application.estado);
+          const isActiveApplication = application && !['FINALIZADA', 'RECHAZADO', 'CALIFICADO_TRABAJADOR', 'ARCHIVADA'].includes(application.estado);
           const isApplied = !!isActiveApplication;
+          const isCompleted = application && ['FINALIZADA', 'CALIFICADO_TRABAJADOR', 'RECHAZADO', 'ARCHIVADA'].includes(application.estado);
           const appEstado = application?.estado;
           
           // Check if it is a new offer (less than 24 hours old)
@@ -465,6 +498,16 @@ function TrabajadorOfertasContent() {
                   </Button>
                 )}
 
+                {appEstado === 'PAGO_DISPUTADO' && (
+                  <Button 
+                    variant="outline"
+                    disabled
+                    className="gap-2 bg-amber-50 text-amber-700 border-amber-200 cursor-not-allowed"
+                  >
+                    <AlertCircle size={16} className="text-amber-500 animate-pulse" /> En Revisión de Admin
+                  </Button>
+                )}
+
                 {['PAGO_CONFIRMADO', 'CALIFICADO_EMPRESA'].includes(appEstado) && (
                   <Button 
                     variant="primary"
@@ -475,7 +518,18 @@ function TrabajadorOfertasContent() {
                   </Button>
                 )}
 
-                {!isApplied && (
+                {isCompleted && (
+                  <Button 
+                    variant="outline"
+                    disabled
+                    className="min-w-[140px] gap-2 bg-green-50 text-green-700 border-green-200"
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    {application?.estado === 'RECHAZADO' ? 'Rechazado' : 'Completado'}
+                  </Button>
+                )}
+
+                {!isApplied && !isCompleted && (
                   <Button 
                     variant="primary"
                     onClick={() => handleApply(oferta.id)}
@@ -572,6 +626,7 @@ function TrabajadorOfertasContent() {
           onValidate={handleValidatePayment}
           companyName={selectedAppForValidation.oferta.companyName || "Empresa"}
           amount={selectedAppForValidation.oferta.remuneracion}
+          appId={selectedAppForValidation.id}
           receiptInfo={
             localStorage.getItem(`payment_receipt_${selectedAppForValidation.id}`) 
               ? JSON.parse(localStorage.getItem(`payment_receipt_${selectedAppForValidation.id}`)!) 

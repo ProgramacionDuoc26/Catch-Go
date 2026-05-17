@@ -114,6 +114,7 @@ export function NotificationBell() {
                     <p className="text-slate-400 font-medium italic">No tienes notificaciones</p>
                   </div>
                 )}
+              </div>
             </motion.div>
           </>
         )}

@@ -80,4 +80,11 @@ export const jobsApi = {
    */
   updateStatus: (id: string, status: string) =>
     api.put<void>(`${BASE}/jobs/${id}/status`, { status }),
+
+  /**
+   * Obtener todas las postulaciones del sistema (para el admin)
+   * GET /jobs/applications
+   */
+  getAllApplications: () =>
+    api.get<any[]>(`${BASE}/jobs/applications`),
 };

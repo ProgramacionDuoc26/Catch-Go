@@ -91,96 +91,105 @@ function EmpresaCandidatosContent() {
     confirmWebpayPayout();
   }, [searchParams]);
 
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      setLoading(true);
-      try {
-        let realEmpresaId = '';
-        let localEmployerProfile: Profile | null = null;
-        const storedUser = localStorage.getItem('user_info');
-        if (storedUser) {
-          const parsed = JSON.parse(storedUser);
-          realEmpresaId = parsed.id?.toString() || '';
-          
-          // Cargar perfil del empleador para coordenadas
-          const empProfRes = await profileApi.getByUserId(realEmpresaId);
-          if (empProfRes.data) {
-            setEmployerProfile(empProfRes.data);
-            localEmployerProfile = empProfRes.data;
-          }
+  const fetchInitialData = async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
+    try {
+      let realEmpresaId = '';
+      let localEmployerProfile: Profile | null = null;
+      const storedUser = localStorage.getItem('user_info');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        realEmpresaId = parsed.id?.toString() || '';
+        
+        // Cargar perfil del empleador para coordenadas
+        const empProfRes = await profileApi.getByUserId(realEmpresaId);
+        if (empProfRes.data) {
+          setEmployerProfile(empProfRes.data);
+          localEmployerProfile = empProfRes.data;
         }
+      }
 
-        if (!realEmpresaId) {
-          setLoading(false);
-          return;
-        }
+      if (!realEmpresaId) {
+        if (!isSilent) setLoading(false);
+        return;
+      }
 
-        const response = await jobsApi.getApplicationsByEmployerId(realEmpresaId);
-        if (response.data) {
-          // Enriquecer datos con nombres de usuarios y títulos de trabajos
-          const enrichedCandidatos = await Promise.all(response.data.map(async (app: any) => {
-            let nombreReal = `Candidato (${app.userId.substring(0, 5)})`;
-            let tituloTrabajo = `Turno #${app.jobId}`;
-            let experiencia = 'Ver perfil para detalles';
+      const response = await jobsApi.getApplicationsByEmployerId(realEmpresaId);
+      if (response.data) {
+        // Enriquecer datos con nombres de usuarios y títulos de trabajos
+        const enrichedCandidatos = await Promise.all(response.data.map(async (app: any) => {
+          let nombreReal = `Candidato (${app.userId.substring(0, 5)})`;
+          let tituloTrabajo = `Turno #${app.jobId}`;
+          let experiencia = 'Ver perfil para detalles';
 
-              let matchScore = 85;
-              let workerProfile = null;
-              let jobOffer = null;
+            let matchScore = 85;
+            let workerProfile = null;
+            let jobOffer = null;
 
-              try {
-                // Buscar perfil del trabajador
-                const profRes = await profileApi.getByUserId(app.userId);
-                
-                if (profRes.data) {
-                  workerProfile = profRes.data;
-                  nombreReal = profRes.data.name;
-                  experiencia = profRes.data.description || 'Sin descripción detallada';
-                }
-
-                // Buscar detalles del trabajo
-                const jobRes = await jobsApi.getById(app.jobId);
-                
-                if (jobRes.data) {
-                  jobOffer = jobRes.data;
-                  tituloTrabajo = jobRes.data.titulo;
-                }
-                
-                // Calcular MATCH REAL
-                if (workerProfile && localEmployerProfile) {
-                  const scoreObj = calculateMatchScore(workerProfile, localEmployerProfile, jobOffer);
-                  matchScore = scoreObj.total;
-                }
-              } catch (e) {
-                console.error("Error enriqueciendo datos:", e);
+            try {
+              // Buscar perfil del trabajador
+              const profRes = await profileApi.getByUserId(app.userId);
+              
+              if (profRes.data) {
+                workerProfile = profRes.data;
+                nombreReal = profRes.data.name;
+                experiencia = profRes.data.description || 'Sin descripción detallada';
               }
 
-              return {
-                id: app.id,
-                userId: app.userId,
-                nombre: nombreReal,
-                score: matchScore,
-                ofertaPostulada: tituloTrabajo,
-                remuneracion: jobOffer?.remuneracion || 0,
-                workerProfile: workerProfile,
-                experiencia: experiencia,
-                certificaciones: [],
-                estado: app.estado,
-                jobId: app.jobId
-              };
-            }));
-            
-            // Ordenar por score de mayor a menor
-            enrichedCandidatos.sort((a, b) => b.score - a.score);
-            setCandidatos(enrichedCandidatos);
-        }
-      } catch (error) {
-        console.error('Error fetching initial data:', error);
-      } finally {
-        setLoading(false);
+              // Buscar detalles del trabajo
+              const jobRes = await jobsApi.getById(app.jobId);
+              
+              if (jobRes.data) {
+                jobOffer = jobRes.data;
+                tituloTrabajo = jobRes.data.titulo;
+              }
+              
+              // Calcular MATCH REAL
+              if (workerProfile && localEmployerProfile) {
+                const scoreObj = calculateMatchScore(workerProfile, localEmployerProfile, jobOffer);
+                matchScore = scoreObj.total;
+              }
+            } catch (e) {
+              console.error("Error enriqueciendo datos:", e);
+            }
+
+            return {
+              id: app.id,
+              userId: app.userId,
+              nombre: nombreReal,
+              score: matchScore,
+              ofertaPostulada: tituloTrabajo,
+              remuneracion: jobOffer?.remuneracion || 0,
+              workerProfile: workerProfile,
+              experiencia: experiencia,
+              certificaciones: [],
+              estado: app.estado,
+              jobId: app.jobId
+            };
+          }));
+          
+          // Ordenar por score de mayor a menor
+          enrichedCandidatos.sort((a, b) => b.score - a.score);
+          setCandidatos(enrichedCandidatos);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching initial data:', error);
+    } finally {
+      if (!isSilent) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchInitialData();
   }, [tabParam]); // Recargar datos si cambia el tab vía URL (notificaciones)
+
+  // Polling en segundo plano para actualizar estados automáticamente
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchInitialData(true);
+    }, 8000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleAction = async (applicationId: string, status: string) => {
     try {
@@ -231,13 +240,28 @@ function EmpresaCandidatosContent() {
     if (!selectedCandidateForPayment) return;
     
     try {
-      // Guardar comprobante simulado en localStorage para que el trabajador lo vea
+      // Guardar comprobante simulado en localStorage para fallback local
       const receiptData = {
         fileName: file.name,
         date: new Date().toISOString(),
         dataUrl: dataUrl
       };
       localStorage.setItem(`payment_receipt_${selectedCandidateForPayment.id}`, JSON.stringify(receiptData));
+
+      // Guardar en la API del servidor local para compartirlo entre distintos navegadores (Chrome, Firefox, Incognito)
+      try {
+        await fetch('/api/receipts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            appId: selectedCandidateForPayment.id,
+            fileName: file.name,
+            dataUrl: dataUrl
+          })
+        });
+      } catch (err) {
+        console.error("Error al persistir comprobante en API:", err);
+      }
 
       await jobsApi.updateApplicationStatus(selectedCandidateForPayment.id, 'PAGO_ENVIADO');
       setCandidatos(prev => prev.map(c => 
@@ -329,12 +353,12 @@ function EmpresaCandidatosContent() {
       setCandidatos(prev => prev.map(c => 
         String(c.id) === String(selectedCandidateForRating.id) ? { ...c, estado: newStatus } : c
       ));
-      setActiveTab('por_calificar');
+      setActiveTab('historial');
       addNotification(
         'Calificación Enviada',
         `Has calificado a ${selectedCandidateForRating.nombre} con ${stars} estrellas.`,
         'success',
-        '/empresa/candidatos?tab=por_calificar'
+        '/empresa/candidatos?tab=historial'
       );
     } catch (error) {
       console.error('Error enviando calificación:', error);
@@ -398,7 +422,7 @@ function EmpresaCandidatosContent() {
           className={`flex-1 min-w-[120px] py-3 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'historial' ? 'bg-gray-800 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
         >
           <Check size={18} />
-          Historial ({candidatos.filter(c => ['CALIFICADO_EMPRESA', 'RECHAZADO'].includes(c.estado)).length})
+          Historial ({candidatos.filter(c => ['CALIFICADO_EMPRESA', 'RECHAZADO', 'FINALIZADA'].includes(c.estado)).length})
         </button>
       </div>
 
@@ -407,7 +431,7 @@ function EmpresaCandidatosContent() {
           if (activeTab === 'pendientes') return c.estado === 'PENDIENTE';
           if (activeTab === 'activos') return ['ACEPTADO', 'TRABAJO_FINALIZADO', 'PAGO_ENVIADO'].includes(c.estado);
           if (activeTab === 'por_calificar') return ['PAGO_CONFIRMADO', 'CALIFICADO_TRABAJADOR'].includes(c.estado);
-          if (activeTab === 'historial') return ['CALIFICADO_EMPRESA', 'RECHAZADO'].includes(c.estado);
+          if (activeTab === 'historial') return ['CALIFICADO_EMPRESA', 'RECHAZADO', 'FINALIZADA'].includes(c.estado);
           return false;
         }).length > 0 
           ? candidatos
@@ -415,7 +439,7 @@ function EmpresaCandidatosContent() {
               if (activeTab === 'pendientes') return c.estado === 'PENDIENTE';
               if (activeTab === 'activos') return ['ACEPTADO', 'TRABAJO_FINALIZADO', 'PAGO_ENVIADO'].includes(c.estado);
               if (activeTab === 'por_calificar') return ['PAGO_CONFIRMADO', 'CALIFICADO_TRABAJADOR'].includes(c.estado);
-              if (activeTab === 'historial') return ['CALIFICADO_EMPRESA', 'RECHAZADO'].includes(c.estado);
+              if (activeTab === 'historial') return ['CALIFICADO_EMPRESA', 'RECHAZADO', 'FINALIZADA'].includes(c.estado);
               return false;
             })
             .map((candidato) => (
