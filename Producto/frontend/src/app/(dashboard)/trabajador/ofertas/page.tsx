@@ -380,7 +380,7 @@ function TrabajadorOfertasContent() {
                      appEstado === 'PAGO_CONFIRMADO' ? 'Pago Recibido' : 
                      appEstado === 'TRABAJO_FINALIZADO' ? 'Trabajo Realizado - Esperando Pago' :
                      appEstado === 'CALIFICADO_EMPRESA' ? 'Empresa te Calificó' :
-                     appEstado === 'CALIFICADO_TRABAJADOR' ? 'Finalizado' :
+                     ['CALIFICADO_TRABAJADOR', 'FINALIZADA'].includes(appEstado) ? 'COMPLETADO' :
                      appEstado === 'ACEPTADO' ? 'Seleccionado' : 'Postulado'}
                   </span>
                 </div>
