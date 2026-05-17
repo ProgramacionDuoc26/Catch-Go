@@ -99,8 +99,15 @@ function TrabajadorOfertasContent() {
             return { ...offer, matchScore };
           }));
           
-          // Sort by match score
-          enrichedOfertas.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+          // Sort by start date descending (newest first), then by match score
+          enrichedOfertas.sort((a, b) => {
+            const dateA = new Date(a.fechaInicio || '').getTime();
+            const dateB = new Date(b.fechaInicio || '').getTime();
+            if (dateA !== dateB) {
+              return dateB - dateA;
+            }
+            return (b.matchScore || 0) - (a.matchScore || 0);
+          });
           setOfertas(enrichedOfertas);
         }
       } catch (error) {

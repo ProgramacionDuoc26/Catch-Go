@@ -96,10 +96,10 @@ export function Navbar() {
                       className="text-primary-dark font-medium hover:text-primary transition-colors flex items-center gap-1"
                     >
                       <LayoutDashboard size={18} />
-                      Dashboard
+                      {isTrabajador ? "Empleos Disponibles" : "Mis Ofertas"}
                     </Link>
                     <Link href={isTrabajador ? "/trabajador/postulaciones" : "/empresa/candidatos"} className="text-primary-dark font-medium hover:text-primary transition-colors">
-                      {isTrabajador ? "Mis Postulaciones" : "Gestión Candidatos"}
+                      {isTrabajador ? "Mis Postulaciones" : "Postulantes"}
                     </Link>
                   </>
                 )}

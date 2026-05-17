@@ -13,6 +13,8 @@ export default function EmpresaOfertasPage() {
   const [ofertas, setOfertas] = useState<Oferta[]>([]);
   const [loading, setLoading] = useState(true);
   const [appsCount, setAppsCount] = useState(0);
+  const [porPagarCount, setPorPagarCount] = useState(0);
+  const [enRevisionCount, setEnRevisionCount] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,10 +49,12 @@ export default function EmpresaOfertasPage() {
           setOfertas(response.data.filter(o => o.empresaId === realEmpresaId));
         }
 
-        // Fetch applications count
+        // Fetch applications count and calculate sub-states
         const res = await jobsApi.getApplicationsByEmployerId(realEmpresaId);
         if (res.data) {
           setAppsCount(res.data.length);
+          setPorPagarCount(res.data.filter((app: any) => app.estado === 'TRABAJO_FINALIZADO' || app.estado === 'PAGO_ENVIADO').length);
+          setEnRevisionCount(res.data.filter((app: any) => app.estado === 'PENDIENTE').length);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -122,7 +126,7 @@ export default function EmpresaOfertasPage() {
         <Link href="/empresa/candidatos" className="block transition-all hover:scale-[1.02]">
           <Card className="bg-white border-none shadow-sm hover:shadow-md cursor-pointer h-full">
             <CardContent className="p-4 flex flex-col items-center justify-center">
-              <span className="block text-2xl font-bold text-green-600">0</span>
+              <span className="block text-2xl font-bold text-green-600">{porPagarCount}</span>
               <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Por Pagar</span>
             </CardContent>
           </Card>
@@ -131,7 +135,7 @@ export default function EmpresaOfertasPage() {
         <Link href="/empresa/candidatos" className="block transition-all hover:scale-[1.02]">
           <Card className="bg-white border-none shadow-sm hover:shadow-md cursor-pointer h-full">
             <CardContent className="p-4 flex flex-col items-center justify-center">
-              <span className="block text-2xl font-bold text-amber-600">0</span>
+              <span className="block text-2xl font-bold text-amber-600">{enRevisionCount}</span>
               <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">En Revisión</span>
             </CardContent>
           </Card>
