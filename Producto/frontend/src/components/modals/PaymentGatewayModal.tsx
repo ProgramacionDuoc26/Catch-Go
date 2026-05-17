@@ -193,12 +193,23 @@ export default function PaymentGatewayModal({
                     <Sparkles size={8} />
                     Instantáneo
                   </div>
-                  <p className="text-sm text-amber-800 leading-relaxed max-w-xs mx-auto">
-                    Transfiere mediante **Webpay Plus**. El estado del pago del turno se actualizará y notificará automáticamente al instante sin tener que subir comprobantes manuales.
+                  <p className="text-xs text-amber-800 leading-relaxed max-w-xs mx-auto mb-4 font-medium">
+                    Paga mediante **Webpay Plus**. Catch-Go recibe los fondos de forma segura y gestiona la transferencia al trabajador.
                   </p>
-                  <div className="text-3xl font-black text-gray-900 mt-4 flex justify-center items-baseline gap-0.5">
-                    ${amount.toLocaleString('es-CL')}
-                    <span className="text-xs text-gray-500 font-normal">CLP</span>
+                  
+                  <div className="border-t border-dashed border-amber-200 pt-3 text-xs text-left space-y-1.5 text-gray-600 max-w-xs mx-auto">
+                    <div className="flex justify-between">
+                      <span>Honorarios del Trabajador:</span>
+                      <span className="font-semibold text-gray-800">${amount.toLocaleString('es-CL')}</span>
+                    </div>
+                    <div className="flex justify-between text-amber-700">
+                      <span>Comisión de Servicio Catch-Go (10%):</span>
+                      <span className="font-semibold">+${Math.round(amount * 0.10).toLocaleString('es-CL')}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-amber-200 pt-2 font-extrabold text-gray-900 text-sm">
+                      <span>Total a Pagar:</span>
+                      <span className="text-amber-600">${Math.round(amount * 1.10).toLocaleString('es-CL')}</span>
+                    </div>
                   </div>
                 </div>
               </div>

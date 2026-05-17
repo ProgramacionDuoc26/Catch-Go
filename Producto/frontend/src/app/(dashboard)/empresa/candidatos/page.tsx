@@ -268,7 +268,8 @@ function EmpresaCandidatosContent() {
       const userId = parsed.id?.toString() || '';
       
       const returnUrl = `${window.location.origin}/empresa/candidatos?applicationId=${selectedCandidateForPayment.id}`;
-      const response = await paymentApi.initWebpay(userId, selectedCandidateForPayment.remuneracion, returnUrl);
+      const totalWithFee = Math.round(selectedCandidateForPayment.remuneracion * 1.10);
+      const response = await paymentApi.initWebpay(userId, totalWithFee, returnUrl);
       
       if (response.data && response.data.token && response.data.url) {
         const { token, url } = response.data;
