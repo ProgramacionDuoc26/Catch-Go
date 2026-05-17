@@ -105,6 +105,9 @@ export function Navbar() {
                     <Link href={isTrabajador ? "/trabajador/postulaciones" : "/empresa/candidatos"} className="text-primary-dark font-medium hover:text-primary transition-colors">
                       {isTrabajador ? t("myApplications") : t("applicants")}
                     </Link>
+                    <Link href={isTrabajador ? "/trabajador/suscripcion" : "/empresa/suscripcion"} className="text-amber-600 font-medium hover:text-amber-700 transition-colors flex items-center gap-1">
+                      ⭐ Premium
+                    </Link>
                   </>
                 )}
               </>

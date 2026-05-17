@@ -58,7 +58,7 @@ export default function TrabajadorPostulacionesPage() {
             return {
               ...p,
               oferta: matchedJob?.titulo || p.jobTitle || `Turno ID: ${p.jobId}`,
-              empresa: matchedJob?.empresaNombre || "Empresa Aliada",
+              empresa: (matchedJob as any)?.empresa_nombre || (matchedJob as any)?.empresaNombre || "Empresa Aliada",
               remuneracion: matchedJob?.remuneracion || p.remuneracion,
               fecha: p.fechaPostulacion ? new Date(p.fechaPostulacion).toLocaleDateString('es-CL') : 'Hoy',
             };

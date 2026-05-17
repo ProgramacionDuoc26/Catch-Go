@@ -34,31 +34,26 @@ function WebpayCallbackContent() {
 
   useEffect(() => {
     const confirmPayment = async () => {
-      // 1. Si el usuario canceló el pago en Transbank (retorna TBK_TOKEN)
       if (tbkToken && !tokenWs) {
         setStatus('aborted');
         return;
       }
 
-      // 2. Si no hay token de ningún tipo en los parámetros
       if (!tokenWs) {
         setStatus('failed');
         setErrorMsg('No se detectó ningún token de pago. La transacción no pudo ser verificada.');
         return;
       }
 
-      // 3. Si hay token_ws, llamar al backend Java para confirmación
       try {
         const response = await paymentApi.confirmWebpay(tokenWs);
         if (response.data && response.data.status === 'AUTHORIZED') {
           setStatus('success');
           setTxDetails(response.data);
           
-          // Actualizar localStorage local para que se reconozca el nuevo plan de inmediato
           const storedUser = localStorage.getItem('user_info');
           if (storedUser) {
             const parsed = JSON.parse(storedUser);
-            // Si el perfil está embebido, actualizarlo.
             if (parsed.perfil) {
               parsed.perfil.plan = 'PREMIUM';
               parsed.perfil.planExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
@@ -83,7 +78,6 @@ function WebpayCallbackContent() {
     confirmPayment();
   }, [tokenWs, tbkToken]);
 
-  // Pantalla de carga
   if (status === 'loading') {
     return (
       <div className="flex flex-col items-center justify-center min-h-[500px] max-w-lg mx-auto text-center space-y-6">
@@ -94,28 +88,25 @@ function WebpayCallbackContent() {
         <div className="space-y-2">
           <h2 className="text-2xl font-extrabold text-gray-900">Verificando Pago</h2>
           <p className="text-gray-500 max-w-sm">
-            Estamos validando tu pago con los servidores seguros de **Webpay Plus**. Por favor no cierres ni refresques esta pestaña.
+            Estamos validando tu pago con los servidores seguros de Webpay Plus. Por favor no cierres esta pestaña.
           </p>
         </div>
       </div>
     );
   }
 
-  // Pantalla de éxito premium
   if (status === 'success') {
     const formattedAmount = txDetails?.amount 
       ? new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(txDetails.amount)
-      : '$2.490';
+      : '$1.390';
 
     return (
       <div className="min-h-[500px] max-w-xl mx-auto flex items-center justify-center py-8">
         <Card className="w-full border-none shadow-2xl rounded-[32px] overflow-hidden bg-white/80 backdrop-blur-md relative">
-          {/* Fondo difuminado decorativo */}
           <div className="absolute -top-20 -left-20 w-48 h-48 bg-green-500/10 rounded-full blur-3xl"></div>
           <div className="absolute -bottom-20 -right-20 w-48 h-48 bg-primary/10 rounded-full blur-3xl"></div>
           
           <CardContent className="p-8 sm:p-10 text-center relative z-10 flex flex-col items-center space-y-6">
-            {/* Animación del checkmark */}
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 shadow-inner animate-bounce">
               <CheckCircle size={44} className="stroke-[2.5]" />
             </div>
@@ -126,11 +117,10 @@ function WebpayCallbackContent() {
               </Badge>
               <h2 className="text-3xl font-black text-gray-900 mt-2">¡Suscripción Activada!</h2>
               <p className="text-gray-500 text-sm max-w-xs mx-auto mt-1">
-                Bienvenido al plan **Premium** de Catch&Go. Tu cuenta ha sido actualizada con éxito.
+                Bienvenido al plan Premium de Catch&Go. Tu cuenta ha sido actualizada con éxito.
               </p>
             </div>
 
-            {/* Cuadro de Detalles Glassmorphism */}
             <div className="w-full bg-slate-50 border border-slate-100 rounded-[24px] p-6 space-y-3 text-left text-sm">
               <h3 className="font-bold text-gray-800 border-b border-gray-100 pb-2 mb-2 flex items-center gap-1.5">
                 <CreditCard size={16} className="text-primary" />
@@ -138,7 +128,7 @@ function WebpayCallbackContent() {
               </h3>
               <div className="flex justify-between">
                 <span className="text-gray-500">Plan contratado</span>
-                <span className="font-bold text-gray-800 uppercase">Premium Suscripción</span>
+                <span className="font-bold text-gray-800 uppercase">Premium Trabajador</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Monto Cobrado</span>
@@ -148,14 +138,6 @@ function WebpayCallbackContent() {
                 <span className="text-gray-500">Orden de compra</span>
                 <span className="font-mono text-gray-700 font-bold">{txDetails?.buy_order || 'O-1002341'}</span>
               </div>
-              {txDetails?.payment_type_code && (
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Método de pago</span>
-                  <span className="text-gray-700 font-medium">
-                    Webpay Plus ({txDetails.payment_type_code === 'VD' ? 'Débito' : 'Crédito'})
-                  </span>
-                </div>
-              )}
               <div className="flex justify-between border-t border-dashed border-gray-200 pt-3 mt-2">
                 <span className="text-gray-500 flex items-center gap-1">
                   <Calendar size={14} />
@@ -176,9 +158,9 @@ function WebpayCallbackContent() {
                 variant="primary" 
                 fullWidth 
                 className="py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transition-all"
-                onClick={() => router.push('/empresa/dashboard')}
+                onClick={() => router.push('/trabajador/ofertas')}
               >
-                <span>Ir al Dashboard</span>
+                <span>Explorar Ofertas</span>
                 <ArrowRight size={16} />
               </Button>
             </div>
@@ -188,7 +170,6 @@ function WebpayCallbackContent() {
     );
   }
 
-  // Pantalla de abortado / cancelado
   if (status === 'aborted') {
     return (
       <div className="min-h-[500px] max-w-md mx-auto flex items-center justify-center py-8">
@@ -197,7 +178,6 @@ function WebpayCallbackContent() {
             <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center text-amber-500 shadow-inner">
               <AlertTriangle size={40} className="stroke-[2]" />
             </div>
-
             <div className="space-y-2">
               <Badge variant="warning" className="bg-amber-100 text-amber-700 font-bold px-3 py-0.5 rounded-full text-xs">
                 Pago Cancelado
@@ -207,13 +187,12 @@ function WebpayCallbackContent() {
                 Has abortado el proceso de pago de forma manual dentro del portal de Transbank Webpay.
               </p>
             </div>
-
             <div className="w-full space-y-2 pt-4">
               <Button 
                 variant="primary" 
                 fullWidth 
                 className="bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2"
-                onClick={() => router.push('/empresa/suscripcion')}
+                onClick={() => router.push('/trabajador/suscripcion')}
               >
                 <RefreshCw size={16} />
                 <span>Reintentar Pago</span>
@@ -222,7 +201,7 @@ function WebpayCallbackContent() {
                 variant="outline" 
                 fullWidth 
                 className="py-3 rounded-2xl font-bold"
-                onClick={() => router.push('/empresa/dashboard')}
+                onClick={() => router.push('/trabajador/ofertas')}
               >
                 Volver a Inicio
               </Button>
@@ -233,7 +212,6 @@ function WebpayCallbackContent() {
     );
   }
 
-  // Pantalla de error / rechazo
   return (
     <div className="min-h-[500px] max-w-md mx-auto flex items-center justify-center py-8">
       <Card className="w-full border border-red-200 shadow-xl rounded-[32px] overflow-hidden bg-white">
@@ -241,7 +219,6 @@ function WebpayCallbackContent() {
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center text-red-500 shadow-inner">
             <XCircle size={40} className="stroke-[2]" />
           </div>
-
           <div className="space-y-2">
             <Badge variant="warning" className="bg-red-100 text-red-700 font-bold px-3 py-0.5 rounded-full text-xs">
               Transacción Rechazada
@@ -251,13 +228,12 @@ function WebpayCallbackContent() {
               {errorMsg || 'La transacción no pudo ser autorizada por el emisor. Por favor, reintenta.'}
             </p>
           </div>
-
           <div className="w-full space-y-2 pt-4">
             <Button 
               variant="primary" 
               fullWidth 
               className="bg-red-500 hover:bg-red-600 text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2"
-              onClick={() => router.push('/empresa/suscripcion')}
+              onClick={() => router.push('/trabajador/suscripcion')}
             >
               <RefreshCw size={16} />
               <span>Volver a Reintentar</span>
@@ -266,7 +242,7 @@ function WebpayCallbackContent() {
               variant="outline" 
               fullWidth 
               className="py-3 rounded-2xl font-bold"
-              onClick={() => router.push('/empresa/dashboard')}
+              onClick={() => router.push('/trabajador/ofertas')}
             >
               Volver a Inicio
             </Button>

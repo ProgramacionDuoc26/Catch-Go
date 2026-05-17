@@ -4,11 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
-import { Loader2, CreditCard, Sparkles, CheckCircle2, Zap, ArrowRight, Eye, Target, MapPin, Edit3, Crown } from 'lucide-react';
+import { Loader2, Sparkles, CheckCircle2, Zap, ArrowRight, Eye, Target, MapPin, Edit3, Crown } from 'lucide-react';
 import { profileApi, Profile } from '@/lib/api/profile';
 import { paymentApi } from '@/lib/api/payment';
 
-export default function EmpresaSuscripcionPage() {
+export default function TrabajadorSuscripcionPage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userId, setUserId] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
@@ -19,21 +19,30 @@ export default function EmpresaSuscripcionPage() {
     const fetchProfile = async () => {
       setLoading(true);
       try {
-        const storedUser = localStorage.getItem('user_info');
-        if (storedUser) {
-          const parsed = JSON.parse(storedUser);
-          const uid = parsed.id?.toString() || '';
-          setUserId(uid);
-          
-          if (uid) {
-            const res = await profileApi.getByUserId(uid);
-            if (res.data) {
-              setProfile(res.data);
-            }
-            // Cargar contador de visitas
-            const views = localStorage.getItem(`profile_views_${uid}`);
-            setProfileViews(views ? parseInt(views) : Math.floor(Math.random() * 15) + 3);
+        let uid = '';
+        try {
+          const { createClient } = await import('@/lib/supabase/client');
+          const supabase = createClient();
+          const { data: { user: supabaseUser } } = await supabase.auth.getUser();
+          if (supabaseUser) uid = supabaseUser.id;
+        } catch { /* ignore */ }
+
+        if (!uid) {
+          const storedUser = localStorage.getItem('user_info');
+          if (storedUser) {
+            const parsed = JSON.parse(storedUser);
+            uid = parsed.id?.toString() || '';
           }
+        }
+        
+        setUserId(uid);
+        if (uid) {
+          const res = await profileApi.getByUserId(uid);
+          if (res.data) {
+            setProfile(res.data);
+          }
+          const views = localStorage.getItem(`profile_views_${uid}`);
+          setProfileViews(views ? parseInt(views) : Math.floor(Math.random() * 22) + 5);
         }
       } catch (err) {
         console.error('Error cargando perfil:', err);
@@ -53,8 +62,8 @@ export default function EmpresaSuscripcionPage() {
 
     setUpgrading(true);
     try {
-      const returnUrl = `${window.location.origin}/empresa/suscripcion/callback`;
-      const amount = 2490;
+      const returnUrl = `${window.location.origin}/trabajador/suscripcion/callback`;
+      const amount = 1390;
       
       const response = await paymentApi.initWebpay(userId, amount, returnUrl);
       
@@ -63,7 +72,7 @@ export default function EmpresaSuscripcionPage() {
         
         if (token.startsWith('mock-token-')) {
           setTimeout(() => {
-            window.location.href = `/empresa/suscripcion/callback?token_ws=${token}`;
+            window.location.href = `/trabajador/suscripcion/callback?token_ws=${token}`;
           }, 1000);
           return;
         }
@@ -115,25 +124,25 @@ export default function EmpresaSuscripcionPage() {
       <div>
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <Crown className="text-amber-500" />
-          Suscripción Empresa
+          Suscripción Trabajador
         </h1>
-        <p className="text-gray-500 text-sm mt-1">Potencia tu empresa con beneficios exclusivos de Catch&Go Premium.</p>
+        <p className="text-gray-500 text-sm mt-1">Destácate y accede a más oportunidades laborales con Catch&Go Premium.</p>
       </div>
 
       {/* Contador de visitas al perfil */}
-      <Card className="bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-100/50 rounded-2xl overflow-hidden">
+      <Card className="bg-gradient-to-r from-violet-50 to-indigo-50 border-violet-100/50 rounded-2xl overflow-hidden">
         <CardContent className="p-5 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center">
-              <Eye className="w-6 h-6 text-indigo-600" />
+            <div className="w-12 h-12 rounded-2xl bg-violet-100 flex items-center justify-center">
+              <Eye className="w-6 h-6 text-violet-600" />
             </div>
             <div>
               <h3 className="font-bold text-gray-900">Visitas a tu perfil</h3>
-              <p className="text-xs text-gray-500">Trabajadores que han visto tu empresa</p>
+              <p className="text-xs text-gray-500">Empresas que han revisado tu currículum</p>
             </div>
           </div>
           <div className="text-right">
-            <span className="text-3xl font-black text-indigo-600">{profileViews}</span>
+            <span className="text-3xl font-black text-violet-600">{profileViews}</span>
             <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">este mes</p>
           </div>
         </CardContent>
@@ -159,12 +168,12 @@ export default function EmpresaSuscripcionPage() {
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900">
-                  {isPremium ? 'Plan Premium Empresa' : 'Plan Gratuito'}
+                  {isPremium ? 'Plan Premium Trabajador' : 'Plan Gratuito'}
                 </h3>
                 <p className="text-gray-500 text-sm mt-0.5">
                   {isPremium 
                     ? `Suscripción válida hasta el ${planExpiryDate}` 
-                    : 'Funciones básicas del sistema'}
+                    : 'Funciones básicas de postulación'}
                 </p>
               </div>
             </div>
@@ -181,11 +190,11 @@ export default function EmpresaSuscripcionPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`w-1.5 h-1.5 rounded-full ${isPremium ? 'bg-amber-500' : 'bg-gray-300'}`}></span>
-                  <span>{isPremium ? '✅ +500 mts en rango de búsqueda' : '❌ Rango de búsqueda básico'}</span>
+                  <span>{isPremium ? '✅ +500 mts en rango de ofertas' : '❌ Rango de búsqueda básico'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`w-1.5 h-1.5 rounded-full ${isPremium ? 'bg-amber-500' : 'bg-gray-300'}`}></span>
-                  <span>{isPremium ? '✅ Editar habilidades y cultura' : '❌ Habilidades bloqueadas tras configurar'}</span>
+                  <span>{isPremium ? '✅ Editar habilidades y preferencias' : '❌ Habilidades bloqueadas tras configurar'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`w-1.5 h-1.5 rounded-full ${isPremium ? 'bg-amber-500' : 'bg-gray-300'}`}></span>
@@ -213,11 +222,11 @@ export default function EmpresaSuscripcionPage() {
           <CardContent className="p-6 pt-4 space-y-5">
             <p className="text-sm text-gray-600">
               {isPremium 
-                ? 'Ya cuentas con todos los beneficios premium de Catch&Go para empresas.' 
-                : 'Desbloquea el máximo potencial de tu reclutamiento con beneficios exclusivos.'}
+                ? 'Ya cuentas con todos los beneficios premium de Catch&Go para trabajadores.' 
+                : 'Destaca tu perfil y accede a mejores oportunidades con beneficios exclusivos.'}
             </p>
             <div className="text-3xl font-extrabold text-gray-900 flex items-baseline gap-1">
-              $2.490
+              $1.390
               <span className="text-sm text-gray-500 font-normal">/mes</span>
             </div>
 
@@ -228,7 +237,7 @@ export default function EmpresaSuscripcionPage() {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-800">+20% en Match IA</p>
-                  <p className="text-xs text-gray-500">Tus ofertas se posicionan mejor ante candidatos ideales</p>
+                  <p className="text-xs text-gray-500">Tu perfil aparece primero en las búsquedas de empresas</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -236,8 +245,8 @@ export default function EmpresaSuscripcionPage() {
                   <MapPin size={16} className="text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-gray-800">+500 mts de alcance</p>
-                  <p className="text-xs text-gray-500">Amplía tu rango de búsqueda de trabajadores cercanos</p>
+                  <p className="text-sm font-bold text-gray-800">+500 mts de rango</p>
+                  <p className="text-xs text-gray-500">Descubre ofertas un poco más lejos de tu ubicación habitual</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -245,8 +254,8 @@ export default function EmpresaSuscripcionPage() {
                   <Edit3 size={16} className="text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-gray-800">Editar Cultura y Habilidades</p>
-                  <p className="text-xs text-gray-500">Actualiza tu perfil corporativo cuando lo necesites</p>
+                  <p className="text-sm font-bold text-gray-800">Editar Habilidades</p>
+                  <p className="text-xs text-gray-500">Actualiza tus habilidades y preferencias cuando quieras</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -255,7 +264,7 @@ export default function EmpresaSuscripcionPage() {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-800">Contador de Visitas</p>
-                  <p className="text-xs text-gray-500">Descubre cuántos trabajadores han visto tu perfil</p>
+                  <p className="text-xs text-gray-500">Mira cuántas empresas revisaron tu perfil</p>
                 </div>
               </div>
             </div>
@@ -280,7 +289,7 @@ export default function EmpresaSuscripcionPage() {
                 <span>✅ Plan Premium Activo</span>
               ) : (
                 <>
-                  <span>Suscribirse por $2.490/mes</span>
+                  <span>Suscribirse por $1.390/mes</span>
                   <ArrowRight size={16} />
                 </>
               )}

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { User, Camera, Calendar, CreditCard, Save, Loader2, Briefcase, FileText, CheckCircle, Lock, Eye, RefreshCw, Clock, ArrowRight } from 'lucide-react';
+import { User, Camera, Calendar, CreditCard, Save, Loader2, Briefcase, FileText, CheckCircle, Lock, Eye, RefreshCw, Clock, ArrowRight, Crown } from 'lucide-react';
 import { profileApi, Profile } from '@/lib/api/profile';
 import { jobsApi } from '@/lib/api/jobs';
 import { createClient } from '@/lib/supabase/client';
@@ -397,6 +397,12 @@ export default function TrabajadorPerfilPage() {
   const hasBankData = savedProfile?.bankName && savedProfile?.accountType && savedProfile?.accountNumber;
   const maskedAccount = savedProfile?.accountNumber ? '****' + savedProfile.accountNumber.slice(-4) : '';
 
+  // Subscription & Skills Lock logic
+  const isPremium = savedProfile?.plan === 'PREMIUM' || savedProfile?.plan === 'ENTERPRISE';
+  const hasSkillsSaved = !!(skillsData.ambiente || skillsData.caracteristica || skillsData.preferencia || (skillsData.habilidades && skillsData.habilidades.length > 0));
+  const skillsLocked = hasSkillsSaved && !!savedProfile?.skills && !isPremium;
+  const profileViews = parseInt(localStorage.getItem(`profile_views_${formData.userId}`) || '0') || Math.floor(Math.random() * 22) + 5;
+
   return (
     <div className="max-w-7xl mx-auto pb-20 px-4">
       <div className="flex justify-between items-center mb-6">
@@ -521,6 +527,39 @@ export default function TrabajadorPerfilPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Visitas al perfil */}
+          <Card className="bg-gradient-to-r from-violet-50 to-indigo-50 border-violet-100/50 overflow-hidden">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
+                <Eye className="w-5 h-5 text-violet-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs text-gray-500 font-medium">Visitas al perfil</p>
+                <p className="text-xl font-black text-violet-600">{isPremium ? profileViews : <span className="text-sm text-gray-400 font-medium">🔒 Premium</span>}</p>
+              </div>
+              {!isPremium && (
+                <Link href="/trabajador/suscripcion">
+                  <span className="text-[10px] text-amber-600 font-bold bg-amber-100 px-2 py-1 rounded-full">Activar</span>
+                </Link>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Suscripción */}
+          <Link href="/trabajador/suscripcion">
+            <Card className={`cursor-pointer transition-all hover:shadow-md border ${isPremium ? 'border-green-200 bg-green-50/30' : 'border-amber-200 bg-amber-50/30'}`}>
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isPremium ? 'bg-green-100' : 'bg-amber-100'}`}>
+                  <Crown className={`w-5 h-5 ${isPremium ? 'text-green-600' : 'text-amber-600'}`} />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-bold text-gray-900">{isPremium ? 'Plan Premium ⭐' : 'Suscripción Premium'}</p>
+                  <p className="text-xs text-gray-500">{isPremium ? 'Activo' : '$1.390/mes · Desbloquea todo'}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
 
         {/* ═══ CONTENIDO PRINCIPAL ═══ */}
@@ -614,12 +653,31 @@ export default function TrabajadorPerfilPage() {
           </Card>
 
           {/* Habilidades y Preferencias */}
-          <Card>
+          <Card className="relative">
             <CardHeader className="border-b bg-gray-50/50">
               <h2 className="text-lg font-semibold flex items-center gap-2">
                 <Briefcase className="text-primary w-5 h-5" /> {t("skillsPreferences")}
+                {skillsLocked && (
+                  <span className="ml-auto flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                    <Lock size={10} /> Bloqueado
+                  </span>
+                )}
               </h2>
             </CardHeader>
+            {skillsLocked && (
+              <div className="absolute inset-0 z-10 bg-white/70 backdrop-blur-[2px] rounded-2xl flex flex-col items-center justify-center gap-3 mt-12">
+                <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center">
+                  <Lock className="w-7 h-7 text-amber-600" />
+                </div>
+                <p className="text-sm font-bold text-gray-800">Habilidades configuradas</p>
+                <p className="text-xs text-gray-500 max-w-xs text-center">Para editar tus habilidades y preferencias, activa la suscripción Premium.</p>
+                <Link href="/trabajador/suscripcion">
+                  <span className="inline-flex items-center gap-1 bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-full hover:bg-amber-600 transition-colors">
+                    <Crown size={12} /> Desbloquear por $1.390/mes
+                  </span>
+                </Link>
+              </div>
+            )}
             <CardContent className="p-6 space-y-8">
               {/* Pregunta 1: Habilidades (Múltiple) */}
               <div>
