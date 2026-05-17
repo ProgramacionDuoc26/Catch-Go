@@ -346,16 +346,7 @@ export default function EmpresaOfertasPage() {
                 )}
               </div>
               <div className="flex gap-2 items-center">
-                {oferta.estado === 'COMPLETADA' ? (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-green-600 border-green-200 hover:bg-green-50"
-                    onClick={() => handleUpdateStatus(oferta.id, 'ABIERTA')}
-                  >
-                    <Play className="w-3 h-3 mr-1" /> Reactivar
-                  </Button>
-                ) : (
+                {oferta.estado !== 'COMPLETADA' && (
                   <>
                     {oferta.estado === 'ABIERTA' ? (
                       <Button 

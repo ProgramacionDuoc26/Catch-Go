@@ -536,15 +536,17 @@ export default function TrabajadorPerfilPage() {
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">{t("fullName")} <span className="text-red-500">*</span></label>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">{t("fullName")} <span className="text-red-500">*</span> {savedProfile?.name && <span className="text-xs text-gray-400 font-normal ml-2">(No modificable)</span>}</label>
                   <input id="name" type="text" value={formData.name} onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary" />
+                    disabled={!!savedProfile?.name}
+                    className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed" />
                 </div>
                 <div>
-                  <label htmlFor="rut" className="block text-sm font-medium text-gray-700 mb-1">{t("rut")} <span className="text-red-500">*</span></label>
+                  <label htmlFor="rut" className="block text-sm font-medium text-gray-700 mb-1">{t("rut")} <span className="text-red-500">*</span> {savedProfile?.rut && <span className="text-xs text-gray-400 font-normal ml-2">(No modificable)</span>}</label>
                   <input id="rut" type="text" value={formData.rut} onChange={handleInputChange}
                     placeholder="12.345.678-9"
-                    className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary" />
+                    disabled={!!savedProfile?.rut}
+                    className="w-full border border-gray-300 rounded-md px-4 py-2 focus:ring-primary focus:border-primary disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed" />
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t("aboutMe")}</label>

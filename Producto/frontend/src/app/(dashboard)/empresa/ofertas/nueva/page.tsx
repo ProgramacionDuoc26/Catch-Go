@@ -26,6 +26,8 @@ export default function NuevaOfertaPage() {
     longitude: -70.6693
   });
 
+  const today = new Date().toISOString().split('T')[0];
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const value = e.target.type === 'number' ? parseInt(e.target.value) : e.target.value;
     setFormData({ ...formData, [e.target.id]: value });
@@ -159,6 +161,7 @@ export default function NuevaOfertaPage() {
                   type="date" 
                   id="fechaInicio" 
                   required
+                  min={today}
                   value={formData.fechaInicio}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-primary focus:border-primary" 
@@ -169,6 +172,7 @@ export default function NuevaOfertaPage() {
                 <input 
                   type="date" 
                   id="fechaFin" 
+                  min={formData.fechaInicio || today}
                   value={formData.fechaFin}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-primary focus:border-primary" 

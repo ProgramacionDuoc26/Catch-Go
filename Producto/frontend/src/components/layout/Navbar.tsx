@@ -132,9 +132,8 @@ export function Navbar() {
                   <Settings className="w-5 h-5" />
                 </button>
 
-                <Link
-                  href={isAdmin ? "/admin/configuracion" : (isTrabajador ? "/trabajador/perfil" : "/empresa/perfil")}
-                  className="flex items-center gap-3 bg-white text-text-main pl-1.5 pr-4 py-1.5 rounded-full hover:bg-gray-50 transition-all font-medium border border-gray-200 shadow-sm group"
+                <div
+                  className="flex items-center gap-3 bg-white text-text-main pl-1.5 pr-4 py-1.5 rounded-full font-medium border border-gray-200 shadow-sm cursor-default"
                 >
                   <div className="relative w-8 h-8 rounded-full overflow-hidden border border-primary/20 bg-gray-100 flex items-center justify-center">
                     {userData?.foto || userData?.photoUrl ? (
@@ -149,13 +148,13 @@ export function Navbar() {
                   </div>
                   <div className="flex flex-col items-start">
                     <span className="text-[9px] uppercase font-bold text-primary tracking-wider leading-none mb-0.5">
-                      {isAdmin ? "Admin" : (isTrabajador ? "Mi Perfil Trabajador" : "Mi Perfil Empresa")}
+                      {isAdmin ? "Admin" : (isTrabajador ? "Trabajador" : "Empresa")}
                     </span>
                     <span className="text-sm text-slate-700 font-bold hidden sm:inline leading-none">
                       {userData?.nombre || userData?.name || "Usuario"}
                     </span>
                   </div>
-                </Link>
+                </div>
               </>
             ) : (
               <>

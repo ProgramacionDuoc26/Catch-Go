@@ -46,14 +46,23 @@ export default function TrabajadorPostulacionesPage() {
           return;
         }
 
-        const response = await jobsApi.getApplicationsByUserId(realUserId);
+        const [response, jobsRes] = await Promise.all([
+          jobsApi.getApplicationsByUserId(realUserId),
+          jobsApi.list()
+        ]);
+
         if (response.data && Array.isArray(response.data)) {
-          const dataWithTitles = response.data.map((p: any) => ({
-            ...p,
-            oferta: p.jobTitle || `Turno ID: ${p.jobId}`,
-            empresa: "Empresa Aliada",
-            fecha: p.fechaPostulacion ? new Date(p.fechaPostulacion).toLocaleDateString('es-CL') : 'Hoy',
-          }));
+          const jobs = jobsRes.data || [];
+          const dataWithTitles = response.data.map((p: any) => {
+            const matchedJob = jobs.find((j: any) => String(j.id) === String(p.jobId));
+            return {
+              ...p,
+              oferta: matchedJob?.titulo || p.jobTitle || `Turno ID: ${p.jobId}`,
+              empresa: matchedJob?.empresaNombre || "Empresa Aliada",
+              remuneracion: matchedJob?.remuneracion || p.remuneracion,
+              fecha: p.fechaPostulacion ? new Date(p.fechaPostulacion).toLocaleDateString('es-CL') : 'Hoy',
+            };
+          });
           setPostulaciones(dataWithTitles);
         }
       } catch (error) {

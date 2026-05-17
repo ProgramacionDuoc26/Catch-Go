@@ -38,7 +38,24 @@ export default function RegisterPage() {
     if (errors[e.target.id]) setErrors({ ...errors, [e.target.id]: '' });
   };
 
-  const validateRut = (rut: string) => /^[0-9]+-[0-9kK]{1}$/.test(rut);
+  const validateRut = (rut: string) => {
+    if (!/^[0-9]+-[0-9kK]{1}$/.test(rut)) return false;
+    const cleanRut = rut.replace(/[^0-9kK]/g, '').toUpperCase();
+    if (cleanRut.length < 2) return false;
+    const body = cleanRut.slice(0, -1);
+    const dv = cleanRut.slice(-1);
+    let sum = 0;
+    let multiplier = 2;
+    for (let i = body.length - 1; i >= 0; i--) {
+      sum += parseInt(body.charAt(i), 10) * multiplier;
+      multiplier = multiplier === 7 ? 2 : multiplier + 1;
+    }
+    const remainder = 11 - (sum % 11);
+    let expectedDv = remainder.toString();
+    if (remainder === 11) expectedDv = '0';
+    if (remainder === 10) expectedDv = 'K';
+    return dv === expectedDv;
+  };
   const validatePassword = (password: string) => /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
 
   const handleRegister = async (e: React.FormEvent) => {

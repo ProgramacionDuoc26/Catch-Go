@@ -431,22 +431,25 @@ export default function EmpresaPerfilPage() {
             <CardContent className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Nombre de la Empresa <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Nombre de la Empresa <span className="text-red-500">*</span> {savedProfile?.name && <span className="text-xs text-gray-400 font-normal ml-2">(No modificable)</span>}</label>
                   <input id="name" type="text" value={formData.name} onChange={handleInputChange}
                     placeholder="Nombre legal o fantasía"
-                    className="w-full border border-slate-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 placeholder:text-slate-400 shadow-sm" />
+                    disabled={!!savedProfile?.name}
+                    className="w-full border border-slate-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 placeholder:text-slate-400 shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">RUT de la Empresa <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">RUT de la Empresa <span className="text-red-500">*</span> {savedProfile?.rut && <span className="text-xs text-gray-400 font-normal ml-2">(No modificable)</span>}</label>
                   <input id="rut" type="text" value={formData.rut} onChange={handleInputChange}
                     placeholder="76.123.456-K"
-                    className="w-full border border-slate-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 placeholder:text-slate-400 shadow-sm" />
+                    disabled={!!savedProfile?.rut}
+                    className="w-full border border-slate-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 placeholder:text-slate-400 shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Nombre Representante Legal <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Nombre Representante Legal <span className="text-red-500">*</span> {savedProfile?.representativeName && <span className="text-xs text-gray-400 font-normal ml-2">(No modificable)</span>}</label>
                   <input id="representativeName" type="text" value={formData.representativeName} onChange={handleInputChange}
                     placeholder="Juan Perez"
-                    className="w-full border border-slate-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 placeholder:text-slate-400 shadow-sm" />
+                    disabled={!!savedProfile?.representativeName}
+                    className="w-full border border-slate-200 rounded-2xl px-5 py-3.5 focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all font-medium text-slate-900 placeholder:text-slate-400 shadow-sm disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1.5">Correo Electrónico de Contacto <span className="text-red-500">*</span></label>

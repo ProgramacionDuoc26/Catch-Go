@@ -55,8 +55,8 @@ export function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps) {
     }
 
     const role = userData.tipo || userData.type;
-    if (role === "ADMIN") {
-      router.push("/admin/configuracion");
+    if (role === "ADMIN" || role === "SUB_ADMIN") {
+      router.push("/admin?tab=admins");
     } else if (role === "EMPRESA") {
       router.push("/empresa/perfil");
     } else {
@@ -320,7 +320,7 @@ export function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps) {
                         className="w-full py-2.5 bg-primary text-white rounded-lg hover:bg-primary-dark font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-2"
                       >
                         <User className="w-4 h-4" />
-                        {t("editProfileBtn")}
+                        {(userData.tipo === 'ADMIN' || userData.tipo === 'SUB_ADMIN' || userData.type === 'ADMIN' || userData.type === 'SUB_ADMIN') ? "Cuentas Admin" : t("editProfileBtn")}
                       </button>
                     </div>
                   ) : (
