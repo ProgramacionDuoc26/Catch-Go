@@ -6,6 +6,7 @@ import { X, Sun, Moon, Volume2, VolumeX, RefreshCw, User, RotateCcw, Languages, 
 import { useSettings, Theme, FontSize } from "@/context/SettingsContext";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import Image from "next/image";
 
 interface SettingsDrawerProps {
   isOpen: boolean;
@@ -296,9 +297,11 @@ export function SettingsDrawer({ isOpen, onClose }: SettingsDrawerProps) {
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full border border-primary/20 bg-primary/5 flex items-center justify-center overflow-hidden">
                           {userData.foto || userData.photoUrl ? (
-                            <img
+                            <Image
                               src={userData.foto || userData.photoUrl}
                               alt="Avatar"
+                              width={40}
+                              height={40}
                               className="w-full h-full object-cover"
                             />
                           ) : (

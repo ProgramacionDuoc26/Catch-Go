@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -50,7 +50,7 @@ function TrabajadorOfertasContent() {
     }
   }, [tabParam]);
 
-  const fetchInitialData = async (isSilent = false) => {
+  const fetchInitialData = useCallback(async (isSilent = false) => {
     if (!isSilent) setLoading(true);
     try {
       const storedUser = localStorage.getItem('user_info');
@@ -122,7 +122,7 @@ function TrabajadorOfertasContent() {
     } finally {
       if (!isSilent) setLoading(false);
     }
-  };
+  }, [workerProfile]);
 
   useEffect(() => {
     fetchInitialData(false);
@@ -133,7 +133,7 @@ function TrabajadorOfertasContent() {
     }, 6000);
 
     return () => clearInterval(interval);
-  }, [tabParam, workerProfile]);
+  }, [tabParam, workerProfile, fetchInitialData]);
 
   const handleApply = async (id: string) => {
     try {

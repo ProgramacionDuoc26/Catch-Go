@@ -140,10 +140,12 @@ export function Navbar() {
                 >
                   <div className="relative w-8 h-8 rounded-full overflow-hidden border border-primary/20 bg-gray-100 flex items-center justify-center">
                     {userData?.foto || userData?.photoUrl ? (
-                      <img 
+                      <Image 
                         src={userData.foto || userData.photoUrl} 
                         alt="Profile" 
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
+                        sizes="32px"
                       />
                     ) : (
                       <User className="w-5 h-5 text-primary" />

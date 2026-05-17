@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import { usePathname } from 'next/navigation';
 import { Client } from '@stomp/stompjs';
@@ -96,7 +96,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     }
   };
 
-  const addNotification = (title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info', link?: string) => {
+  const addNotification = useCallback((title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info', link?: string) => {
     const newNotif: Notification = {
       id: Math.random().toString(36).substr(2, 9),
       title,
@@ -118,7 +118,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     if (soundNotifications) {
       playNotificationSound(type);
     }
-  };
+  }, [soundNotifications]);
 
   const markAsRead = (id: string) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
@@ -193,7 +193,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         stompClient.current = null;
       }
     };
-  }, []);
+  }, [addNotification]);
 
   return (
     <NotificationContext.Provider value={{ notifications, unreadCount, markAsRead, clearAll, addNotification }}>

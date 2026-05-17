@@ -91,7 +91,7 @@ function EmpresaCandidatosContent() {
       }
     };
     confirmWebpayPayout();
-  }, [searchParams]);
+  }, [searchParams, addNotification, router]);
 
   const fetchInitialData = async (isSilent = false) => {
     if (!isSilent) setLoading(true);
