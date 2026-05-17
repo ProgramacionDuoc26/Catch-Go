@@ -59,6 +59,14 @@ export default function EmpresaSuscripcionPage() {
       if (response.data && response.data.token && response.data.url) {
         const { token, url } = response.data;
         
+        // Si es un token simulado local, redirigir directamente al callback local sin pasar por Transbank
+        if (token.startsWith('mock-token-')) {
+          setTimeout(() => {
+            window.location.href = `/empresa/suscripcion/callback?token_ws=${token}`;
+          }, 1000);
+          return;
+        }
+        
         // 2. Realizar POST redirect a Transbank Webpay Plus de forma transparente
         const form = document.createElement('form');
         form.method = 'POST';

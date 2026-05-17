@@ -273,6 +273,14 @@ function EmpresaCandidatosContent() {
       if (response.data && response.data.token && response.data.url) {
         const { token, url } = response.data;
         
+        // Si es un token simulado local, redirigir directamente al callback local sin pasar por Transbank
+        if (token.startsWith('mock-token-')) {
+          setTimeout(() => {
+            window.location.href = `/empresa/candidatos?token_ws=${token}&applicationId=${selectedCandidateForPayment.id}`;
+          }, 1000);
+          return;
+        }
+        
         // POST redirect a Webpay Plus
         const form = document.createElement('form');
         form.method = 'POST';
