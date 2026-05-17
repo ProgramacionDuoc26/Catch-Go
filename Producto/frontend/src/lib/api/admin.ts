@@ -11,6 +11,8 @@ export interface AdminStats {
   totalOffers: number;
   totalApplications: number;
   pendingApplications: number;
+  premiumWorkers: number;
+  premiumCompanies: number;
   recentProfiles: Profile[];
 }
 
@@ -30,6 +32,9 @@ export const adminApi = {
 
     const workers = profiles.filter(p => p.type === 'TRABAJADOR');
     const companies = profiles.filter(p => p.type === 'EMPRESA');
+    
+    const premiumWorkers = workers.filter(p => p.plan === 'PREMIUM' || p.plan === 'ENTERPRISE').length;
+    const premiumCompanies = companies.filter(p => p.plan === 'PREMIUM' || p.plan === 'ENTERPRISE').length;
 
     return {
       totalWorkers: workers.length,
@@ -37,6 +42,8 @@ export const adminApi = {
       totalOffers: jobs.length,
       totalApplications: applications.length,
       pendingApplications: applications.filter(a => a.estado === 'PENDIENTE').length,
+      premiumWorkers,
+      premiumCompanies,
       recentProfiles: profiles.slice(-5).reverse()
     };
   },

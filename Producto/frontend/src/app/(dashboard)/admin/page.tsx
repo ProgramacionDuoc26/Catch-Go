@@ -23,7 +23,8 @@ import {
   Mail,
   Phone,
   LayoutDashboard,
-  TrendingUp
+  TrendingUp,
+  Crown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi, AdminStats } from '@/lib/api/admin';
@@ -376,11 +377,13 @@ export default function AdminDashboard() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-10"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
                 <KpiCard title="Empresas" value={stats?.totalCompanies || 0} icon={Building2} color="bg-blue-600" />
                 <KpiCard title="Trabajadores" value={stats?.totalWorkers || 0} icon={Users} color="bg-emerald-600" />
                 <KpiCard title="Ofertas" value={stats?.totalOffers || 0} icon={Briefcase} color="bg-amber-600" />
                 <KpiCard title="Postulaciones" value={stats?.totalApplications || 0} icon={ClipboardList} color="bg-purple-600" />
+                <KpiCard title="Premium Emp." value={stats?.premiumCompanies || 0} icon={Crown} color="bg-green-600" />
+                <KpiCard title="Premium Trab." value={stats?.premiumWorkers || 0} icon={Crown} color="bg-indigo-600" />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
