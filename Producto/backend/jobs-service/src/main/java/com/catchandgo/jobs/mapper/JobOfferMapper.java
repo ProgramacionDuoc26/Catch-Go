@@ -19,7 +19,8 @@ public class JobOfferMapper {
             entity.getEmpresaId(),
             entity.getLatitude(),
             entity.getLongitude(),
-            entity.getCategoria()
+            entity.getCategoria(),
+            entity.getCreatedAt()
         );
     }
 
@@ -37,6 +38,9 @@ public class JobOfferMapper {
         entity.setLatitude(dto.latitude());
         entity.setLongitude(dto.longitude());
         entity.setCategoria(dto.categoria());
+        if (dto.createdAt() != null) {
+            entity.setCreatedAt(dto.createdAt());
+        }
         return entity;
     }
 }

@@ -12,6 +12,7 @@ public record JobOfferDto(
     String empresaId,
     Double latitude,
     Double longitude,
-    String categoria
+    String categoria,
+    java.time.LocalDateTime createdAt
 ) {
 }

@@ -24,6 +24,9 @@ public class JobOffer {
     private Double longitude;
     private String categoria;
     
+    @jakarta.persistence.Column(name = "created_at", insertable = false, updatable = false)
+    private java.time.LocalDateTime createdAt = java.time.LocalDateTime.now();
+    
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -51,4 +54,7 @@ public class JobOffer {
 
     public String getCategoria() { return categoria; }
     public void setCategoria(String categoria) { this.categoria = categoria; }
+
+    public java.time.LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(java.time.LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

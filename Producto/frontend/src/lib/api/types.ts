@@ -75,6 +75,7 @@ export interface Oferta {
   estado: 'ABIERTA' | 'CERRADA' | 'CON_CANDIDATOS' | 'COMPLETADA';
   latitude?: number;
   longitude?: number;
+  createdAt?: string;
 }
 
 export interface CreateOfertaRequest {

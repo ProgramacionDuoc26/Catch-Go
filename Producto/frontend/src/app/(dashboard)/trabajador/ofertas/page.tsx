@@ -99,12 +99,18 @@ function TrabajadorOfertasContent() {
             return { ...offer, matchScore };
           }));
           
-          // Sort by start date descending (newest first), then by match score
+          // Sort by creation date descending (newest first) since we now have createdAt!
+          // If createdAt is missing or identical, fall back to ID descending (since IDs are sequential), then matchScore.
           enrichedOfertas.sort((a, b) => {
-            const dateA = new Date(a.fechaInicio || '').getTime();
-            const dateB = new Date(b.fechaInicio || '').getTime();
-            if (dateA !== dateB) {
-              return dateB - dateA;
+            const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            if (timeA !== timeB) {
+              return timeB - timeA;
+            }
+            const idA = Number(a.id) || 0;
+            const idB = Number(b.id) || 0;
+            if (idB !== idA) {
+              return idB - idA;
             }
             return (b.matchScore || 0) - (a.matchScore || 0);
           });
@@ -325,6 +331,14 @@ function TrabajadorOfertasContent() {
           const application = applications.find(a => a.jobId === oferta.id);
           const appEstado = application?.estado;
           
+          // Check if it is a new offer (less than 24 hours old)
+          const isNew = (() => {
+            if (!oferta.createdAt) return false;
+            const diffMs = new Date().getTime() - new Date(oferta.createdAt).getTime();
+            const diffHours = diffMs / (1000 * 60 * 60);
+            return diffHours >= 0 && diffHours <= 24;
+          })();
+          
           return (
             <Card 
               key={oferta.id} 
@@ -348,7 +362,14 @@ function TrabajadorOfertasContent() {
               )}
               <CardHeader className="flex justify-between items-start pb-2">
                 <div>
-                  <h3 className={`font-bold text-xl ${isApplied ? 'text-blue-900' : 'text-gray-900'}`}>{oferta.titulo}</h3>
+                  <h3 className={`font-bold text-xl ${isApplied ? 'text-blue-900' : 'text-gray-900'} flex items-center gap-2 flex-wrap`}>
+                    {oferta.titulo}
+                    {isNew && (
+                      <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse shadow-sm">
+                        NUEVO
+                      </span>
+                    )}
+                  </h3>
                   <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
                     <span className="flex items-center gap-1 font-medium"><MapPin size={14} /> {oferta.ubicacion}</span>
                     <span className="flex items-center gap-1 font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
