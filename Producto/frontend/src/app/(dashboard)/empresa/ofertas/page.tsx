@@ -318,7 +318,7 @@ export default function EmpresaOfertasPage() {
 
                 <div className="mt-4 flex gap-6 border-t pt-4">
                 <div className="text-center">
-                  <span className="block text-lg font-bold text-primary flex items-center justify-center gap-1.5">
+                  <span className="text-lg font-bold text-primary flex items-center justify-center gap-1.5">
                     <Users className="w-4 h-4 mb-0.5" />
                     <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-bold">
                       {applications.filter((app: any) => Number(app.jobId) === Number(oferta.id)).length}
