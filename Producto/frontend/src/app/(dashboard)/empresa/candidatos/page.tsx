@@ -241,7 +241,7 @@ function EmpresaCandidatosContent() {
 
       await jobsApi.updateApplicationStatus(selectedCandidateForPayment.id, 'PAGO_ENVIADO');
       setCandidatos(prev => prev.map(c => 
-        c.id === selectedCandidateForPayment.id ? { ...c, estado: 'PAGO_ENVIADO' } : c
+        String(c.id) === String(selectedCandidateForPayment.id) ? { ...c, estado: 'PAGO_ENVIADO' } : c
       ));
       setActiveTab('activos');
       addNotification(
@@ -262,41 +262,34 @@ function EmpresaCandidatosContent() {
     if (!selectedCandidateForPayment) return;
     setIsProcessingWebpay(true);
     try {
-      const storedUser = localStorage.getItem('user_info');
-      if (!storedUser) return;
-      const parsed = JSON.parse(storedUser);
-      const userId = parsed.id?.toString() || '';
+      // En Webpay, la empresa que paga transfiere al trabajador
+      const employerId = employerProfile?.userId;
+      if (!employerId) throw new Error("ID de empresa no encontrado");
+
+      const returnUrl = `${window.location.origin}/empresa/candidatos?tab=activos&payment=success&appId=${selectedCandidateForPayment.id}`;
       
-      const returnUrl = `${window.location.origin}/empresa/candidatos?applicationId=${selectedCandidateForPayment.id}`;
-      const totalWithFee = Math.round(selectedCandidateForPayment.remuneracion * 1.10);
-      const response = await paymentApi.initWebpay(userId, totalWithFee, returnUrl);
-      
-      if (response.data && response.data.token && response.data.url) {
-        const { token, url } = response.data;
-        
-        // Si es un token simulado local, redirigir directamente al callback local sin pasar por Transbank
-        if (token.startsWith('mock-token-')) {
-          setTimeout(() => {
-            window.location.href = `/empresa/candidatos?token_ws=${token}&applicationId=${selectedCandidateForPayment.id}`;
-          }, 1000);
-          return;
-        }
-        
-        // POST redirect a Webpay Plus
+      const res = await paymentApi.initWebpay(
+        employerId,
+        selectedCandidateForPayment.remuneracion,
+        returnUrl
+      );
+
+      if (res.data?.url && res.data?.token) {
+        // Enviar formulario POST a Webpay Plus Sandbox (como Transbank exige)
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = url;
+        form.action = res.data.url;
         
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'token_ws';
-        input.value = token;
-        
-        form.appendChild(input);
+        const tokenInput = document.createElement('input');
+        tokenInput.type = 'hidden';
+        tokenInput.name = 'token_ws';
+        tokenInput.value = res.data.token;
+        form.appendChild(tokenInput);
+
         document.body.appendChild(form);
         form.submit();
       } else {
-        alert('Error al conectar con Webpay. Inténtalo de nuevo.');
+        alert("No se pudo inicializar Webpay.");
         setIsProcessingWebpay(false);
       }
     } catch (err) {
@@ -334,14 +327,14 @@ function EmpresaCandidatosContent() {
       const newStatus = selectedCandidateForRating.estado === 'CALIFICADO_TRABAJADOR' ? 'FINALIZADA' : 'CALIFICADO_EMPRESA';
       await jobsApi.updateApplicationStatus(selectedCandidateForRating.id, newStatus);
       setCandidatos(prev => prev.map(c => 
-        c.id === selectedCandidateForRating.id ? { ...c, estado: newStatus } : c
+        String(c.id) === String(selectedCandidateForRating.id) ? { ...c, estado: newStatus } : c
       ));
-      setActiveTab('historial');
+      setActiveTab('por_calificar');
       addNotification(
         'Calificación Enviada',
         `Has calificado a ${selectedCandidateForRating.nombre} con ${stars} estrellas.`,
         'success',
-        '/empresa/candidatos?tab=historial'
+        '/empresa/candidatos?tab=por_calificar'
       );
     } catch (error) {
       console.error('Error enviando calificación:', error);

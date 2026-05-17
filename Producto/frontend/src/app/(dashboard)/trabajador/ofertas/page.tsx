@@ -191,8 +191,9 @@ function TrabajadorOfertasContent() {
     try {
       await jobsApi.updateApplicationStatus(selectedAppForValidation.id, 'PAGO_CONFIRMADO');
       setApplications(prev => prev.map(a => 
-        a.id === selectedAppForValidation.id ? { ...a, estado: 'PAGO_CONFIRMADO' } : a
+        String(a.id) === String(selectedAppForValidation.id) ? { ...a, estado: 'PAGO_CONFIRMADO' } : a
       ));
+      setActiveTab('por_calificar');
       addNotification(
         'Pago Validado',
         `Has confirmado la recepción del pago exitosamente.`,
@@ -235,13 +236,14 @@ function TrabajadorOfertasContent() {
       const newStatus = selectedAppForRating.estado === 'CALIFICADO_EMPRESA' ? 'FINALIZADA' : 'CALIFICADO_TRABAJADOR';
       await jobsApi.updateApplicationStatus(selectedAppForRating.id, newStatus);
       setApplications(prev => prev.map(a => 
-        a.id === selectedAppForRating.id ? { ...a, estado: newStatus } : a
+        String(a.id) === String(selectedAppForRating.id) ? { ...a, estado: newStatus } : a
       ));
+      setActiveTab('por_calificar');
       addNotification(
         'Calificación Enviada',
         `Has calificado a la empresa con ${stars} estrellas.`,
         'success',
-        '/trabajador/ofertas?tab=completadas'
+        '/trabajador/ofertas?tab=por_calificar'
       );
     } catch (error) {
       console.error('Error submitting rating:', error);
