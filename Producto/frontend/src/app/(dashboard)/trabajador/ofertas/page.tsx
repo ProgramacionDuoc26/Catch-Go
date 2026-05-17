@@ -36,7 +36,7 @@ function TrabajadorOfertasContent() {
   const [profileCompletion, setProfileCompletion] = useState(0);
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState<'todas' | 'postulaciones' | 'por_calificar' | 'completadas'>('todas');
+  const [activeTab, setActiveTab] = useState<'todas' | 'postulaciones' | 'pagos' | 'por_calificar' | 'completadas'>('todas');
   const [selectedJobForMap, setSelectedJobForMap] = useState<Oferta | null>(null);
   
   // Payment & Rating States
@@ -45,7 +45,7 @@ function TrabajadorOfertasContent() {
   const [selectedAppForRating, setSelectedAppForRating] = useState<any | null>(null);
 
   useEffect(() => {
-    if (tabParam && ['todas', 'postulaciones', 'por_calificar', 'completadas'].includes(tabParam)) {
+    if (tabParam && ['todas', 'postulaciones', 'pagos', 'por_calificar', 'completadas'].includes(tabParam)) {
       setActiveTab(tabParam as any);
     }
   }, [tabParam]);
@@ -264,12 +264,16 @@ function TrabajadorOfertasContent() {
     const isActiveApplication = application && !['FINALIZADA', 'RECHAZADO', 'CALIFICADO_TRABAJADOR'].includes(application.estado);
     const isApplied = !!application;
     
+    if (activeTab === 'pagos') {
+      return matchesSearch && isApplied && ['PAGO_ENVIADO'].includes(application?.estado);
+    }
+    
     if (activeTab === 'por_calificar') {
-      return matchesSearch && isApplied && ['PAGO_ENVIADO', 'PAGO_CONFIRMADO', 'CALIFICADO_EMPRESA'].includes(application?.estado);
+      return matchesSearch && isApplied && ['PAGO_CONFIRMADO', 'CALIFICADO_EMPRESA'].includes(application?.estado);
     }
     
     if (activeTab === 'postulaciones') {
-      return matchesSearch && isApplied && ['PENDIENTE', 'ACEPTADO'].includes(application?.estado);
+      return matchesSearch && isApplied && ['PENDIENTE', 'ACEPTADO', 'TRABAJO_FINALIZADO'].includes(application?.estado);
     }
     
     if (activeTab === 'completadas') {
@@ -318,14 +322,21 @@ function TrabajadorOfertasContent() {
           className={`flex-1 min-w-[120px] py-3 px-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'postulaciones' ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
         >
           <CheckCircle2 size={16} />
-          Postulaciones ({applications.filter(a => ['PENDIENTE', 'ACEPTADO', 'RECHAZADO'].includes(a.estado)).length})
+          Postulaciones ({applications.filter(a => ['PENDIENTE', 'ACEPTADO', 'TRABAJO_FINALIZADO'].includes(a.estado)).length})
+        </button>
+        <button 
+          onClick={() => setActiveTab('pagos')}
+          className={`flex-1 min-w-[120px] py-3 px-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'pagos' ? 'bg-green-500 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
+        >
+          <DollarSign size={16} />
+          Pagos ({applications.filter(a => ['PAGO_ENVIADO'].includes(a.estado)).length})
         </button>
         <button 
           onClick={() => setActiveTab('por_calificar')}
           className={`flex-1 min-w-[120px] py-3 px-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'por_calificar' ? 'bg-amber-500 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
         >
           <Star size={16} />
-          Por Calificar ({applications.filter(a => ['PAGO_ENVIADO', 'PAGO_CONFIRMADO', 'CALIFICADO_EMPRESA'].includes(a.estado)).length})
+          Por Calificar ({applications.filter(a => ['PAGO_CONFIRMADO', 'CALIFICADO_EMPRESA'].includes(a.estado)).length})
         </button>
         <button 
           onClick={() => setActiveTab('completadas')}
