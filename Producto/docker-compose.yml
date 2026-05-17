@@ -47,7 +47,7 @@ services:
 
   auth-service:
     build:
-      context: ./Producto/backend
+      context: ./backend
       dockerfile: Dockerfile
       args:
         MODULE: auth-service
@@ -70,7 +70,7 @@ services:
 
   profile-service:
     build:
-      context: ./Producto/backend
+      context: ./backend
       dockerfile: Dockerfile
       args:
         MODULE: profile-service
@@ -93,7 +93,7 @@ services:
 
   jobs-service:
     build:
-      context: ./Producto/backend
+      context: ./backend
       dockerfile: Dockerfile
       args:
         MODULE: jobs-service
@@ -114,7 +114,7 @@ services:
 
   matching-service:
     build:
-      context: ./Producto/backend
+      context: ./backend
       dockerfile: Dockerfile
       args:
         MODULE: matching-service
@@ -135,7 +135,7 @@ services:
 
   api-gateway:
     build:
-      context: ./Producto/backend
+      context: ./backend
       dockerfile: Dockerfile
       args:
         MODULE: api-gateway
@@ -152,7 +152,7 @@ services:
 
   notification-service:
     build:
-      context: ./Producto/backend
+      context: ./backend
       dockerfile: Dockerfile
       args:
         MODULE: notification-service

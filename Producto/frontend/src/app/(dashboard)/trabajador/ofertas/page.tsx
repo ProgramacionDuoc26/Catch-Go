@@ -116,18 +116,10 @@ function TrabajadorOfertasContent() {
     try {
       // Obtener el ID real del trabajador
       let realUserId = '';
-      const { createClient } = await import('@/lib/supabase/client');
-      const supabase = createClient();
-      const { data: { user: supabaseUser } } = await supabase.auth.getUser();
-      
-      if (supabaseUser) {
-        realUserId = supabaseUser.id;
-      } else {
-        const storedUser = localStorage.getItem('user_info');
-        if (storedUser) {
-          const parsed = JSON.parse(storedUser);
-          realUserId = parsed.id?.toString() || '';
-        }
+      const storedUser = localStorage.getItem('user_info');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        realUserId = parsed.id?.toString() || '';
       }
 
       if (!realUserId) {

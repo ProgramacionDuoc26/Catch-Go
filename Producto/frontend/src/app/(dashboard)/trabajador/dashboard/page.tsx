@@ -22,15 +22,6 @@ export default function TrabajadorDashboard() {
         } catch { /* ignore */ }
       }
 
-      // 2. Intentar con Supabase
-      try {
-        const { createClient } = await import('@/lib/supabase/client');
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user?.user_metadata?.full_name) {
-          setUserName(user.user_metadata.full_name.split(' ')[0]);
-        }
-      } catch { /* ignore */ }
     };
     loadUserName();
   }, []);

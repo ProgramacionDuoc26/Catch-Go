@@ -8,7 +8,6 @@ import Link from 'next/link';
 import { User, Camera, Calendar, CreditCard, Save, Loader2, Briefcase, FileText, CheckCircle, Lock, Eye, RefreshCw, Clock, ArrowRight } from 'lucide-react';
 import { profileApi, Profile } from '@/lib/api/profile';
 import { jobsApi } from '@/lib/api/jobs';
-import { createClient } from '@/lib/supabase/client';
 import { uploadFile } from '@/lib/supabase/storage';
 import { authApi } from '@/lib/api/auth';
 import { Trash2, AlertTriangle, X, CheckSquare, Square } from 'lucide-react';
@@ -117,30 +116,17 @@ export default function TrabajadorPerfilPage() {
       setLoading(true);
       let realUserId = '';
       try {
-        const supabase = createClient();
-        const { data: { user: supabaseUser } } = await supabase.auth.getUser();
         let initialData = { name: '', email: '', phone: '+56 ', photo: '' };
-
-        if (supabaseUser) {
-          realUserId = supabaseUser.id;
-          initialData = { 
-            name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || '', 
-            email: supabaseUser.email || '', 
-            phone: '+56 ',
-            photo: supabaseUser.user_metadata?.avatar_url || ''
+        const storedUser = localStorage.getItem('user_info');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          realUserId = userData.id?.toString() || '';
+          initialData = {
+            name: userData.nombre || '',
+            email: userData.email || '',
+            phone: userData.telefono || '+56 ',
+            photo: userData.foto || ''
           };
-        } else {
-          const storedUser = localStorage.getItem('user_info');
-          if (storedUser) {
-            const userData = JSON.parse(storedUser);
-            realUserId = userData.id?.toString() || '';
-            initialData = { 
-              name: userData.nombre || '', 
-              email: userData.email || '', 
-              phone: userData.telefono || '+56 ',
-              photo: userData.foto || ''
-            };
-          }
         }
 
         if (!realUserId) { 

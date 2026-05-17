@@ -4,30 +4,25 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { User, Briefcase, ChevronRight, ArrowRight, Sparkles } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
-
 export default function RoleSelectionPage() {
   const router = useRouter();
   const [selected, setSelected] = useState<'TRABAJADOR' | 'EMPRESA' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [userData, setUserData] = useState<any>(null);
 
-  const supabase = createClient();
-
   React.useEffect(() => {
-    const getUserData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+    const storedUser = localStorage.getItem('user_info');
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
         setUserData({
-          name: user.user_metadata?.full_name || user.user_metadata?.name || '',
-          email: user.email || '',
-          photo: user.user_metadata?.avatar_url || '',
-          id: user.id
+          name: parsed.nombre || parsed.name || '',
+          email: parsed.email || '',
+          photo: parsed.foto || parsed.photoUrl || '',
+          id: parsed.id?.toString() || ''
         });
-      }
-    };
-    getUserData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      } catch { /* ignore */ }
+    }
   }, []);
 
   const handleSelection = (role: 'TRABAJADOR' | 'EMPRESA') => {

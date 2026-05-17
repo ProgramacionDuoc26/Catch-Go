@@ -16,7 +16,6 @@ spring:
         format_sql: true
   flyway:
     enabled: true
-    baseline-on-migrate: true
     table: flyway_schema_history_auth
   data:
     redis:

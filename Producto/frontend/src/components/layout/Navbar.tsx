@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { User, LogIn, LayoutDashboard, LogOut } from "lucide-react";
 import { usePathname, useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 import { Button } from "@/components/ui/Button";
 
 import { NotificationBell } from "./NotificationBell";
@@ -16,8 +15,6 @@ export function Navbar() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [hasSession, setHasSession] = useState(false);
   const [userData, setUserData] = useState<any>(null);
-  const supabase = createClient();
-
   React.useEffect(() => {
     const session = localStorage.getItem('user_info');
     if (session) {
@@ -41,18 +38,12 @@ export function Navbar() {
   const isEmpresa = pathname.includes('/empresa') || userRole === 'EMPRESA';
   const isAdmin = pathname.includes('/admin') || userRole === 'ADMIN';
 
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('user_info');
-      router.push('/login');
-      router.refresh();
-    } catch (error) {
-      console.error('Error logging out:', error);
-    } finally {
-      setShowLogoutConfirm(false);
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_info');
+    setShowLogoutConfirm(false);
+    router.push('/login');
+    router.refresh();
   };
 
   return (

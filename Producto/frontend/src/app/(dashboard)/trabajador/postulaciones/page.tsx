@@ -18,26 +18,12 @@ export default function TrabajadorPostulacionesPage() {
       try {
         // Obtener el ID real del usuario
         let realUserId = '';
-        
-        // 1. Intentar con Supabase
-        try {
-          const { createClient } = await import('@/lib/supabase/client');
-          const supabase = createClient();
-          const { data: { user: supabaseUser } } = await supabase.auth.getUser();
-          if (supabaseUser) {
-            realUserId = supabaseUser.id;
-          }
-        } catch { /* ignore supabase errors */ }
-
-        // 2. Intentar con localStorage (para login local)
-        if (!realUserId) {
-          const storedUser = localStorage.getItem('user_info');
-          if (storedUser) {
-            try {
-              const parsed = JSON.parse(storedUser);
-              realUserId = parsed.id?.toString() || '';
-            } catch { /* ignore */ }
-          }
+        const storedUser = localStorage.getItem('user_info');
+        if (storedUser) {
+          try {
+            const parsed = JSON.parse(storedUser);
+            realUserId = parsed.id?.toString() || '';
+          } catch { /* ignore */ }
         }
 
         if (!realUserId) {

@@ -70,6 +70,7 @@ dependencies {
 
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.coil.compose)
+    implementation(libs.maps.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -18,18 +18,10 @@ export default function EmpresaDashboard() {
     const fetchDashboardData = async () => {
       try {
         let realEmpresaId = '';
-        const { createClient } = await import('@/lib/supabase/client');
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user) {
-          realEmpresaId = user.id;
-        } else {
-          const storedUser = localStorage.getItem('user_info');
-          if (storedUser) {
-            const parsed = JSON.parse(storedUser);
-            realEmpresaId = parsed.id?.toString() || '';
-          }
+        const storedUser = localStorage.getItem('user_info');
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          realEmpresaId = parsed.id?.toString() || '';
         }
 
         if (!realEmpresaId) return;

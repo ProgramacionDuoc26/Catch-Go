@@ -37,21 +37,10 @@ export default function NuevaOfertaPage() {
     try {
       // Obtener el ID real de la empresa
       let realEmpresaId = '';
-      
-      // 1. Intentar con Supabase
-      const { createClient } = await import('@/lib/supabase/client');
-      const supabase = createClient();
-      const { data: { user: supabaseUser } } = await supabase.auth.getUser();
-      
-      if (supabaseUser) {
-        realEmpresaId = supabaseUser.id;
-      } else {
-        // 2. Intentar con localStorage
-        const storedUser = localStorage.getItem('user_info');
-        if (storedUser) {
-          const parsed = JSON.parse(storedUser);
-          realEmpresaId = parsed.id?.toString() || '';
-        }
+      const storedUser = localStorage.getItem('user_info');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        realEmpresaId = parsed.id?.toString() || '';
       }
 
       if (!realEmpresaId) {

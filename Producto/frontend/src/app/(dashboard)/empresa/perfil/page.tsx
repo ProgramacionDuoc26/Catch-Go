@@ -89,31 +89,17 @@ export default function EmpresaPerfilPage() {
       setLoading(true);
       let realUserId = '';
       try {
-        const { createClient } = await import('@/lib/supabase/client');
-        const supabase = createClient();
-        const { data: { user: supabaseUser } } = await supabase.auth.getUser();
         let initialData = { name: '', email: '', phone: '+56 ', photo: '' };
-
-        if (supabaseUser) {
-          realUserId = supabaseUser.id;
-          initialData = { 
-            name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || '', 
-            email: supabaseUser.email || '', 
-            phone: '+56 ',
-            photo: supabaseUser.user_metadata?.avatar_url || ''
+        const storedUser = localStorage.getItem('user_info');
+        if (storedUser) {
+          const userData = JSON.parse(storedUser);
+          realUserId = userData.id?.toString() || '';
+          initialData = {
+            name: userData.nombre || '',
+            email: userData.email || '',
+            phone: userData.telefono || '+56 ',
+            photo: userData.foto || ''
           };
-        } else {
-          const storedUser = localStorage.getItem('user_info');
-          if (storedUser) {
-            const userData = JSON.parse(storedUser);
-            realUserId = userData.id?.toString() || '';
-            initialData = { 
-              name: userData.nombre || '', 
-              email: userData.email || '', 
-              phone: userData.telefono || '+56 ',
-              photo: userData.foto || ''
-            };
-          }
         }
 
         if (!realUserId) {
