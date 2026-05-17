@@ -50,80 +50,90 @@ function TrabajadorOfertasContent() {
     }
   }, [tabParam]);
 
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      setLoading(true);
-      try {
-        const storedUser = localStorage.getItem('user_info');
-        let workerProf: Profile | null = null;
-        if (storedUser) {
-          const userData = JSON.parse(storedUser);
-          const userId = userData.id?.toString();
-          
-          // 1. Cargar perfil para el mapa y completitud
+  const fetchInitialData = async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
+    try {
+      const storedUser = localStorage.getItem('user_info');
+      let workerProf = workerProfile;
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        const userId = userData.id?.toString();
+        
+        // 1. Cargar perfil para el mapa y completitud
+        if (!workerProf) {
           const profRes = await profileApi.getByUserId(userId);
           if (profRes.data) {
             workerProf = profRes.data;
             setWorkerProfile(workerProf);
             setProfileCompletion(calculateProfileCompletion(workerProf));
           }
+        }
 
-          // 2. Cargar postulaciones reales del usuario
-          const appsRes = await jobsApi.getApplicationsByUserId(userId);
-          if (appsRes.data) {
-            setApplications(appsRes.data);
-            const appliedIds = appsRes.data.map((app: any) => app.jobId);
-            setAppliedJobs(appliedIds);
-          }
+        // 2. Cargar postulaciones reales del usuario
+        const appsRes = await jobsApi.getApplicationsByUserId(userId);
+        if (appsRes.data) {
+          setApplications(appsRes.data);
+          const appliedIds = appsRes.data.map((app: any) => app.jobId);
+          setAppliedJobs(appliedIds);
         }
-        
-        const jobsRes = await jobsApi.list();
-        if (jobsRes.data) {
-          // Fetch employer profiles and calculate matches
-          const enrichedOfertas = await Promise.all(jobsRes.data.map(async (offer: any) => {
-            let matchScore = 0;
-            if (workerProf) {
-               try {
-                 const empProfRes = await profileApi.getByUserId(offer.empresaId);
-                 if (empProfRes.data) {
-                    const scoreObj = calculateMatchScore(workerProf, empProfRes.data, offer);
-                    matchScore = scoreObj.total;
-                    // Adjuntar el rating real de la empresa
-                    offer.companyRating = empProfRes.data.rating || 0;
-                    offer.companyName = empProfRes.data.name || 'Empresa Confidencial';
-                 }
-               } catch(e) {
-                 console.error("Failed to load company profile for match");
-               }
-            }
-            return { ...offer, matchScore };
-          }));
-          
-          // Sort by creation date descending (newest first) since we now have createdAt!
-          // If createdAt is missing or identical, fall back to ID descending (since IDs are sequential), then matchScore.
-          enrichedOfertas.sort((a, b) => {
-            const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-            if (timeA !== timeB) {
-              return timeB - timeA;
-            }
-            const idA = Number(a.id) || 0;
-            const idB = Number(b.id) || 0;
-            if (idB !== idA) {
-              return idB - idA;
-            }
-            return (b.matchScore || 0) - (a.matchScore || 0);
-          });
-          setOfertas(enrichedOfertas);
-        }
-      } catch (error) {
-        console.error('Error fetching initial data:', error);
-      } finally {
-        setLoading(false);
       }
-    };
-    fetchInitialData();
-  }, [tabParam]);
+      
+      const jobsRes = await jobsApi.list();
+      if (jobsRes.data) {
+        // Fetch employer profiles and calculate matches
+        const enrichedOfertas = await Promise.all(jobsRes.data.map(async (offer: any) => {
+          let matchScore = 0;
+          if (workerProf) {
+             try {
+               const empProfRes = await profileApi.getByUserId(offer.empresaId);
+               if (empProfRes.data) {
+                  const scoreObj = calculateMatchScore(workerProf, empProfRes.data, offer);
+                  matchScore = scoreObj.total;
+                  // Adjuntar el rating real de la empresa
+                  offer.companyRating = empProfRes.data.rating || 0;
+                  offer.companyName = empProfRes.data.name || 'Empresa Confidencial';
+               }
+             } catch(e) {
+               console.error("Failed to load company profile for match");
+             }
+          }
+          return { ...offer, matchScore };
+        }));
+        
+        // Sort by creation date descending (newest first) since we now have createdAt!
+        // If createdAt is missing or identical, fall back to ID descending (since IDs are sequential), then matchScore.
+        enrichedOfertas.sort((a, b) => {
+          const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          if (timeA !== timeB) {
+            return timeB - timeA;
+          }
+          const idA = Number(a.id) || 0;
+          const idB = Number(b.id) || 0;
+          if (idB !== idA) {
+            return idB - idA;
+          }
+          return (b.matchScore || 0) - (a.matchScore || 0);
+        });
+        setOfertas(enrichedOfertas);
+      }
+    } catch (error) {
+      console.error('Error fetching initial data:', error);
+    } finally {
+      if (!isSilent) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInitialData(false);
+
+    // Configurar polling cada 6 segundos para refresco automático silencioso y reactivo
+    const interval = setInterval(() => {
+      fetchInitialData(true);
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, [tabParam, workerProfile]);
 
   const handleApply = async (id: string) => {
     try {
