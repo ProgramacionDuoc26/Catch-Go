@@ -55,8 +55,9 @@ export default function EmpresaOfertasPage() {
       // Fetch applications count and calculate sub-states
       const res = await jobsApi.getApplicationsByEmployerId(realEmpresaId);
       if (res.data) {
+        const activeApps = res.data.filter((app: any) => !['FINALIZADA', 'RECHAZADO'].includes(app.estado));
         setApplications(res.data);
-        setAppsCount(res.data.length);
+        setAppsCount(activeApps.length);
         setPorPagarCount(res.data.filter((app: any) => app.estado === 'TRABAJO_FINALIZADO' || app.estado === 'PAGO_ENVIADO').length);
       }
     } catch (error) {
@@ -181,7 +182,7 @@ export default function EmpresaOfertasPage() {
           <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-md cursor-pointer h-full">
             <CardContent className="p-4 flex flex-col items-center justify-center">
               <span className="block text-2xl font-bold text-primary">{appsCount}</span>
-              <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider mt-1">Candidatos Totales</span>
+              <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider mt-1">Candidatos Activos</span>
             </CardContent>
           </Card>
         </Link>
