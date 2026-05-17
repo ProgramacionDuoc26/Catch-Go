@@ -3,10 +3,12 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { User, LogIn, LayoutDashboard, LogOut } from "lucide-react";
+import { User, LogIn, LayoutDashboard, LogOut, Settings } from "lucide-react";
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from "@/components/ui/Button";
+import { useSettings } from "@/context/SettingsContext";
+import { SettingsDrawer } from "./SettingsDrawer";
 
 import { NotificationBell } from "./NotificationBell";
 
@@ -14,9 +16,11 @@ export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [hasSession, setHasSession] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const supabase = createClient();
+  const { t } = useSettings();
 
   React.useEffect(() => {
     const session = localStorage.getItem('user_info');
@@ -78,13 +82,13 @@ export function Navbar() {
             {!isDashboard ? (
               <>
                 <Link href="/#quienes-somos" className="text-primary-dark font-medium hover:text-primary transition-colors">
-                  ¿Quiénes Somos?
+                  {t("whosWho")}
                 </Link>
                 <Link href="/#contacto" className="text-primary-dark font-medium hover:text-primary transition-colors">
-                  Contacto
+                  {t("contact")}
                 </Link>
                 <Link href="/terminos" className="text-primary-dark font-medium hover:text-primary transition-colors">
-                  Términos
+                  {t("terms")}
                 </Link>
               </>
             ) : (
@@ -96,10 +100,10 @@ export function Navbar() {
                       className="text-primary-dark font-medium hover:text-primary transition-colors flex items-center gap-1"
                     >
                       <LayoutDashboard size={18} />
-                      {isTrabajador ? "Empleos Disponibles" : "Mis Ofertas"}
+                      {isTrabajador ? t("jobsAvailable") : t("myOffers")}
                     </Link>
                     <Link href={isTrabajador ? "/trabajador/postulaciones" : "/empresa/candidatos"} className="text-primary-dark font-medium hover:text-primary transition-colors">
-                      {isTrabajador ? "Mis Postulaciones" : "Postulantes"}
+                      {isTrabajador ? t("myApplications") : t("applicants")}
                     </Link>
                   </>
                 )}
@@ -115,10 +119,18 @@ export function Navbar() {
                   className="flex items-center gap-2 text-text-muted hover:text-red-600 transition-colors font-medium text-sm mr-2"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span className="hidden lg:inline">Cerrar Sesión</span>
+                  <span className="hidden lg:inline">{t("signOut")}</span>
                 </button>
                 
                 <NotificationBell />
+
+                <button
+                  onClick={() => setShowSettings(true)}
+                  className="p-2 text-text-muted hover:text-primary transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full"
+                  title={t("settingsTitle")}
+                >
+                  <Settings className="w-5 h-5" />
+                </button>
 
                 <Link
                   href={isAdmin ? "/admin/configuracion" : (isTrabajador ? "/trabajador/perfil" : "/empresa/perfil")}
@@ -147,19 +159,26 @@ export function Navbar() {
               </>
             ) : (
               <>
+                <button
+                  onClick={() => setShowSettings(true)}
+                  className="p-2 text-text-muted hover:text-primary transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full"
+                  title={t("settingsTitle")}
+                >
+                  <Settings className="w-5 h-5" />
+                </button>
                 <Link
                   href="/login"
                   className="hidden md:flex items-center gap-2 text-text-main hover:text-primary font-medium"
                 >
                   <LogIn className="w-5 h-5" />
-                  Ingresar
+                  {t("signIn")}
                 </Link>
                 <Link
                   href="/register"
                   className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-dark transition-colors font-semibold flex items-center gap-2 min-h-[44px]"
                 >
                   <User className="w-5 h-5" />
-                  Regístrate
+                  {t("signUp")}
                 </Link>
               </>
             )}
@@ -176,10 +195,10 @@ export function Navbar() {
             <div className="p-2 bg-red-50 rounded-full">
               <LogOut className="w-6 h-6" />
             </div>
-            <h3 className="text-xl font-bold">¿Cerrar sesión?</h3>
+            <h3 className="text-xl font-bold">{t("logoutConfirmTitle")}</h3>
           </div>
           <p className="text-gray-600">
-            ¿Estás seguro de que deseas salir de tu cuenta? Tendrás que volver a ingresar tus credenciales para acceder nuevamente.
+            {t("logoutConfirmText")}
           </p>
           <div className="flex gap-3 pt-2">
             <Button 
@@ -187,19 +206,22 @@ export function Navbar() {
               className="flex-1" 
               onClick={() => setShowLogoutConfirm(false)}
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button 
               variant="primary" 
               className="flex-1 bg-red-600 hover:bg-red-700 border-red-600" 
               onClick={handleLogout}
             >
-              Cerrar Sesión
+              {t("signOut")}
             </Button>
           </div>
         </div>
       </div>
     )}
+
+    {/* Settings Sliding Drawer */}
+    <SettingsDrawer isOpen={showSettings} onClose={() => setShowSettings(false)} />
   </>
   );
 }
