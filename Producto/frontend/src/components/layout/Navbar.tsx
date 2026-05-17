@@ -73,6 +73,7 @@ export function Navbar() {
                   fill
                   style={{ objectFit: 'contain' }}
                   priority
+                  sizes="128px"
                 />
               </div>
             </Link>
