@@ -181,7 +181,7 @@ export default function EmpresaSuscripcionPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`w-1.5 h-1.5 rounded-full ${isPremium ? 'bg-amber-500' : 'bg-gray-300'}`}></span>
-                  <span>{isPremium ? '✅ +500 mts en rango de búsqueda' : '❌ Rango de búsqueda básico'}</span>
+                  <span>{isPremium ? '✅ +5 km en rango de búsqueda (13 km total)' : '❌ Rango de búsqueda básico (8 km)'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={`w-1.5 h-1.5 rounded-full ${isPremium ? 'bg-amber-500' : 'bg-gray-300'}`}></span>
@@ -236,8 +236,8 @@ export default function EmpresaSuscripcionPage() {
                   <MapPin size={16} className="text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-gray-800">+500 mts de alcance</p>
-                  <p className="text-xs text-gray-500">Amplía tu rango de búsqueda de trabajadores cercanos</p>
+                  <p className="text-sm font-bold text-gray-800">+5 km de alcance</p>
+                  <p className="text-xs text-gray-500">Expande tu perímetro de 8 km a 13 km de distancia</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
