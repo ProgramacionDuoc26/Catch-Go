@@ -7,6 +7,7 @@ import cl.catchgo.app.data.remote.AuthInterceptor
 import cl.catchgo.app.data.remote.HabilidadesApi
 import cl.catchgo.app.data.remote.HealthApi
 import cl.catchgo.app.data.remote.JobsApi
+import cl.catchgo.app.data.remote.MatchingApi
 import cl.catchgo.app.data.remote.ProfileApi
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
@@ -108,4 +109,18 @@ object NetworkModule {
     @Singleton
     fun provideProfileApi(@Named("profile") retrofit: Retrofit): ProfileApi =
         retrofit.create(ProfileApi::class.java)
+
+    @Provides
+    @Singleton
+    @Named("matching")
+    fun provideMatchingRetrofit(client: OkHttpClient, json: Json): Retrofit = Retrofit.Builder()
+        .baseUrl(ApiConfig.MATCHING_URL)
+        .client(client)
+        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideMatchingApi(@Named("matching") retrofit: Retrofit): MatchingApi =
+        retrofit.create(MatchingApi::class.java)
 }
