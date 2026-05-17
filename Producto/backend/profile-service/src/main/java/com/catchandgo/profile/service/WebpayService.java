@@ -24,7 +24,7 @@ public class WebpayService {
     // Credenciales de Sandbox oficial de Transbank Webpay Plus
     private static final String WEBPAY_URL = "https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.2/transactions";
     private static final String COMMERCE_CODE = "597055555532";
-    private static final String API_KEY = "579B532A7440BB0C9079DED94D31EA1615B1E2B34D34A4FB3770250BCDA224CD";
+    private static final String API_KEY = "579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C";
 
     public WebpayService(TransactionRepository transactionRepository, ProfileRepository profileRepository) {
         this.transactionRepository = transactionRepository;
