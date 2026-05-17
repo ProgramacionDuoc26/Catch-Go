@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Habilita bundle standalone optimizado para Docker/Railway
+  output: 'standalone',
   images: {
     remotePatterns: [
       {
