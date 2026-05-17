@@ -3,6 +3,17 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-size: 15px; /* Por defecto es 16px. Achica todo el diseño de la app en ~6.25% de forma perfectamente responsiva */
+    scroll-behavior: smooth;
+  }
+  
+  @media (min-width: 1280px) {
+    html {
+      font-size: 14px; /* En pantallas de laptop/escritorio achica un 12.5% para un look ultra compacto, premium y limpio */
+    }
+  }
+
   body {
     @apply bg-background text-text-main font-sans antialiased;
   }
