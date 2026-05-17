@@ -114,13 +114,6 @@ export function NotificationBell() {
                     <p className="text-slate-400 font-medium italic">No tienes notificaciones</p>
                   </div>
                 )}
-              </div>
-              
-              <div className="p-4 bg-slate-50 text-center border-t border-slate-100">
-                <button className="text-xs font-black text-slate-500 hover:text-primary uppercase tracking-widest">
-                  Ver todo el historial
-                </button>
-              </div>
             </motion.div>
           </>
         )}
