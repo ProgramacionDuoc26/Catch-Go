@@ -34,7 +34,6 @@ import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.UploadFile
@@ -80,10 +79,15 @@ import cl.catchgo.app.domain.model.HabilidadUsuario
 import cl.catchgo.app.domain.model.RadarData
 import cl.catchgo.app.domain.model.UserRole
 import cl.catchgo.app.domain.model.UserSession
+import cl.catchgo.app.domain.model.ApplicationStatus
+import cl.catchgo.app.domain.model.JobApplication
 import cl.catchgo.app.ui.components.LevelBadge
+import cl.catchgo.app.ui.components.MapPickerView
 import cl.catchgo.app.ui.components.PrimaryButton
 import cl.catchgo.app.ui.components.RadarChartView
 import cl.catchgo.app.ui.components.SecondaryButton
+import cl.catchgo.app.ui.components.StatusBadge
+import cl.catchgo.app.ui.components.StatusType
 import cl.catchgo.app.ui.theme.BrandBlue600
 import cl.catchgo.app.ui.theme.Error50
 import cl.catchgo.app.ui.theme.Error600
@@ -157,14 +161,6 @@ fun ProfilePlaceholderScreen(
     val cvLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { viewModel.onCvPicked(it) }
     }
-    val locationPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-        if (granted) viewModel.fetchAndSaveLocation()
-    }
-
     LaunchedEffect(session.user.id) {
         viewModel.loadProfile(session.user.id)
         if (userId > 0) viewModel.loadSkills(userId)
@@ -272,13 +268,11 @@ fun ProfilePlaceholderScreen(
                 )
             }
 
-            LocationCard(
-                hasLocation = uiState.hasLocation,
-                onSetLocation = {
-                    val ok = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                    if (ok) viewModel.fetchAndSaveLocation()
-                    else locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
-                }
+            MapPickerView(
+                latitude = uiState.latitude,
+                longitude = uiState.longitude,
+                onLocationSelected = { lat, lon -> viewModel.updateLocation(lat, lon) },
+                modifier = Modifier.fillMaxWidth()
             )
 
             HorizontalDivider(color = Gray200)
@@ -301,6 +295,10 @@ fun ProfilePlaceholderScreen(
                 habilidades = uiState.habilidades,
                 onManageSkills = onNavigateToSkills
             )
+
+            HorizontalDivider(color = Gray200)
+
+            HistorialSection(historial = uiState.historial)
 
             HorizontalDivider(color = Gray200)
 
@@ -467,31 +465,6 @@ private fun BirthDateField(value: String, onChange: (String) -> Unit, locked: Bo
     )
 }
 
-@Composable
-private fun LocationCard(hasLocation: Boolean, onSetLocation: () -> Unit) {
-    Surface(color = Gray100, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(Spacing.md),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Outlined.MyLocation, null, tint = Teal500, modifier = Modifier.size(20.dp))
-                Column {
-                    Text("Ubicación GPS", style = MaterialTheme.typography.labelSmall, color = Gray500)
-                    Text(
-                        text = if (hasLocation) "Ubicación guardada" else "No establecida",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = if (hasLocation) FontWeight.Medium else FontWeight.Normal),
-                        color = if (hasLocation) Teal500 else Gray700
-                    )
-                }
-            }
-            TextButton(onClick = onSetLocation) {
-                Text(if (hasLocation) "Actualizar" else "Establecer", color = Teal500, style = MaterialTheme.typography.labelMedium)
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -756,6 +729,64 @@ private fun DeleteAccountDialog(
             TextButton(onClick = onDismiss) { Text("Cancelar") }
         }
     )
+}
+
+@Composable
+private fun HistorialSection(historial: List<JobApplication>) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        Text(
+            "Historial de Postulaciones",
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+            color = Gray900
+        )
+        if (historial.isEmpty()) {
+            Text("Sin postulaciones recientes.", style = MaterialTheme.typography.bodySmall, color = Gray500)
+        } else {
+            historial.forEach { app -> HistorialItem(app) }
+        }
+    }
+}
+
+@Composable
+private fun HistorialItem(app: JobApplication) {
+    Surface(
+        color = White,
+        shape = RoundedCornerShape(10.dp),
+        shadowElevation = 1.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(Spacing.md),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    app.offerTitle,
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    color = Gray900,
+                    maxLines = 1
+                )
+                if (app.company.isNotBlank()) {
+                    Text(app.company, style = MaterialTheme.typography.bodySmall, color = Gray500, maxLines = 1)
+                }
+                if (app.createdAtIso.isNotBlank()) {
+                    Text(
+                        app.createdAtIso.take(10),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Gray500
+                    )
+                }
+            }
+            Spacer(Modifier.width(Spacing.sm))
+            val (badgeText, badgeType) = when (app.status) {
+                ApplicationStatus.ACCEPTED -> "Aceptado" to StatusType.Success
+                ApplicationStatus.REJECTED -> "Rechazado" to StatusType.Error
+                else -> "Pendiente" to StatusType.Pending
+            }
+            StatusBadge(text = badgeText, type = badgeType)
+        }
+    }
 }
 
 private fun roleLabel(role: UserRole) = when (role) {

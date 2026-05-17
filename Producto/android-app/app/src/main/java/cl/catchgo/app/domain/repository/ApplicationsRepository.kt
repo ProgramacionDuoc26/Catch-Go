@@ -7,4 +7,5 @@ interface ApplicationsRepository {
     fun observeMyApplications(): Flow<List<JobApplication>>
     fun observeAppliedOfferIds(): Flow<Set<String>>
     suspend fun apply(offerId: String, message: String?): Result<JobApplication>
+    suspend fun refreshFromBackend()
 }

@@ -10,6 +10,8 @@ import androidx.lifecycle.viewModelScope
 import cl.catchgo.app.data.remote.dto.ProfileRemoteDto
 import cl.catchgo.app.domain.model.HabilidadUsuario
 import cl.catchgo.app.domain.model.RadarData
+import cl.catchgo.app.domain.model.JobApplication
+import cl.catchgo.app.domain.repository.ApplicationsRepository
 import cl.catchgo.app.domain.repository.AuthRepository
 import cl.catchgo.app.domain.repository.HabilidadesRepository
 import cl.catchgo.app.domain.repository.ProfileRepository
@@ -49,6 +51,9 @@ data class ProfileUiState(
     val skillsAmbiente: String = "",
     val skillsCaracteristica: String = "",
     val skillsPreferencia: String = "",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val historial: List<JobApplication> = emptyList(),
     val saveSuccess: Boolean = false,
     val errorMessage: String? = null,
     val isDeletingAccount: Boolean = false,
@@ -61,17 +66,27 @@ class ProfileViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val habilidadesRepository: HabilidadesRepository,
     private val profileRepository: ProfileRepository,
+    private val applicationsRepository: ApplicationsRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
+    init {
+        viewModelScope.launch {
+            applicationsRepository.observeMyApplications().collect { apps ->
+                _uiState.update { it.copy(historial = apps.take(3)) }
+            }
+        }
+    }
+
     private var userId: String = ""
     private var currentProfile: ProfileRemoteDto = ProfileRemoteDto()
 
     fun loadProfile(userId: String) {
         this.userId = userId
+        viewModelScope.launch { applicationsRepository.refreshFromBackend() }
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             profileRepository.getProfile(userId).onSuccess { profile ->
@@ -91,6 +106,8 @@ class ProfileViewModel @Inject constructor(
                             isLoading = false,
                             photoUrl = profile.photoUrl,
                             cvUrl = profile.cvUrl,
+                            latitude = profile.latitude,
+                            longitude = profile.longitude,
                             hasLocation = profile.latitude != null && profile.longitude != null,
                             name = profile.name ?: "",
                             rut = profile.rut ?: skillsJson?.optString("rut", "") ?: "",
@@ -270,6 +287,14 @@ class ProfileViewModel @Inject constructor(
                     }
                 }
             } catch (_: Exception) {}
+        }
+    }
+
+    fun updateLocation(lat: Double, lon: Double) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(latitude = lat, longitude = lon, hasLocation = true) }
+            val updated = currentProfile.copy(userId = userId, latitude = lat, longitude = lon)
+            profileRepository.saveProfile(updated).onSuccess { saved -> currentProfile = saved }
         }
     }
 

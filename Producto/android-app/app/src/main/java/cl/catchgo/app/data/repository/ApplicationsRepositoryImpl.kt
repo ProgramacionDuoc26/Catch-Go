@@ -60,6 +60,8 @@ class ApplicationsRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun refreshFromBackend() = loadFromBackend()
+
     suspend fun loadFromBackend() {
         if (ApiConfig.USE_MOCK_APPLICATIONS) return
         val userId = sessionStore.session.first()?.user?.id ?: return

@@ -8,6 +8,8 @@ import android.provider.OpenableColumns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cl.catchgo.app.data.remote.dto.ProfileRemoteDto
+import cl.catchgo.app.domain.model.EjeRadar
+import cl.catchgo.app.domain.model.RadarData
 import cl.catchgo.app.domain.repository.AuthRepository
 import cl.catchgo.app.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,6 +45,9 @@ data class EmpresaPerfilUiState(
     val tipoTrabajador: String = "",
     val habilidadValorada: String = "",
     val ritmo: String = "",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val radarData: RadarData? = null,
     val saveSuccess: Boolean = false,
     val errorMessage: String? = null,
     val isDeletingAccount: Boolean = false,
@@ -74,28 +79,29 @@ class EmpresaPerfilViewModel @Inject constructor(
                         if (profile.skills?.startsWith("{") == true) JSONObject(profile.skills) else null
                     }.getOrNull()
 
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            photoUrl = profile.photoUrl,
-                            docUrl = profile.cvUrl,
-                            hasLocation = profile.latitude != null && profile.longitude != null,
-                            name = profile.name ?: "",
-                            rut = profile.rut ?: skills?.optString("rut", "") ?: "",
-                            representativeName = skills?.optString("representativeName", "") ?: "",
-                            email = profile.email ?: "",
-                            phone = profile.phone?.takeIf { p -> p.isNotBlank() } ?: "+56 ",
-                            address = skills?.optString("address", "") ?: "",
-                            description = profile.description ?: "",
-                            bankName = profile.bankName ?: "",
-                            accountType = profile.accountType ?: "",
-                            accountNumber = profile.accountNumber ?: "",
-                            giro = skills?.optString("giro", "") ?: "",
-                            tipoTrabajador = skills?.optString("tipoTrabajador", "") ?: "",
-                            habilidadValorada = skills?.optString("habilidadValorada", "") ?: "",
-                            ritmo = skills?.optString("ritmo", "") ?: ""
-                        )
-                    }
+                    val newState = _uiState.value.copy(
+                        isLoading = false,
+                        photoUrl = profile.photoUrl,
+                        docUrl = profile.cvUrl,
+                        hasLocation = profile.latitude != null && profile.longitude != null,
+                        latitude = profile.latitude,
+                        longitude = profile.longitude,
+                        name = profile.name ?: "",
+                        rut = profile.rut ?: skills?.optString("rut", "") ?: "",
+                        representativeName = skills?.optString("representativeName", "") ?: "",
+                        email = profile.email ?: "",
+                        phone = profile.phone?.takeIf { p -> p.isNotBlank() } ?: "+56 ",
+                        address = skills?.optString("address", "") ?: "",
+                        description = profile.description ?: "",
+                        bankName = profile.bankName ?: "",
+                        accountType = profile.accountType ?: "",
+                        accountNumber = profile.accountNumber ?: "",
+                        giro = skills?.optString("giro", "") ?: "",
+                        tipoTrabajador = skills?.optString("tipoTrabajador", "") ?: "",
+                        habilidadValorada = skills?.optString("habilidadValorada", "") ?: "",
+                        ritmo = skills?.optString("ritmo", "") ?: ""
+                    )
+                    _uiState.update { newState.copy(radarData = computeRadar(newState)) }
                 } else {
                     _uiState.update { it.copy(isLoading = false) }
                 }
@@ -107,7 +113,7 @@ class EmpresaPerfilViewModel @Inject constructor(
 
     fun onFieldChange(field: String, value: String) {
         _uiState.update { s ->
-            when (field) {
+            val updated = when (field) {
                 "name" -> s.copy(name = value)
                 "rut" -> s.copy(rut = value)
                 "representativeName" -> s.copy(representativeName = value)
@@ -123,6 +129,7 @@ class EmpresaPerfilViewModel @Inject constructor(
                 "ritmo" -> s.copy(ritmo = value)
                 else -> s
             }
+            updated.copy(radarData = computeRadar(updated))
         }
     }
 
@@ -234,6 +241,26 @@ class EmpresaPerfilViewModel @Inject constructor(
                 }
             } catch (_: Exception) {}
         }
+    }
+
+    fun updateLocation(lat: Double, lon: Double) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(latitude = lat, longitude = lon, hasLocation = true) }
+            val updated = currentProfile.copy(userId = userId, latitude = lat, longitude = lon)
+            profileRepository.saveProfile(updated).onSuccess { saved -> currentProfile = saved }
+        }
+    }
+
+    private fun computeRadar(s: EmpresaPerfilUiState): RadarData {
+        val perfilScore = listOf(s.name, s.rut, s.representativeName, s.phone, s.address, s.description)
+            .count { it.isNotBlank() }.toDouble() / 6.0 * 100.0
+        return RadarData(listOf(
+            EjeRadar(1, "Perfil", perfilScore),
+            EjeRadar(2, "Giro", if (s.giro.isNotBlank()) 100.0 else 0.0),
+            EjeRadar(3, "Tipo", if (s.tipoTrabajador.isNotBlank()) 100.0 else 0.0),
+            EjeRadar(4, "Habilidad", if (s.habilidadValorada.isNotBlank()) 100.0 else 0.0),
+            EjeRadar(5, "Ritmo", if (s.ritmo.isNotBlank()) 100.0 else 0.0)
+        ))
     }
 
     fun deleteAccount(password: String) {

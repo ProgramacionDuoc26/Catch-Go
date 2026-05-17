@@ -32,7 +32,6 @@ import androidx.compose.material.icons.outlined.Business
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.UploadFile
@@ -74,8 +73,11 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
+import cl.catchgo.app.domain.model.RadarData
 import cl.catchgo.app.domain.model.UserSession
+import cl.catchgo.app.ui.components.MapPickerView
 import cl.catchgo.app.ui.components.PrimaryButton
+import cl.catchgo.app.ui.components.RadarChartView
 import cl.catchgo.app.ui.components.SecondaryButton
 import cl.catchgo.app.ui.theme.BrandBlue600
 import cl.catchgo.app.ui.theme.Error50
@@ -135,14 +137,6 @@ fun EmpresaPerfilScreen(
     val docLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { viewModel.onDocPicked(it) }
     }
-    val locationPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
-        if (granted) viewModel.fetchAndSaveLocation()
-    }
-
     LaunchedEffect(session.user.id) { viewModel.loadProfile(session.user.id) }
     LaunchedEffect(uiState.saveSuccess) { if (uiState.saveSuccess) viewModel.clearSaveSuccess() }
     LaunchedEffect(uiState.accountDeleted) { if (uiState.accountDeleted) viewModel.onLogout() }
@@ -212,13 +206,11 @@ fun EmpresaPerfilScreen(
                 )
             }
 
-            LocationCard(
-                hasLocation = uiState.hasLocation,
-                onSetLocation = {
-                    val ok = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                    if (ok) viewModel.fetchAndSaveLocation()
-                    else locationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
-                }
+            MapPickerView(
+                latitude = uiState.latitude,
+                longitude = uiState.longitude,
+                onLocationSelected = { lat, lon -> viewModel.updateLocation(lat, lon) },
+                modifier = Modifier.fillMaxWidth()
             )
 
             HorizontalDivider(color = Gray200)
@@ -233,6 +225,10 @@ fun EmpresaPerfilScreen(
                 ritmo = uiState.ritmo,
                 onRitmoChange = { viewModel.onFieldChange("ritmo", it) }
             )
+
+            HorizontalDivider(color = Gray200)
+
+            AdnCorporativoSection(radarData = uiState.radarData)
 
             HorizontalDivider(color = Gray200)
 
@@ -363,28 +359,28 @@ private fun EmpresaField(
     )
 }
 
+
 @Composable
-private fun LocationCard(hasLocation: Boolean, onSetLocation: () -> Unit) {
-    Surface(color = Gray100, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.padding(Spacing.md),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Outlined.MyLocation, null, tint = Teal500, modifier = Modifier.size(20.dp))
-                Column {
-                    Text("Ubicación GPS", style = MaterialTheme.typography.labelSmall, color = Gray500)
-                    Text(
-                        text = if (hasLocation) "Ubicación guardada" else "No establecida",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = if (hasLocation) FontWeight.Medium else FontWeight.Normal),
-                        color = if (hasLocation) Teal500 else Gray700
-                    )
-                }
-            }
-            TextButton(onClick = onSetLocation) {
-                Text(if (hasLocation) "Actualizar" else "Establecer", color = Teal500, style = MaterialTheme.typography.labelMedium)
-            }
+private fun AdnCorporativoSection(radarData: RadarData?) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        Text(
+            "ADN Corporativo",
+            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+            color = Gray900
+        )
+        Text(
+            "Completa tu perfil de cultura para visualizar tu ADN organizacional",
+            style = MaterialTheme.typography.bodySmall,
+            color = Gray500
+        )
+        if (radarData != null && radarData.ejes.any { it.valor > 0 }) {
+            Spacer(Modifier.height(4.dp))
+            RadarChartView(
+                data = radarData,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(260.dp)
+            )
         }
     }
 }
