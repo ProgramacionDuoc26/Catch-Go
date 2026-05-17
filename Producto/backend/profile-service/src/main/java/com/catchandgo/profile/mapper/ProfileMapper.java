@@ -31,6 +31,8 @@ public class ProfileMapper {
         dto.setSkills(entity.getSkills());
         dto.setRating(entity.getRating());
         dto.setRatingCount(entity.getRatingCount());
+        dto.setPlan(entity.getPlan());
+        dto.setPlanExpiry(entity.getPlanExpiry());
         return dto;
     }
 
@@ -58,6 +60,8 @@ public class ProfileMapper {
         entity.setSkills(dto.getSkills());
         entity.setRating(dto.getRating());
         entity.setRatingCount(dto.getRatingCount());
+        entity.setPlan(dto.getPlan());
+        entity.setPlanExpiry(dto.getPlanExpiry());
         return entity;
     }
 }

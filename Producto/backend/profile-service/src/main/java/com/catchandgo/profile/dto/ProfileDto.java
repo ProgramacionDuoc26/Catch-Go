@@ -1,6 +1,7 @@
 package com.catchandgo.profile.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class ProfileDto {
     private Long id;
@@ -22,6 +23,8 @@ public class ProfileDto {
     private String skills;
     private Double rating;
     private Integer ratingCount;
+    private String plan;
+    private LocalDateTime planExpiry;
 
     // Getters y Setters
     public Long getId() { return id; }
@@ -67,4 +70,9 @@ public class ProfileDto {
     public void setRating(Double rating) { this.rating = rating; }
     public Integer getRatingCount() { return ratingCount; }
     public void setRatingCount(Integer ratingCount) { this.ratingCount = ratingCount; }
+
+    public String getPlan() { return plan; }
+    public void setPlan(String plan) { this.plan = plan; }
+    public LocalDateTime getPlanExpiry() { return planExpiry; }
+    public void setPlanExpiry(LocalDateTime planExpiry) { this.planExpiry = planExpiry; }
 }

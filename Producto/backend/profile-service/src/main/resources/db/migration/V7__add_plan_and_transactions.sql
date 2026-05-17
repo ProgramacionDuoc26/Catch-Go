@@ -1,0 +1,14 @@
+-- V7__add_plan_and_transactions.sql
+ALTER TABLE profiles 
+ADD COLUMN IF NOT EXISTS plan VARCHAR(255) DEFAULT 'TRIAL',
+ADD COLUMN IF NOT EXISTS plan_expiry TIMESTAMP;
+
+CREATE TABLE IF NOT EXISTS transactions (
+    id BIGSERIAL PRIMARY KEY,
+    user_id VARCHAR(255) NOT NULL,
+    amount INT NOT NULL,
+    buy_order VARCHAR(255) NOT NULL,
+    token VARCHAR(255) NOT NULL,
+    status VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

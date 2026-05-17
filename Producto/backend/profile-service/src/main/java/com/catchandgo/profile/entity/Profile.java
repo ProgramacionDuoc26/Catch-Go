@@ -2,6 +2,7 @@ package com.catchandgo.profile.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "profiles")
@@ -41,6 +42,10 @@ public class Profile {
     // Calificación
     private Double rating;
     private Integer ratingCount;
+
+    // Plan de Suscripción
+    private String plan = "TRIAL";
+    private LocalDateTime planExpiry;
 
     // Getters y Setters
     public Long getId() { return id; }
@@ -84,4 +89,9 @@ public class Profile {
     public void setRating(Double rating) { this.rating = rating; }
     public Integer getRatingCount() { return ratingCount; }
     public void setRatingCount(Integer ratingCount) { this.ratingCount = ratingCount; }
+
+    public String getPlan() { return plan; }
+    public void setPlan(String plan) { this.plan = plan; }
+    public LocalDateTime getPlanExpiry() { return planExpiry; }
+    public void setPlanExpiry(LocalDateTime planExpiry) { this.planExpiry = planExpiry; }
 }

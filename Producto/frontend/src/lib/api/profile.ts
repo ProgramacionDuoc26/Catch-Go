@@ -25,6 +25,8 @@ export interface Profile {
   bankAddress?: string;
   rating?: number;
   ratingCount?: number;
+  plan?: string;
+  planExpiry?: string;
 }
 
 export const profileApi = {
