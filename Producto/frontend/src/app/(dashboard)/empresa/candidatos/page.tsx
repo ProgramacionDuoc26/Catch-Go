@@ -331,9 +331,10 @@ function EmpresaCandidatosContent() {
       }
 
       // 2. Actualizar estado de la postulación
-      await jobsApi.updateApplicationStatus(selectedCandidateForRating.id, 'CALIFICADO_EMPRESA');
+      const newStatus = selectedCandidateForRating.estado === 'CALIFICADO_TRABAJADOR' ? 'FINALIZADA' : 'CALIFICADO_EMPRESA';
+      await jobsApi.updateApplicationStatus(selectedCandidateForRating.id, newStatus);
       setCandidatos(prev => prev.map(c => 
-        c.id === selectedCandidateForRating.id ? { ...c, estado: 'CALIFICADO_EMPRESA' } : c
+        c.id === selectedCandidateForRating.id ? { ...c, estado: newStatus } : c
       ));
       setActiveTab('historial');
       addNotification(

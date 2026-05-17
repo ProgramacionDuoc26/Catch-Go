@@ -36,7 +36,7 @@ function TrabajadorOfertasContent() {
   const [profileCompletion, setProfileCompletion] = useState(0);
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState<'todas' | 'postulaciones' | 'por_calificar'>('todas');
+  const [activeTab, setActiveTab] = useState<'todas' | 'postulaciones' | 'por_calificar' | 'completadas'>('todas');
   const [selectedJobForMap, setSelectedJobForMap] = useState<Oferta | null>(null);
   
   // Payment & Rating States
@@ -45,7 +45,7 @@ function TrabajadorOfertasContent() {
   const [selectedAppForRating, setSelectedAppForRating] = useState<any | null>(null);
 
   useEffect(() => {
-    if (tabParam && ['todas', 'postulaciones', 'por_calificar'].includes(tabParam)) {
+    if (tabParam && ['todas', 'postulaciones', 'por_calificar', 'completadas'].includes(tabParam)) {
       setActiveTab(tabParam as any);
     }
   }, [tabParam]);
@@ -232,15 +232,16 @@ function TrabajadorOfertasContent() {
       }
 
       // 2. Actualizar estado de la postulación
-      await jobsApi.updateApplicationStatus(selectedAppForRating.id, 'CALIFICADO_TRABAJADOR');
+      const newStatus = selectedAppForRating.estado === 'CALIFICADO_EMPRESA' ? 'FINALIZADA' : 'CALIFICADO_TRABAJADOR';
+      await jobsApi.updateApplicationStatus(selectedAppForRating.id, newStatus);
       setApplications(prev => prev.map(a => 
-        a.id === selectedAppForRating.id ? { ...a, estado: 'CALIFICADO_TRABAJADOR' } : a
+        a.id === selectedAppForRating.id ? { ...a, estado: newStatus } : a
       ));
       addNotification(
         'Calificación Enviada',
         `Has calificado a la empresa con ${stars} estrellas.`,
         'success',
-        '/trabajador/ofertas?tab=postulaciones'
+        '/trabajador/ofertas?tab=completadas'
       );
     } catch (error) {
       console.error('Error submitting rating:', error);
@@ -256,12 +257,17 @@ function TrabajadorOfertasContent() {
     const application = applications.find(a => a.jobId === o.id);
     
     if (activeTab === 'por_calificar') {
-      return matchesSearch && isApplied && (application?.estado === 'PAGO_ENVIADO' || application?.estado === 'PAGO_CONFIRMADO' || application?.estado === 'CALIFICADO_EMPRESA');
+      return matchesSearch && isApplied && ['PAGO_ENVIADO', 'PAGO_CONFIRMADO', 'CALIFICADO_EMPRESA'].includes(application?.estado);
     }
     
     if (activeTab === 'postulaciones') {
-      return matchesSearch && isApplied && application?.estado !== 'PAGO_ENVIADO' && application?.estado !== 'PAGO_CONFIRMADO';
+      return matchesSearch && isApplied && ['PENDIENTE', 'ACEPTADO', 'RECHAZADO'].includes(application?.estado);
     }
+    
+    if (activeTab === 'completadas') {
+      return matchesSearch && isApplied && ['CALIFICADO_TRABAJADOR', 'FINALIZADA'].includes(application?.estado);
+    }
+
     // En 'explorar', mostramos lo que NO está cerrado Y lo que aún NO hemos postulado
     return o.estado !== 'CERRADA' && matchesSearch && !isApplied;
   });
@@ -291,27 +297,34 @@ function TrabajadorOfertasContent() {
         </div>
       </div>
 
-      <div className="bg-white p-1 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row mb-6 gap-1">
+      <div className="bg-white p-1 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row mb-6 gap-1 flex-wrap">
         <button 
           onClick={() => setActiveTab('todas')}
-          className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'todas' ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
+          className={`flex-1 min-w-[120px] py-3 px-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'todas' ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
         >
-          <Search size={18} />
+          <Search size={16} />
           Explorar Ofertas
         </button>
         <button 
-          onClick={() => setActiveTab('por_calificar')}
-          className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'por_calificar' ? 'bg-amber-500 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
+          onClick={() => setActiveTab('postulaciones')}
+          className={`flex-1 min-w-[120px] py-3 px-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'postulaciones' ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
         >
-          <Star size={18} />
+          <CheckCircle2 size={16} />
+          Postulaciones ({applications.filter(a => ['PENDIENTE', 'ACEPTADO', 'RECHAZADO'].includes(a.estado)).length})
+        </button>
+        <button 
+          onClick={() => setActiveTab('por_calificar')}
+          className={`flex-1 min-w-[120px] py-3 px-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'por_calificar' ? 'bg-amber-500 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
+        >
+          <Star size={16} />
           Por Calificar ({applications.filter(a => ['PAGO_ENVIADO', 'PAGO_CONFIRMADO', 'CALIFICADO_EMPRESA'].includes(a.estado)).length})
         </button>
         <button 
-          onClick={() => setActiveTab('postulaciones')}
-          className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'postulaciones' ? 'bg-primary text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
+          onClick={() => setActiveTab('completadas')}
+          className={`flex-1 min-w-[120px] py-3 px-2 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'completadas' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'}`}
         >
-          <CheckCircle2 size={18} />
-          Mis Postulaciones ({applications.filter(a => a.estado !== 'PAGO_ENVIADO' && a.estado !== 'PAGO_CONFIRMADO').length})
+          <CheckCircle size={16} />
+          Completadas ({applications.filter(a => ['CALIFICADO_TRABAJADOR', 'FINALIZADA'].includes(a.estado)).length})
         </button>
       </div>
 
