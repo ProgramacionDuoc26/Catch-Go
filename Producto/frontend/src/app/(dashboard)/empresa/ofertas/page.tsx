@@ -9,12 +9,12 @@ import { Oferta } from '@/lib/api/types';
 import { Plus, Users, Calendar, MapPin, Loader2, Trash2, Edit, Pause, Play, CheckCircle, Eye, X } from 'lucide-react';
 
 export default function EmpresaOfertasPage() {
-  const [ofertas, setOfertas] = useState<Oferta[]>([]);
+  const [allOfertas, setAllOfertas] = useState<Oferta[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [appsCount, setAppsCount] = useState(0);
   const [porPagarCount, setPorPagarCount] = useState(0);
-  const [enRevisionCount, setEnRevisionCount] = useState(0);
+  const [viewTab, setViewTab] = useState<'activos' | 'completados'>('activos');
   const [selectedJobForDetails, setSelectedJobForDetails] = useState<Oferta | null>(null);
 
   const fetchData = async () => {
@@ -43,10 +43,13 @@ export default function EmpresaOfertasPage() {
         return;
       }
 
-      // Fetch ofertas y filtrar las que NO estén COMPLETADAS (para sacarlas de la vista activa)
+      // Fetch ofertas y ordenar por ID de forma descendente (más nuevo arriba)
       const response = await jobsApi.list();
       if (response.data) {
-        setOfertas(response.data.filter(o => o.empresaId === realEmpresaId && o.estado !== 'COMPLETADA'));
+        const sorted = response.data
+          .filter(o => o.empresaId === realEmpresaId)
+          .sort((a, b) => Number(b.id) - Number(a.id));
+        setAllOfertas(sorted);
       }
 
       // Fetch applications count and calculate sub-states
@@ -55,7 +58,6 @@ export default function EmpresaOfertasPage() {
         setApplications(res.data);
         setAppsCount(res.data.length);
         setPorPagarCount(res.data.filter((app: any) => app.estado === 'TRABAJO_FINALIZADO' || app.estado === 'PAGO_ENVIADO').length);
-        setEnRevisionCount(res.data.filter((app: any) => app.estado === 'PENDIENTE').length);
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -73,7 +75,7 @@ export default function EmpresaOfertasPage() {
     try {
       const res = await jobsApi.delete(id);
       if (!res.error) {
-        setOfertas(prev => prev.filter(o => o.id !== id));
+        setAllOfertas(prev => prev.filter(o => String(o.id) !== String(id)));
         alert('Oferta eliminada con éxito.');
       } else {
         alert('Error al eliminar: ' + JSON.stringify(res.error));
@@ -87,14 +89,15 @@ export default function EmpresaOfertasPage() {
     try {
       const res = await jobsApi.updateStatus(id, newStatus);
       if (!res.error) {
+        // Actualizar estado localmente usando comparación segura de strings para evitar mismatch de tipos (number vs string)
+        setAllOfertas(prev => prev.map(o => String(o.id) === String(id) ? { ...o, estado: newStatus } : o));
+        
         if (newStatus === 'COMPLETADA') {
-          // Filtrar fuera de la lista activa
-          setOfertas(prev => prev.filter(o => o.id !== id));
-          alert('Oferta completada con éxito. Ha sido archivada y retirada de la lista activa.');
+          alert('Oferta completada con éxito. Ha sido archivada en la pestaña de Completados.');
+        } else if (newStatus === 'ABIERTA') {
+          alert('Oferta reactivada/reanudada con éxito. Se encuentra disponible en Turnos Activos.');
         } else {
-          // Actualizar estado localmente
-          setOfertas(prev => prev.map(o => o.id === id ? { ...o, estado: newStatus } : o));
-          alert(`Estado de la oferta cambiado a ${newStatus === 'ABIERTA' ? 'abierta' : 'pausada'} con éxito.`);
+          alert('Oferta pausada con éxito.');
         }
         
         // Recargar contadores generales de postulaciones para mantener coherencia
@@ -108,7 +111,6 @@ export default function EmpresaOfertasPage() {
               setApplications(appsRes.data);
               setAppsCount(appsRes.data.length);
               setPorPagarCount(appsRes.data.filter((app: any) => app.estado === 'TRABAJO_FINALIZADO' || app.estado === 'PAGO_ENVIADO').length);
-              setEnRevisionCount(appsRes.data.filter((app: any) => app.estado === 'PENDIENTE').length);
             }
           }
         }
@@ -119,6 +121,15 @@ export default function EmpresaOfertasPage() {
       console.error('Error updating status:', error);
     }
   };
+
+  // Filtrar ofertas a mostrar según la pestaña seleccionada
+  const displayedOfertas = allOfertas.filter(o => {
+    if (viewTab === 'activos') {
+      return o.estado !== 'COMPLETADA';
+    } else {
+      return o.estado === 'COMPLETADA';
+    }
+  });
 
   if (loading) {
     return (
@@ -144,46 +155,91 @@ export default function EmpresaOfertasPage() {
         </Link>
       </div>
 
+      {/* Métrica superior con filtros interactivos */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <Link href="/empresa/ofertas" className="block transition-all hover:scale-[1.02]">
-          <Card className="bg-white border-none shadow-sm hover:shadow-md cursor-pointer h-full">
+        {/* Card 1: Turnos Activos */}
+        <div 
+          onClick={() => setViewTab('activos')} 
+          className={`block transition-all duration-200 hover:scale-[1.02] cursor-pointer rounded-2xl p-1 ${
+            viewTab === 'activos' 
+              ? 'ring-2 ring-primary bg-primary/5 shadow-md' 
+              : 'bg-white border border-gray-100 shadow-sm hover:shadow-md'
+          }`}
+        >
+          <Card className="border-none bg-transparent h-full shadow-none">
             <CardContent className="p-4 flex flex-col items-center justify-center">
-              <span className="block text-2xl font-bold text-primary">{ofertas.length}</span>
-              <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Turnos Activos</span>
+              <span className="block text-2xl font-bold text-primary">
+                {allOfertas.filter(o => o.estado !== 'COMPLETADA').length}
+              </span>
+              <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider mt-1">Turnos Activos</span>
             </CardContent>
           </Card>
-        </Link>
+        </div>
         
+        {/* Card 2: Candidatos Totales */}
         <Link href="/empresa/candidatos" className="block transition-all hover:scale-[1.02]">
-          <Card className="bg-white border-none shadow-sm hover:shadow-md cursor-pointer h-full">
+          <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-md cursor-pointer h-full">
             <CardContent className="p-4 flex flex-col items-center justify-center">
               <span className="block text-2xl font-bold text-primary">{appsCount}</span>
-              <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Candidatos Totales</span>
+              <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider mt-1">Candidatos Totales</span>
             </CardContent>
           </Card>
         </Link>
 
+        {/* Card 3: Por Pagar */}
         <Link href="/empresa/candidatos?tab=activos" className="block transition-all hover:scale-[1.02]">
-          <Card className="bg-white border-none shadow-sm hover:shadow-md cursor-pointer h-full">
+          <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-md cursor-pointer h-full">
             <CardContent className="p-4 flex flex-col items-center justify-center">
               <span className="block text-2xl font-bold text-green-600">{porPagarCount}</span>
-              <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">Por Pagar</span>
+              <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider mt-1">Por Pagar</span>
             </CardContent>
           </Card>
         </Link>
 
-        <Link href="/empresa/candidatos?tab=pendientes" className="block transition-all hover:scale-[1.02]">
-          <Card className="bg-white border-none shadow-sm hover:shadow-md cursor-pointer h-full">
+        {/* Card 4: Completados */}
+        <div 
+          onClick={() => setViewTab('completados')} 
+          className={`block transition-all duration-200 hover:scale-[1.02] cursor-pointer rounded-2xl p-1 ${
+            viewTab === 'completados' 
+              ? 'ring-2 ring-blue-500 bg-blue-50/20 shadow-md' 
+              : 'bg-white border border-gray-100 shadow-sm hover:shadow-md'
+          }`}
+        >
+          <Card className="border-none bg-transparent h-full shadow-none">
             <CardContent className="p-4 flex flex-col items-center justify-center">
-              <span className="block text-2xl font-bold text-amber-600">{enRevisionCount}</span>
-              <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">En Revisión</span>
+              <span className="block text-2xl font-bold text-blue-600">
+                {allOfertas.filter(o => o.estado === 'COMPLETADA').length}
+              </span>
+              <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider mt-1">Completados</span>
             </CardContent>
           </Card>
-        </Link>
+        </div>
+      </div>
+
+      {/* Título de Sección Contextual */}
+      <div className="pt-2 border-b border-gray-100 pb-2">
+        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+          {viewTab === 'activos' ? (
+            <>
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+              Mis Turnos Activos y Pausados
+            </>
+          ) : (
+            <>
+              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+              Historial de Turnos Completados
+            </>
+          )}
+        </h2>
+        <p className="text-gray-500 text-xs mt-0.5">
+          {viewTab === 'activos' 
+            ? 'Gestiona la disponibilidad y cambia los estados de tus publicaciones vigentes.' 
+            : 'Revisa las ofertas archivadas e históricas de Catch-Go.'}
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
-        {ofertas.length > 0 ? ofertas.map((oferta) => (
+        {displayedOfertas.length > 0 ? displayedOfertas.map((oferta) => (
           <Card key={oferta.id} className="hover:border-primary/30 transition-all border-gray-100 shadow-sm overflow-hidden">
             <CardHeader className="flex justify-between items-start pb-2">
               <div>
@@ -224,41 +280,56 @@ export default function EmpresaOfertasPage() {
                 <Button variant="ghost" size="sm" className="text-gray-600 hover:bg-gray-100" onClick={() => setSelectedJobForDetails(oferta)}>
                   <Eye className="w-3.5 h-3.5 mr-1" /> Ver Detalles
                 </Button>
-                <Link href={`/empresa/ofertas/${oferta.id}/editar`}>
-                  <Button variant="ghost" size="sm" className="text-amber-600 hover:bg-amber-50">
-                    <Edit className="w-3.5 h-3.5 mr-1" /> Editar
-                  </Button>
-                </Link>
+                {oferta.estado !== 'COMPLETADA' && (
+                  <Link href={`/empresa/ofertas/${oferta.id}/editar`}>
+                    <Button variant="ghost" size="sm" className="text-amber-600 hover:bg-amber-50">
+                      <Edit className="w-3.5 h-3.5 mr-1" /> Editar
+                    </Button>
+                  </Link>
+                )}
               </div>
               <div className="flex gap-2 items-center">
-                {oferta.estado === 'ABIERTA' ? (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-amber-600 border-amber-200 hover:bg-amber-50"
-                    onClick={() => handleUpdateStatus(oferta.id, 'PAUSADA')}
-                  >
-                    <Pause className="w-3 h-3 mr-1" /> Pausar
-                  </Button>
-                ) : (
+                {oferta.estado === 'COMPLETADA' ? (
                   <Button 
                     variant="outline" 
                     size="sm" 
                     className="text-green-600 border-green-200 hover:bg-green-50"
                     onClick={() => handleUpdateStatus(oferta.id, 'ABIERTA')}
                   >
-                    <Play className="w-3 h-3 mr-1" /> Reanudar
+                    <Play className="w-3 h-3 mr-1" /> Reactivar
                   </Button>
-                )}
+                ) : (
+                  <>
+                    {oferta.estado === 'ABIERTA' ? (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-amber-600 border-amber-200 hover:bg-amber-50"
+                        onClick={() => handleUpdateStatus(oferta.id, 'PAUSADA')}
+                      >
+                        <Pause className="w-3 h-3 mr-1" /> Pausar
+                      </Button>
+                    ) : (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-green-600 border-green-200 hover:bg-green-50"
+                        onClick={() => handleUpdateStatus(oferta.id, 'ABIERTA')}
+                      >
+                        <Play className="w-3 h-3 mr-1" /> Reanudar
+                      </Button>
+                    )}
 
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                  onClick={() => handleUpdateStatus(oferta.id, 'COMPLETADA')}
-                >
-                  <CheckCircle className="w-3 h-3 mr-1" /> Completar
-                </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                      onClick={() => handleUpdateStatus(oferta.id, 'COMPLETADA')}
+                    >
+                      <CheckCircle className="w-3 h-3 mr-1" /> Completar
+                    </Button>
+                  </>
+                )}
 
                 <Button variant="ghost" size="sm" className="text-red-600 hover:bg-red-50 p-2" onClick={() => handleDelete(oferta.id)}>
                   <Trash2 className="w-3.5 h-3.5" />
@@ -272,11 +343,19 @@ export default function EmpresaOfertasPage() {
               <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-300">
                 <Plus size={32} />
               </div>
-              <h3 className="text-lg font-medium text-gray-900">No tienes turnos publicados</h3>
-              <p className="text-gray-500 text-sm">Comienza a publicar para encontrar a los mejores workers.</p>
-              <Link href="/empresa/ofertas/nueva">
-                <Button variant="primary">Publicar Primer Turno</Button>
-              </Link>
+              <h3 className="text-lg font-medium text-gray-900">
+                {viewTab === 'activos' ? 'No tienes turnos publicados' : 'No hay turnos completados'}
+              </h3>
+              <p className="text-gray-500 text-sm">
+                {viewTab === 'activos' 
+                  ? 'Comienza a publicar para encontrar a los mejores workers.' 
+                  : 'Los turnos que completes con éxito aparecerán en este historial.'}
+              </p>
+              {viewTab === 'activos' && (
+                <Link href="/empresa/ofertas/nueva">
+                  <Button variant="primary">Publicar Primer Turno</Button>
+                </Link>
+              )}
             </div>
           </div>
         )}
