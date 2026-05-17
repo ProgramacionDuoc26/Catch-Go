@@ -17,7 +17,8 @@ public class WebpayController {
     @PostMapping("/init")
     public ResponseEntity<Map<String, Object>> init(@RequestBody Map<String, Object> payload) {
         String userId = (String) payload.get("userId");
-        Integer amount = (Integer) payload.get("amount");
+        Number amountNum = (Number) payload.get("amount");
+        Integer amount = amountNum != null ? amountNum.intValue() : null;
         String returnUrl = (String) payload.get("returnUrl");
 
         if (userId == null || amount == null || returnUrl == null) {
