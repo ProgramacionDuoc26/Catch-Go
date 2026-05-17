@@ -1,4 +1,4 @@
-package cl.catchgo.app.ui.profile
+package cl.catchgo.app.ui.empresa
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -8,10 +8,7 @@ import android.provider.OpenableColumns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cl.catchgo.app.data.remote.dto.ProfileRemoteDto
-import cl.catchgo.app.domain.model.HabilidadUsuario
-import cl.catchgo.app.domain.model.RadarData
 import cl.catchgo.app.domain.repository.AuthRepository
-import cl.catchgo.app.domain.repository.HabilidadesRepository
 import cl.catchgo.app.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -21,34 +18,31 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.json.JSONArray
 import org.json.JSONObject
 import javax.inject.Inject
 
-data class ProfileUiState(
+data class EmpresaPerfilUiState(
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
-    val radar: RadarData? = null,
-    val habilidades: List<HabilidadUsuario> = emptyList(),
     val photoUrl: String? = null,
-    val cvUrl: String? = null,
+    val docUrl: String? = null,
     val isUploadingPhoto: Boolean = false,
-    val isUploadingCv: Boolean = false,
+    val isUploadingDoc: Boolean = false,
     val hasLocation: Boolean = false,
     val name: String = "",
     val rut: String = "",
+    val representativeName: String = "",
+    val email: String = "",
     val phone: String = "+56 ",
-    val birthDate: String = "",
     val address: String = "",
     val description: String = "",
     val bankName: String = "",
     val accountType: String = "",
     val accountNumber: String = "",
-    val birthDateLocked: Boolean = false,
-    val skillsHabilidades: List<String> = emptyList(),
-    val skillsAmbiente: String = "",
-    val skillsCaracteristica: String = "",
-    val skillsPreferencia: String = "",
+    val giro: String = "",
+    val tipoTrabajador: String = "",
+    val habilidadValorada: String = "",
+    val ritmo: String = "",
     val saveSuccess: Boolean = false,
     val errorMessage: String? = null,
     val isDeletingAccount: Boolean = false,
@@ -57,15 +51,14 @@ data class ProfileUiState(
 )
 
 @HiltViewModel
-class ProfileViewModel @Inject constructor(
+class EmpresaPerfilViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val habilidadesRepository: HabilidadesRepository,
     private val profileRepository: ProfileRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ProfileUiState())
-    val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(EmpresaPerfilUiState())
+    val uiState: StateFlow<EmpresaPerfilUiState> = _uiState.asStateFlow()
 
     private var userId: String = ""
     private var currentProfile: ProfileRemoteDto = ProfileRemoteDto()
@@ -77,35 +70,30 @@ class ProfileViewModel @Inject constructor(
             profileRepository.getProfile(userId).onSuccess { profile ->
                 if (profile != null) {
                     currentProfile = profile
-                    val skillsJson = runCatching {
+                    val skills = runCatching {
                         if (profile.skills?.startsWith("{") == true) JSONObject(profile.skills) else null
                     }.getOrNull()
-
-                    val habilidades = runCatching {
-                        val arr = skillsJson?.optJSONArray("habilidades") ?: JSONArray()
-                        (0 until arr.length()).map { arr.getString(it) }
-                    }.getOrDefault(emptyList())
 
                     _uiState.update {
                         it.copy(
                             isLoading = false,
                             photoUrl = profile.photoUrl,
-                            cvUrl = profile.cvUrl,
+                            docUrl = profile.cvUrl,
                             hasLocation = profile.latitude != null && profile.longitude != null,
                             name = profile.name ?: "",
-                            rut = profile.rut ?: skillsJson?.optString("rut", "") ?: "",
+                            rut = profile.rut ?: skills?.optString("rut", "") ?: "",
+                            representativeName = skills?.optString("representativeName", "") ?: "",
+                            email = profile.email ?: "",
                             phone = profile.phone?.takeIf { p -> p.isNotBlank() } ?: "+56 ",
-                            birthDate = profile.birthDate ?: "",
-                            address = skillsJson?.optString("address", "") ?: "",
+                            address = skills?.optString("address", "") ?: "",
                             description = profile.description ?: "",
                             bankName = profile.bankName ?: "",
                             accountType = profile.accountType ?: "",
                             accountNumber = profile.accountNumber ?: "",
-                            birthDateLocked = profile.birthDate?.isNotBlank() == true,
-                            skillsHabilidades = habilidades,
-                            skillsAmbiente = skillsJson?.optString("ambiente", "") ?: "",
-                            skillsCaracteristica = skillsJson?.optString("caracteristica", "") ?: "",
-                            skillsPreferencia = skillsJson?.optString("preferencia", "") ?: ""
+                            giro = skills?.optString("giro", "") ?: "",
+                            tipoTrabajador = skills?.optString("tipoTrabajador", "") ?: "",
+                            habilidadValorada = skills?.optString("habilidadValorada", "") ?: "",
+                            ritmo = skills?.optString("ritmo", "") ?: ""
                         )
                     }
                 } else {
@@ -122,28 +110,19 @@ class ProfileViewModel @Inject constructor(
             when (field) {
                 "name" -> s.copy(name = value)
                 "rut" -> s.copy(rut = value)
+                "representativeName" -> s.copy(representativeName = value)
                 "phone" -> s.copy(phone = value)
-                "birthDate" -> s.copy(birthDate = value)
                 "address" -> s.copy(address = value)
                 "description" -> s.copy(description = value)
                 "bankName" -> s.copy(bankName = value)
                 "accountType" -> s.copy(accountType = value)
                 "accountNumber" -> s.copy(accountNumber = value)
-                "skillsAmbiente" -> s.copy(skillsAmbiente = value)
-                "skillsCaracteristica" -> s.copy(skillsCaracteristica = value)
-                "skillsPreferencia" -> s.copy(skillsPreferencia = value)
+                "giro" -> s.copy(giro = value)
+                "tipoTrabajador" -> s.copy(tipoTrabajador = value)
+                "habilidadValorada" -> s.copy(habilidadValorada = value)
+                "ritmo" -> s.copy(ritmo = value)
                 else -> s
             }
-        }
-    }
-
-    fun toggleSkillsHabilidad(habilidad: String) {
-        _uiState.update { s ->
-            val updated = if (s.skillsHabilidades.contains(habilidad))
-                s.skillsHabilidades - habilidad
-            else
-                s.skillsHabilidades + habilidad
-            s.copy(skillsHabilidades = updated)
         }
     }
 
@@ -156,22 +135,19 @@ class ProfileViewModel @Inject constructor(
                     JSONObject(currentProfile.skills) else JSONObject()
             }.getOrDefault(JSONObject())
 
-            existingSkills.put("address", s.address)
             existingSkills.put("rut", s.rut)
-
-            val habArr = JSONArray()
-            s.skillsHabilidades.forEach { habArr.put(it) }
-            existingSkills.put("habilidades", habArr)
-            existingSkills.put("ambiente", s.skillsAmbiente)
-            existingSkills.put("caracteristica", s.skillsCaracteristica)
-            existingSkills.put("preferencia", s.skillsPreferencia)
+            existingSkills.put("representativeName", s.representativeName)
+            existingSkills.put("address", s.address)
+            existingSkills.put("giro", s.giro)
+            existingSkills.put("tipoTrabajador", s.tipoTrabajador)
+            existingSkills.put("habilidadValorada", s.habilidadValorada)
+            existingSkills.put("ritmo", s.ritmo)
 
             val dto = currentProfile.copy(
                 userId = userId,
                 name = s.name,
                 rut = s.rut,
                 phone = s.phone,
-                birthDate = s.birthDate.takeIf { it.isNotBlank() },
                 description = s.description,
                 bankName = s.bankName,
                 accountType = s.accountType,
@@ -181,13 +157,7 @@ class ProfileViewModel @Inject constructor(
             profileRepository.saveProfile(dto)
                 .onSuccess { saved ->
                     currentProfile = saved
-                    _uiState.update {
-                        it.copy(
-                            isSaving = false,
-                            saveSuccess = true,
-                            birthDateLocked = saved.birthDate?.isNotBlank() == true
-                        )
-                    }
+                    _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
                 }
                 .onFailure { e ->
                     _uiState.update { it.copy(isSaving = false, errorMessage = e.message ?: "Error al guardar") }
@@ -199,14 +169,6 @@ class ProfileViewModel @Inject constructor(
     fun clearError() = _uiState.update { it.copy(errorMessage = null) }
     fun clearDeleteError() = _uiState.update { it.copy(deleteAccountError = null) }
 
-    fun loadSkills(userId: Long) {
-        viewModelScope.launch {
-            val radar = habilidadesRepository.getRadar(userId).getOrNull()
-            val skills = habilidadesRepository.getHabilidadesUsuario(userId).getOrDefault(emptyList())
-            _uiState.update { it.copy(radar = radar, habilidades = skills) }
-        }
-    }
-
     fun onPhotoPicked(uri: Uri) {
         viewModelScope.launch {
             _uiState.update { it.copy(isUploadingPhoto = true) }
@@ -215,7 +177,7 @@ class ProfileViewModel @Inject constructor(
             }
             val mimeType = context.contentResolver.getType(uri) ?: "image/jpeg"
             val ext = if (mimeType.contains("png")) ".png" else ".jpg"
-            profileRepository.uploadFile(userId, bytes, "photo$ext", mimeType)
+            profileRepository.uploadFile(userId, bytes, "logo$ext", mimeType)
                 .onSuccess { url ->
                     val updated = currentProfile.copy(userId = userId, photoUrl = url)
                     profileRepository.saveProfile(updated).onSuccess { saved ->
@@ -227,27 +189,28 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun onCvPicked(uri: Uri) {
+    fun onDocPicked(uri: Uri) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isUploadingCv = true) }
+            _uiState.update { it.copy(isUploadingDoc = true) }
             val bytes = context.contentResolver.openInputStream(uri)?.readBytes() ?: run {
-                _uiState.update { it.copy(isUploadingCv = false) }; return@launch
+                _uiState.update { it.copy(isUploadingDoc = false) }; return@launch
             }
             val fileName = resolveFileName(uri)
-            profileRepository.uploadFile(userId, bytes, fileName, "application/pdf")
+            val mimeType = context.contentResolver.getType(uri) ?: "application/pdf"
+            profileRepository.uploadFile(userId, bytes, fileName, mimeType)
                 .onSuccess { url ->
                     val updated = currentProfile.copy(userId = userId, cvUrl = url)
                     profileRepository.saveProfile(updated).onSuccess { saved ->
                         currentProfile = saved
-                        _uiState.update { it.copy(isUploadingCv = false, cvUrl = url) }
-                    }.onFailure { _uiState.update { it.copy(isUploadingCv = false) } }
+                        _uiState.update { it.copy(isUploadingDoc = false, docUrl = url) }
+                    }.onFailure { _uiState.update { it.copy(isUploadingDoc = false) } }
                 }
-                .onFailure { _uiState.update { it.copy(isUploadingCv = false) } }
+                .onFailure { _uiState.update { it.copy(isUploadingDoc = false) } }
         }
     }
 
     private fun resolveFileName(uri: Uri): String {
-        var name = "curriculum.pdf"
+        var name = "documento.pdf"
         context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
             val col = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
             if (cursor.moveToFirst() && col >= 0) name = cursor.getString(col)

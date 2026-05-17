@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -182,7 +183,7 @@ fun CrearOfertaScreen(
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = BrandBlue700)
             ) {
-                if (state.isLoading) CircularProgressIndicator(Modifier.height(Spacing.md), color = Color.White, strokeWidth = 2.dp)
+                if (state.isLoading) CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp)
                 else Text("Publicar Oferta")
             }
         }

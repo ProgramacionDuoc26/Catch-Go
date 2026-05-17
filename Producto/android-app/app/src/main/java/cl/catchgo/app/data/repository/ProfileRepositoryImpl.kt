@@ -34,4 +34,8 @@ class ProfileRepositoryImpl @Inject constructor(
         val response = api.uploadFile(part, userIdPart)
         ApiConfig.PROFILE_URL.trimEnd('/') + response.url
     }
+
+    override suspend fun deleteProfile(userId: String): Result<Unit> = runCatching {
+        api.deleteProfile(userId)
+    }
 }

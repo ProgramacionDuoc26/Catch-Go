@@ -1,4 +1,4 @@
-package cl.catchgo.app.ui.profile
+package cl.catchgo.app.ui.empresa
 
 import android.Manifest
 import android.content.Intent
@@ -28,12 +28,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBalance
-import androidx.compose.material.icons.outlined.Badge
-import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Business
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.MyLocation
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Phone
@@ -76,13 +74,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
-import cl.catchgo.app.domain.model.HabilidadUsuario
-import cl.catchgo.app.domain.model.RadarData
-import cl.catchgo.app.domain.model.UserRole
 import cl.catchgo.app.domain.model.UserSession
-import cl.catchgo.app.ui.components.LevelBadge
 import cl.catchgo.app.ui.components.PrimaryButton
-import cl.catchgo.app.ui.components.RadarChartView
 import cl.catchgo.app.ui.components.SecondaryButton
 import cl.catchgo.app.ui.theme.BrandBlue600
 import cl.catchgo.app.ui.theme.Error50
@@ -102,21 +95,10 @@ import cl.catchgo.app.ui.theme.White
 import coil.compose.AsyncImage
 import java.io.File
 
-private val SKILLS_HABILIDADES = listOf(
-    "Atención al cliente", "Conducción", "Manejo Excel", "Inventario",
-    "Ventas", "Programación", "Diseño", "Trabajo físico",
-    "Electricidad", "Mecánica", "Liderazgo", "Logística"
-)
-private val SKILLS_AMBIENTE = listOf(
-    "Trabajo en equipo", "Trabajo individual", "Trabajo en terreno",
-    "Oficina", "Alta presión", "Flexible"
-)
-private val SKILLS_CARACTERISTICA = listOf(
-    "Responsable", "Rápido", "Ordenado", "Creativo",
-    "Líder", "Comunicativo", "Analítico"
-)
-private val SKILLS_PREFERENCIA = listOf("Part Time", "Turnos", "Freelance", "Temporal", "Fines de semana")
-
+private val GIROS = listOf("Logística", "Retail", "Construcción", "Tecnología", "Salud", "Gastronomía", "Industrial", "Seguridad", "Minería", "Servicios")
+private val TIPOS_TRABAJADOR = listOf("Operativo", "Técnico", "Administrativo", "Comercial", "TI / Informática", "Supervisor", "Multifuncional")
+private val HABILIDADES_VALORADAS = listOf("Responsabilidad", "Puntualidad", "Liderazgo", "Adaptabilidad", "Trabajo en equipo", "Rapidez", "Comunicación", "Resolución de problemas")
+private val RITMOS = listOf("Muy dinámico", "Moderado", "Estructurado", "Alta presión", "Flexible")
 private val BANCOS = listOf(
     "Banco de Chile", "Banco Estado", "Banco Santander", "Banco BCI",
     "Scotiabank", "Banco Itaú", "Banco Bice", "Banco Security",
@@ -126,14 +108,12 @@ private val BANCOS = listOf(
 private val TIPOS_CUENTA = listOf("VISTA" to "Cuenta Vista / RUT", "CORRIENTE" to "Cuenta Corriente", "AHORRO" to "Cuenta de Ahorro")
 
 @Composable
-fun ProfilePlaceholderScreen(
+fun EmpresaPerfilScreen(
     session: UserSession,
-    onNavigateToSkills: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ProfileViewModel = hiltViewModel()
+    viewModel: EmpresaPerfilViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val userId = session.user.id.toLongOrNull() ?: 0L
     val context = LocalContext.current
 
     var showPhotoOptions by remember { mutableStateOf(false) }
@@ -149,13 +129,11 @@ fun ProfilePlaceholderScreen(
     }
     val cameraPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) {
-            val uri = createCameraUri(context)
-            cameraUri = uri
-            cameraLauncher.launch(uri)
+            val uri = createLogoUri(context); cameraUri = uri; cameraLauncher.launch(uri)
         }
     }
-    val cvLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        uri?.let { viewModel.onCvPicked(it) }
+    val docLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri?.let { viewModel.onDocPicked(it) }
     }
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -165,30 +143,21 @@ fun ProfilePlaceholderScreen(
         if (granted) viewModel.fetchAndSaveLocation()
     }
 
-    LaunchedEffect(session.user.id) {
-        viewModel.loadProfile(session.user.id)
-        if (userId > 0) viewModel.loadSkills(userId)
-    }
-
-    LaunchedEffect(uiState.saveSuccess) {
-        if (uiState.saveSuccess) viewModel.clearSaveSuccess()
-    }
-
-    LaunchedEffect(uiState.accountDeleted) {
-        if (uiState.accountDeleted) viewModel.onLogout()
-    }
+    LaunchedEffect(session.user.id) { viewModel.loadProfile(session.user.id) }
+    LaunchedEffect(uiState.saveSuccess) { if (uiState.saveSuccess) viewModel.clearSaveSuccess() }
+    LaunchedEffect(uiState.accountDeleted) { if (uiState.accountDeleted) viewModel.onLogout() }
 
     if (showPhotoOptions) {
         AlertDialog(
             onDismissRequest = { showPhotoOptions = false },
-            title = { Text("Foto de perfil") },
+            title = { Text("Logo de empresa") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     TextButton(onClick = {
                         showPhotoOptions = false
                         val hasCam = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
                         if (hasCam) {
-                            val uri = createCameraUri(context); cameraUri = uri; cameraLauncher.launch(uri)
+                            val uri = createLogoUri(context); cameraUri = uri; cameraLauncher.launch(uri)
                         } else cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                     }, modifier = Modifier.fillMaxWidth()) { Text("Tomar foto") }
                     TextButton(onClick = { showPhotoOptions = false; galleryLauncher.launch("image/*") }, modifier = Modifier.fillMaxWidth()) { Text("Elegir de galería") }
@@ -200,7 +169,7 @@ fun ProfilePlaceholderScreen(
     }
 
     if (showDeleteDialog) {
-        DeleteAccountDialog(
+        EmpresaDeleteDialog(
             password = deletePassword,
             onPasswordChange = { deletePassword = it },
             isDeleting = uiState.isDeletingAccount,
@@ -211,10 +180,10 @@ fun ProfilePlaceholderScreen(
     }
 
     Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-        ProfileHeader(
+        EmpresaHeader(
             session = session,
             photoUrl = uiState.photoUrl,
-            isUploadingPhoto = uiState.isUploadingPhoto,
+            isUploading = uiState.isUploadingPhoto,
             onPickPhoto = { showPhotoOptions = true }
         )
 
@@ -224,51 +193,22 @@ fun ProfilePlaceholderScreen(
         ) {
             Spacer(Modifier.height(Spacing.sm))
 
-            SectionCard(title = "Información Personal", icon = Icons.Outlined.Person) {
-                ProfileField(
-                    value = uiState.name,
-                    onValueChange = { viewModel.onFieldChange("name", it) },
-                    label = "Nombre completo",
-                    icon = Icons.Outlined.Person
-                )
-                ProfileField(
-                    value = uiState.rut,
-                    onValueChange = { viewModel.onFieldChange("rut", it) },
-                    label = "RUT",
-                    placeholder = "12.345.678-9",
-                    icon = Icons.Outlined.Badge
-                )
-                ProfileField(
+            EmpresaSectionCard(title = "Información de la Organización", icon = Icons.Outlined.Business) {
+                EmpresaField(uiState.name, { viewModel.onFieldChange("name", it) }, "Nombre de la empresa", placeholder = "Nombre legal o fantasía", icon = Icons.Outlined.Business)
+                EmpresaField(uiState.rut, { viewModel.onFieldChange("rut", it) }, "RUT de la empresa", placeholder = "76.123.456-K")
+                EmpresaField(uiState.representativeName, { viewModel.onFieldChange("representativeName", it) }, "Representante Legal", placeholder = "Juan Pérez", icon = Icons.Outlined.Person)
+                EmpresaField(uiState.phone, { v ->
+                    val fixed = if (!v.startsWith("+56 ")) "+56 " else "+56 " + v.drop(4).filter { it.isDigit() }.take(9)
+                    viewModel.onFieldChange("phone", fixed)
+                }, "Teléfono corporativo", icon = Icons.Outlined.Phone, keyboardType = KeyboardType.Phone)
+                EmpresaField(uiState.address, { viewModel.onFieldChange("address", it) }, "Dirección de la empresa", placeholder = "Calle Falsa 123, Santiago", icon = Icons.Outlined.Home)
+                EmpresaField(
                     value = uiState.description,
                     onValueChange = { viewModel.onFieldChange("description", it) },
-                    label = "Sobre mí / Resumen profesional",
-                    placeholder = "Cuéntanos sobre tu experiencia...",
+                    label = "Descripción de la empresa",
+                    placeholder = "Describe la misión y visión...",
                     singleLine = false,
                     minLines = 3
-                )
-                ProfileField(
-                    value = uiState.phone,
-                    onValueChange = { v ->
-                        val fixed = if (!v.startsWith("+56 ")) "+56 " else {
-                            "+56 " + v.drop(4).filter { it.isDigit() }.take(9)
-                        }
-                        viewModel.onFieldChange("phone", fixed)
-                    },
-                    label = "Teléfono",
-                    icon = Icons.Outlined.Phone,
-                    keyboardType = KeyboardType.Phone
-                )
-                BirthDateField(
-                    value = uiState.birthDate,
-                    onChange = { viewModel.onFieldChange("birthDate", it) },
-                    locked = uiState.birthDateLocked
-                )
-                ProfileField(
-                    value = uiState.address,
-                    onValueChange = { viewModel.onFieldChange("address", it) },
-                    label = "Dirección",
-                    placeholder = "Ej: Alameda 123, Santiago",
-                    icon = Icons.Outlined.Home
                 )
             }
 
@@ -283,38 +223,30 @@ fun ProfilePlaceholderScreen(
 
             HorizontalDivider(color = Gray200)
 
-            SkillsPreferenciasSection(
-                selectedHabilidades = uiState.skillsHabilidades,
-                onToggleHabilidad = { viewModel.toggleSkillsHabilidad(it) },
-                ambiente = uiState.skillsAmbiente,
-                onAmbienteChange = { viewModel.onFieldChange("skillsAmbiente", it) },
-                caracteristica = uiState.skillsCaracteristica,
-                onCaracteristicaChange = { viewModel.onFieldChange("skillsCaracteristica", it) },
-                preferencia = uiState.skillsPreferencia,
-                onPreferenciaChange = { viewModel.onFieldChange("skillsPreferencia", it) }
+            CulturaSection(
+                giro = uiState.giro,
+                onGiroChange = { viewModel.onFieldChange("giro", it) },
+                tipoTrabajador = uiState.tipoTrabajador,
+                onTipoChange = { viewModel.onFieldChange("tipoTrabajador", it) },
+                habilidadValorada = uiState.habilidadValorada,
+                onHabilidadChange = { viewModel.onFieldChange("habilidadValorada", it) },
+                ritmo = uiState.ritmo,
+                onRitmoChange = { viewModel.onFieldChange("ritmo", it) }
             )
 
             HorizontalDivider(color = Gray200)
 
-            RadarSkillsSection(
-                radar = uiState.radar,
-                habilidades = uiState.habilidades,
-                onManageSkills = onNavigateToSkills
+            DocLegalSection(
+                docUrl = uiState.docUrl,
+                isUploading = uiState.isUploadingDoc,
+                onPickDoc = { docLauncher.launch(arrayOf("application/pdf", "image/*")) }
             )
 
             HorizontalDivider(color = Gray200)
 
-            CvSection(
-                cvUrl = uiState.cvUrl,
-                isUploading = uiState.isUploadingCv,
-                onPickCv = { cvLauncher.launch(arrayOf("application/pdf")) }
-            )
-
-            HorizontalDivider(color = Gray200)
-
-            BankDataSection(
+            EmpresaBankSection(
                 bankName = uiState.bankName,
-                onBankNameChange = { viewModel.onFieldChange("bankName", it) },
+                onBankChange = { viewModel.onFieldChange("bankName", it) },
                 accountType = uiState.accountType,
                 onAccountTypeChange = { viewModel.onFieldChange("accountType", it) },
                 accountNumber = uiState.accountNumber,
@@ -323,27 +255,18 @@ fun ProfilePlaceholderScreen(
 
             uiState.errorMessage?.let { msg ->
                 Surface(color = Error50, shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = msg,
-                        color = Error600,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(Spacing.md)
-                    )
+                    Text(msg, color = Error600, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(Spacing.md))
                 }
             }
 
             PrimaryButton(
-                text = if (uiState.isSaving) "Guardando..." else "Guardar Cambios",
+                text = if (uiState.isSaving) "Guardando..." else "Guardar Perfil Corporativo",
                 onClick = { viewModel.saveProfile() },
                 loading = uiState.isSaving,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            SecondaryButton(
-                text = "Cerrar sesión",
-                onClick = viewModel::onLogout,
-                modifier = Modifier.fillMaxWidth()
-            )
+            SecondaryButton(text = "Cerrar sesión", onClick = viewModel::onLogout, modifier = Modifier.fillMaxWidth())
 
             TextButton(
                 onClick = { showDeleteDialog = true },
@@ -352,7 +275,7 @@ fun ProfilePlaceholderScreen(
             ) {
                 Icon(Icons.Outlined.Warning, null, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(6.dp))
-                Text("Eliminar mi cuenta permanentemente", style = MaterialTheme.typography.labelMedium)
+                Text("Eliminar cuenta de empresa", style = MaterialTheme.typography.labelMedium)
             }
 
             Spacer(Modifier.height(Spacing.xl))
@@ -361,31 +284,28 @@ fun ProfilePlaceholderScreen(
 }
 
 @Composable
-private fun ProfileHeader(
-    session: UserSession,
-    photoUrl: String?,
-    isUploadingPhoto: Boolean,
-    onPickPhoto: () -> Unit
-) {
+private fun EmpresaHeader(session: UserSession, photoUrl: String?, isUploading: Boolean, onPickPhoto: () -> Unit) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
             .background(Brush.verticalGradient(colors = listOf(NavyDeep, Navy, BrandBlue600)))
             .padding(horizontal = Spacing.lg, vertical = Spacing.xl)
     ) {
         Column(horizontalAlignment = Alignment.Start) {
             Box(modifier = Modifier.size(80.dp)) {
-                Box(
-                    modifier = Modifier.fillMaxSize().clip(CircleShape).background(Teal500.copy(alpha = 0.3f)),
-                    contentAlignment = Alignment.Center
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    shape = RoundedCornerShape(12.dp),
+                    color = White.copy(alpha = 0.15f)
                 ) {
-                    when {
-                        isUploadingPhoto -> CircularProgressIndicator(color = White, modifier = Modifier.size(32.dp), strokeWidth = 2.dp)
-                        photoUrl != null -> AsyncImage(model = photoUrl, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                        else -> Text(text = session.user.fullName?.firstOrNull()?.uppercase() ?: "?", fontSize = 34.sp, fontWeight = FontWeight.ExtraBold, color = White)
+                    Box(contentAlignment = Alignment.Center) {
+                        when {
+                            isUploading -> CircularProgressIndicator(color = White, modifier = Modifier.size(32.dp), strokeWidth = 2.dp)
+                            photoUrl != null -> AsyncImage(model = photoUrl, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+                            else -> Icon(Icons.Outlined.Business, null, tint = White, modifier = Modifier.size(40.dp))
+                        }
                     }
                 }
-                if (!isUploadingPhoto) {
+                if (!isUploading) {
                     Box(
                         modifier = Modifier.size(26.dp).align(Alignment.BottomEnd).clip(CircleShape).background(White).clickable(onClick = onPickPhoto),
                         contentAlignment = Alignment.Center
@@ -396,22 +316,15 @@ private fun ProfileHeader(
             Text(text = session.user.fullName ?: session.user.email, style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold), color = White)
             Text(text = session.user.email, style = MaterialTheme.typography.bodyMedium, color = White.copy(alpha = 0.7f))
             Spacer(Modifier.height(Spacing.sm))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(Teal500.copy(alpha = 0.25f)).padding(horizontal = 12.dp, vertical = 5.dp)
-                ) { Text("Trabajador", style = MaterialTheme.typography.labelMedium, color = Teal200) }
-                LevelBadge(nivel = session.user.nivel)
-            }
+            Box(
+                modifier = androidx.compose.ui.Modifier.clip(RoundedCornerShape(20.dp)).background(Teal500.copy(alpha = 0.25f)).padding(horizontal = 12.dp, vertical = 5.dp)
+            ) { Text("Empresa", style = MaterialTheme.typography.labelMedium, color = Teal200) }
         }
     }
 }
 
 @Composable
-private fun SectionCard(
-    title: String,
-    icon: ImageVector,
-    content: @Composable () -> Unit
-) {
+private fun EmpresaSectionCard(title: String, icon: ImageVector, content: @Composable () -> Unit) {
     Surface(color = White, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth(), shadowElevation = 1.dp) {
         Column(modifier = Modifier.padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
@@ -425,7 +338,7 @@ private fun SectionCard(
 }
 
 @Composable
-private fun ProfileField(
+private fun EmpresaField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
@@ -447,23 +360,6 @@ private fun ProfileField(
         minLines = minLines,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp)
-    )
-}
-
-@Composable
-private fun BirthDateField(value: String, onChange: (String) -> Unit, locked: Boolean) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = { if (!locked) onChange(it) },
-        label = { Text(if (locked) "Fecha de nacimiento (bloqueada)" else "Fecha de nacimiento") },
-        leadingIcon = { Icon(Icons.Outlined.CalendarMonth, null, tint = if (locked) Gray500 else Teal500, modifier = Modifier.size(18.dp)) },
-        trailingIcon = if (locked) ({ Icon(Icons.Outlined.Lock, null, tint = Gray500, modifier = Modifier.size(16.dp)) }) else null,
-        enabled = !locked,
-        placeholder = { Text("YYYY-MM-DD", color = Gray500) },
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp),
-        supportingText = if (locked) ({ Text("La fecha de nacimiento no se puede modificar", style = MaterialTheme.typography.labelSmall, color = Gray500) }) else null
     )
 }
 
@@ -493,85 +389,83 @@ private fun LocationCard(hasLocation: Boolean, onSetLocation: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
-private fun SkillsPreferenciasSection(
-    selectedHabilidades: List<String>,
-    onToggleHabilidad: (String) -> Unit,
-    ambiente: String,
-    onAmbienteChange: (String) -> Unit,
-    caracteristica: String,
-    onCaracteristicaChange: (String) -> Unit,
-    preferencia: String,
-    onPreferenciaChange: (String) -> Unit
+private fun CulturaSection(
+    giro: String,
+    onGiroChange: (String) -> Unit,
+    tipoTrabajador: String,
+    onTipoChange: (String) -> Unit,
+    habilidadValorada: String,
+    onHabilidadChange: (String) -> Unit,
+    ritmo: String,
+    onRitmoChange: (String) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.lg)) {
-        Text("Habilidades y Preferencias", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = Gray900)
+        Text("Perfil y Cultura", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = Gray900)
+
+        var giroExpanded by remember { mutableStateOf(false) }
+        var tipoExpanded by remember { mutableStateOf(false) }
+
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            ExposedDropdownMenuBox(expanded = giroExpanded, onExpandedChange = { giroExpanded = it }, modifier = Modifier.weight(1f)) {
+                OutlinedTextField(
+                    value = giro.ifBlank { "Giro de empresa..." },
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("1. Giro principal") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(giroExpanded) },
+                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                    shape = RoundedCornerShape(10.dp)
+                )
+                ExposedDropdownMenu(expanded = giroExpanded, onDismissRequest = { giroExpanded = false }) {
+                    GIROS.forEach { g -> DropdownMenuItem(text = { Text(g) }, onClick = { onGiroChange(g); giroExpanded = false }) }
+                }
+            }
+
+            ExposedDropdownMenuBox(expanded = tipoExpanded, onExpandedChange = { tipoExpanded = it }, modifier = Modifier.weight(1f)) {
+                OutlinedTextField(
+                    value = tipoTrabajador.ifBlank { "Tipo..." },
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("2. Tipo trabajador") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(tipoExpanded) },
+                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                    shape = RoundedCornerShape(10.dp)
+                )
+                ExposedDropdownMenu(expanded = tipoExpanded, onDismissRequest = { tipoExpanded = false }) {
+                    TIPOS_TRABAJADOR.forEach { t -> DropdownMenuItem(text = { Text(t) }, onClick = { onTipoChange(t); tipoExpanded = false }) }
+                }
+            }
+        }
 
         Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-            Text("1. ¿Cuáles son tus principales habilidades?", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold), color = Gray700)
+            Text("3. ¿Qué habilidad valoras más?", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold), color = Gray700)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                SKILLS_HABILIDADES.forEach { skill ->
-                    val selected = selectedHabilidades.contains(skill)
+                HABILIDADES_VALORADAS.forEach { opt ->
+                    val selected = habilidadValorada == opt
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = if (selected) Teal500 else Gray100,
+                        modifier = Modifier.clickable { onHabilidadChange(if (selected) "" else opt) }
+                    ) {
+                        Text(opt, style = MaterialTheme.typography.labelSmall, color = if (selected) White else Gray700, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
+                    }
+                }
+            }
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            Text("4. ¿Cómo es el ritmo de trabajo?", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold), color = Gray700)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                RITMOS.forEach { opt ->
+                    val selected = ritmo == opt
                     Surface(
                         shape = RoundedCornerShape(20.dp),
                         color = if (selected) Teal50 else Gray100,
-                        modifier = Modifier.clickable { onToggleHabilidad(skill) }
+                        modifier = Modifier.clickable { onRitmoChange(if (selected) "" else opt) }
                     ) {
-                        Text(
-                            text = skill,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (selected) Teal500 else Gray700,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                        )
-                    }
-                }
-            }
-        }
-
-        Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-            Text("2. ¿En qué ambiente trabajas mejor?", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold), color = Gray700)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                SKILLS_AMBIENTE.forEach { opt ->
-                    val selected = ambiente == opt
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = if (selected) Teal500 else Gray100,
-                        modifier = Modifier.clickable { onAmbienteChange(if (selected) "" else opt) }
-                    ) {
-                        Text(text = opt, style = MaterialTheme.typography.labelSmall, color = if (selected) White else Gray700, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
-                    }
-                }
-            }
-        }
-
-        Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-            Text("3. ¿Qué te caracteriza más?", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold), color = Gray700)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                SKILLS_CARACTERISTICA.forEach { opt ->
-                    val selected = caracteristica == opt
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = if (selected) Teal500 else Gray100,
-                        modifier = Modifier.clickable { onCaracteristicaChange(if (selected) "" else opt) }
-                    ) {
-                        Text(text = opt, style = MaterialTheme.typography.labelSmall, color = if (selected) White else Gray700, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
-                    }
-                }
-            }
-        }
-
-        Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-            Text("4. ¿Qué tipo de trabajo prefieres?", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold), color = Gray700)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                SKILLS_PREFERENCIA.forEach { opt ->
-                    val selected = preferencia == opt
-                    Surface(
-                        shape = RoundedCornerShape(20.dp),
-                        color = if (selected) Teal500 else Gray100,
-                        modifier = Modifier.clickable { onPreferenciaChange(if (selected) "" else opt) }
-                    ) {
-                        Text(text = opt, style = MaterialTheme.typography.labelSmall, color = if (selected) White else Gray700, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
+                        Text(opt, style = MaterialTheme.typography.labelSmall, color = if (selected) Teal500 else Gray700, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
                     }
                 }
             }
@@ -579,69 +473,48 @@ private fun SkillsPreferenciasSection(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun RadarSkillsSection(
-    radar: RadarData?,
-    habilidades: List<HabilidadUsuario>,
-    onManageSkills: () -> Unit
-) {
-    Column {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("Habilidades registradas", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = Gray900)
-            TextButton(onClick = onManageSkills) { Text("Gestionar", color = Teal500, style = MaterialTheme.typography.labelMedium) }
-        }
-        if (radar != null && radar.ejes.any { it.valor > 0 }) {
-            Spacer(Modifier.height(8.dp))
-            RadarChartView(data = radar, modifier = Modifier.fillMaxWidth().height(260.dp))
-        }
-        if (habilidades.isNotEmpty()) {
-            Spacer(Modifier.height(8.dp))
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                habilidades.forEach { h ->
-                    Surface(shape = RoundedCornerShape(20.dp), color = Teal500.copy(alpha = 0.1f)) {
-                        Text(text = h.nombre, style = MaterialTheme.typography.labelSmall, color = Teal500, modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp))
-                    }
-                }
-            }
-        } else {
-            Spacer(Modifier.height(4.dp))
-            Text("Aún no has registrado habilidades.", style = MaterialTheme.typography.bodySmall, color = Gray500)
-        }
-    }
-}
-
-@Composable
-private fun CvSection(cvUrl: String?, isUploading: Boolean, onPickCv: () -> Unit) {
+private fun DocLegalSection(docUrl: String?, isUploading: Boolean, onPickDoc: () -> Unit) {
     val context = LocalContext.current
-    Column {
-        Text("Currículum", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = Gray900)
-        Spacer(Modifier.height(8.dp))
-        when {
-            isUploading -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = Teal500)
-                Text("Subiendo...", style = MaterialTheme.typography.bodySmall, color = Gray500)
-            }
-            cvUrl != null -> Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Icon(Icons.Outlined.Description, null, tint = Teal500, modifier = Modifier.size(18.dp))
-                    Text("CV cargado", style = MaterialTheme.typography.bodySmall, color = Gray700)
-                }
-                Row {
-                    TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(cvUrl))) }) { Text("Ver", color = Teal500, style = MaterialTheme.typography.labelMedium) }
-                    TextButton(onClick = onPickCv) { Text("Cambiar", color = Gray500, style = MaterialTheme.typography.labelMedium) }
-                }
-            }
-            else -> OutlinedButton(
-                onClick = onPickCv,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Gray700),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Gray200)
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+        Text("Documentación Legal", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = Gray900)
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = Gray100,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(Spacing.lg),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(Spacing.sm)
             ) {
-                Icon(Icons.Outlined.UploadFile, null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(6.dp))
-                Text("Subir CV (PDF)", style = MaterialTheme.typography.labelMedium)
+                Icon(
+                    imageVector = if (isUploading) Icons.Outlined.UploadFile else Icons.Outlined.Description,
+                    contentDescription = null,
+                    tint = Teal500,
+                    modifier = Modifier.size(32.dp)
+                )
+                Text("Estatutos / RUT de la Empresa", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold), color = Gray900)
+                Text("Sube un documento que acredite la organización (PDF o imagen)", style = MaterialTheme.typography.bodySmall, color = Gray500)
+                if (docUrl != null) {
+                    TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(docUrl))) }) {
+                        Icon(Icons.Outlined.Description, null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Ver documento", color = Teal500, style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+                OutlinedButton(
+                    onClick = onPickDoc,
+                    enabled = !isUploading,
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Teal500),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Teal500.copy(alpha = 0.5f))
+                ) {
+                    if (isUploading) CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Teal500)
+                    else Icon(Icons.Outlined.UploadFile, null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(if (docUrl != null) "Cambiar Documento" else "Subir Documento", style = MaterialTheme.typography.labelMedium)
+                }
             }
         }
     }
@@ -649,15 +522,15 @@ private fun CvSection(cvUrl: String?, isUploading: Boolean, onPickCv: () -> Unit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun BankDataSection(
+private fun EmpresaBankSection(
     bankName: String,
-    onBankNameChange: (String) -> Unit,
+    onBankChange: (String) -> Unit,
     accountType: String,
     onAccountTypeChange: (String) -> Unit,
     accountNumber: String,
     onAccountNumberChange: (String) -> Unit
 ) {
-    SectionCard(title = "Datos de Transferencia", icon = Icons.Outlined.AccountBalance) {
+    EmpresaSectionCard(title = "Información para Pagos", icon = Icons.Outlined.AccountBalance) {
         var bancosExpanded by remember { mutableStateOf(false) }
         var tipoExpanded by remember { mutableStateOf(false) }
 
@@ -667,15 +540,12 @@ private fun BankDataSection(
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Banco") },
-                leadingIcon = { Icon(Icons.Outlined.AccountBalance, null, tint = Teal500, modifier = Modifier.size(18.dp)) },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(bancosExpanded) },
                 modifier = Modifier.fillMaxWidth().menuAnchor(),
                 shape = RoundedCornerShape(10.dp)
             )
             ExposedDropdownMenu(expanded = bancosExpanded, onDismissRequest = { bancosExpanded = false }) {
-                BANCOS.forEach { banco ->
-                    DropdownMenuItem(text = { Text(banco) }, onClick = { onBankNameChange(banco); bancosExpanded = false })
-                }
+                BANCOS.forEach { b -> DropdownMenuItem(text = { Text(b) }, onClick = { onBankChange(b); bancosExpanded = false }) }
             }
         }
 
@@ -691,23 +561,24 @@ private fun BankDataSection(
                 shape = RoundedCornerShape(10.dp)
             )
             ExposedDropdownMenu(expanded = tipoExpanded, onDismissRequest = { tipoExpanded = false }) {
-                TIPOS_CUENTA.forEach { (value, label) ->
-                    DropdownMenuItem(text = { Text(label) }, onClick = { onAccountTypeChange(value); tipoExpanded = false })
-                }
+                TIPOS_CUENTA.forEach { (v, l) -> DropdownMenuItem(text = { Text(l) }, onClick = { onAccountTypeChange(v); tipoExpanded = false }) }
             }
         }
 
-        ProfileField(
+        OutlinedTextField(
             value = accountNumber,
             onValueChange = onAccountNumberChange,
-            label = "Número de cuenta",
-            keyboardType = KeyboardType.Number
+            label = { Text("Número de cuenta") },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(10.dp)
         )
     }
 }
 
 @Composable
-private fun DeleteAccountDialog(
+private fun EmpresaDeleteDialog(
     password: String,
     onPasswordChange: (String) -> Unit,
     isDeleting: Boolean,
@@ -718,18 +589,18 @@ private fun DeleteAccountDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(Icons.Outlined.Warning, null, tint = Error600, modifier = Modifier.size(28.dp)) },
-        title = { Text("¿Eliminar cuenta?", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)) },
+        title = { Text("¿Eliminar cuenta de empresa?", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 Text(
-                    "Esta acción es permanente y no se puede deshacer. Se eliminarán todos tus datos.",
+                    "Esta acción eliminará permanentemente la cuenta y todas las ofertas publicadas.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Gray700
                 )
                 OutlinedTextField(
                     value = password,
                     onValueChange = onPasswordChange,
-                    label = { Text("Contraseña") },
+                    label = { Text("Contraseña de administrador") },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     singleLine = true,
@@ -737,35 +608,21 @@ private fun DeleteAccountDialog(
                     shape = RoundedCornerShape(10.dp),
                     isError = error != null
                 )
-                if (error != null) {
-                    Text(error, style = MaterialTheme.typography.labelSmall, color = Error600)
-                }
+                if (error != null) Text(error, style = MaterialTheme.typography.labelSmall, color = Error600)
             }
         },
         confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-                enabled = !isDeleting,
-                colors = ButtonDefaults.textButtonColors(contentColor = Error600)
-            ) {
+            TextButton(onClick = onConfirm, enabled = !isDeleting, colors = ButtonDefaults.textButtonColors(contentColor = Error600)) {
                 if (isDeleting) CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = Error600)
-                else Text("Eliminar cuenta")
+                else Text("Eliminar empresa")
             }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
-        }
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
     )
 }
 
-private fun roleLabel(role: UserRole) = when (role) {
-    UserRole.WORKER -> "Trabajador"
-    UserRole.EMPRESA -> "Empresa"
-    UserRole.UNKNOWN -> "Sin rol"
-}
-
-private fun createCameraUri(context: android.content.Context): Uri {
+private fun createLogoUri(context: android.content.Context): Uri {
     val dir = File(context.cacheDir, "images").also { it.mkdirs() }
-    val file = File(dir, "photo_${System.currentTimeMillis()}.jpg")
+    val file = File(dir, "logo_${System.currentTimeMillis()}.jpg")
     return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
 }

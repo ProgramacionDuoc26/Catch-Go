@@ -5,6 +5,7 @@ import cl.catchgo.app.data.remote.ApiConfig
 import cl.catchgo.app.data.remote.AuthApi
 import cl.catchgo.app.data.remote.dto.LoginRequest
 import cl.catchgo.app.data.remote.dto.RegisterRequest
+import cl.catchgo.app.data.remote.dto.VerifyPasswordRequest
 import cl.catchgo.app.domain.model.RegisterInput
 import cl.catchgo.app.domain.model.User
 import cl.catchgo.app.domain.model.UserRole
@@ -33,6 +34,17 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun logout() {
+        sessionStore.clear()
+    }
+
+    override suspend fun verifyPassword(userId: String, password: String): Result<Boolean> = runCatching {
+        if (ApiConfig.USE_MOCK_AUTH) return Result.success(true)
+        val response = api.verifyPassword(VerifyPasswordRequest(userId, password))
+        response.body() ?: false
+    }
+
+    override suspend fun deleteAccount(userId: String): Result<Unit> = runCatching {
+        if (!ApiConfig.USE_MOCK_AUTH) api.deleteAccount(userId)
         sessionStore.clear()
     }
 

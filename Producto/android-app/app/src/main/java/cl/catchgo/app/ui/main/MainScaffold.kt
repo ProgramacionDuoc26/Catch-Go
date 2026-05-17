@@ -28,6 +28,7 @@ import cl.catchgo.app.ui.detail.OfferDetailScreen
 import cl.catchgo.app.ui.empresa.CrearOfertaScreen
 import cl.catchgo.app.ui.feed.FeedScreen
 import cl.catchgo.app.ui.messages.MessagesPlaceholderScreen
+import cl.catchgo.app.ui.empresa.EmpresaPerfilScreen
 import cl.catchgo.app.ui.profile.ProfilePlaceholderScreen
 import cl.catchgo.app.ui.skills.SkillsSetupScreen
 import cl.catchgo.app.ui.theme.BrandBlue700
@@ -111,14 +112,14 @@ fun MainScaffold(
             }
             composable(MainTab.Messages.route) { MessagesPlaceholderScreen() }
             composable(MainTab.Profile.route) {
-                ProfilePlaceholderScreen(
-                    session = session,
-                    onNavigateToSkills = {
-                        if (session.user.role != UserRole.EMPRESA) {
-                            navController.navigate(ROUTE_SKILLS_SETUP)
-                        }
-                    }
-                )
+                if (session.user.role == UserRole.EMPRESA) {
+                    EmpresaPerfilScreen(session = session)
+                } else {
+                    ProfilePlaceholderScreen(
+                        session = session,
+                        onNavigateToSkills = { navController.navigate(ROUTE_SKILLS_SETUP) }
+                    )
+                }
             }
             composable(ROUTE_SKILLS_SETUP) {
                 SkillsSetupScreen(onBack = { navController.popBackStack() })

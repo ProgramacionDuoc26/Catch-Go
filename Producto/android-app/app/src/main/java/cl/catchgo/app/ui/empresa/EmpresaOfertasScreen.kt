@@ -19,7 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Briefcase
+import androidx.compose.material.icons.outlined.Work
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -89,7 +89,7 @@ fun EmpresaOfertasScreen(
                             title = "Sin ofertas publicadas",
                             description = "Pulsa + para publicar tu primer turno.",
                             icon = {
-                                Icon(Icons.Outlined.Briefcase, null, tint = Color.Gray, modifier = Modifier.size(40.dp))
+                                Icon(Icons.Outlined.Work, null, tint = Color.Gray, modifier = Modifier.size(40.dp))
                             }
                         )
                     }

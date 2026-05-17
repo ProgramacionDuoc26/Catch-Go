@@ -6,4 +6,5 @@ interface ProfileRepository {
     suspend fun getProfile(userId: String): Result<ProfileRemoteDto?>
     suspend fun saveProfile(dto: ProfileRemoteDto): Result<ProfileRemoteDto>
     suspend fun uploadFile(userId: String, bytes: ByteArray, fileName: String, mimeType: String): Result<String>
+    suspend fun deleteProfile(userId: String): Result<Unit>
 }

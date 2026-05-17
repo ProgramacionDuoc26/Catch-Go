@@ -7,4 +7,6 @@ interface AuthRepository {
     suspend fun login(email: String, password: String): Result<UserSession>
     suspend fun register(input: RegisterInput): Result<UserSession>
     suspend fun logout()
+    suspend fun verifyPassword(userId: String, password: String): Result<Boolean>
+    suspend fun deleteAccount(userId: String): Result<Unit>
 }
