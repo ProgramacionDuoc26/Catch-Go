@@ -114,7 +114,16 @@ public class JobOfferService {
         entity.setLatitude(dto.latitude());
         entity.setLongitude(dto.longitude());
         entity.setCategoria(dto.categoria());
+        if (dto.estado() != null) {
+            entity.setEstado(dto.estado());
+        }
         return mapper.toDto(repository.save(entity));
+    }
+
+    public void updateJobOfferStatus(Long id, String status) {
+        JobOffer entity = repository.findById(id).orElseThrow();
+        entity.setEstado(status);
+        repository.save(entity);
     }
 
     public void deleteApplication(Long id) {

@@ -57,6 +57,11 @@ public class JobOfferController {
         return service.update(id, dto);
     }
 
+    @PutMapping("/{id}/status")
+    public void updateJobOfferStatus(@PathVariable("id") Long id, @RequestBody Map<String, String> body) {
+        service.updateJobOfferStatus(id, body.get("status"));
+    }
+
     @DeleteMapping("/{id}")
     public void delete(@PathVariable("id") Long id) {
         service.delete(id);

@@ -72,7 +72,7 @@ export interface Oferta {
   fechaInicio: string;
   fechaFin?: string;
   remuneracion: number;
-  estado: 'ABIERTA' | 'CERRADA' | 'CON_CANDIDATOS' | 'COMPLETADA';
+  estado: 'ABIERTA' | 'CERRADA' | 'CON_CANDIDATOS' | 'COMPLETADA' | 'PAUSADA';
   latitude?: number;
   longitude?: number;
   createdAt?: string;

@@ -73,4 +73,11 @@ export const jobsApi = {
    */
   updateApplicationStatus: (id: string, status: string) =>
     api.put<void>(`${BASE}/jobs/applications/${id}/status`, { status }),
+
+  /**
+   * Actualizar estado de una oferta (ABIERTA, PAUSADA, COMPLETADA)
+   * PUT /jobs/:id/status
+   */
+  updateStatus: (id: string, status: string) =>
+    api.put<void>(`${BASE}/jobs/${id}/status`, { status }),
 };
