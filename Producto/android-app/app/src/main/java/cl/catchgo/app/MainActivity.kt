@@ -64,11 +64,17 @@ private fun AppRoot(
             contentAlignment = Alignment.Center
         ) { CircularProgressIndicator() }
 
-        SessionState.Unauthenticated -> AuthNavGraph(modifier = modifier)
+        SessionState.Unauthenticated -> {
+            cl.catchgo.app.ui.theme.ThemeManager.activeUserId = null
+            AuthNavGraph(modifier = modifier)
+        }
 
-        is SessionState.Authenticated -> MainScaffold(
-            session = state.session,
-            modifier = modifier
-        )
+        is SessionState.Authenticated -> {
+            cl.catchgo.app.ui.theme.ThemeManager.activeUserId = state.session.user.id
+            MainScaffold(
+                session = state.session,
+                modifier = modifier
+            )
+        }
     }
 }
