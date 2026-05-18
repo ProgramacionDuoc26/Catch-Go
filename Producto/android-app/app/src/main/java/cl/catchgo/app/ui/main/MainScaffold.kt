@@ -27,6 +27,7 @@ import cl.catchgo.app.ui.applications.ApplicationsScreen
 import cl.catchgo.app.ui.detail.OfferDetailScreen
 import cl.catchgo.app.ui.empresa.CrearOfertaScreen
 import cl.catchgo.app.ui.feed.FeedScreen
+import cl.catchgo.app.ui.home.HomeScreen
 import cl.catchgo.app.ui.messages.MessagesPlaceholderScreen
 import cl.catchgo.app.ui.empresa.EmpresaPerfilScreen
 import cl.catchgo.app.ui.profile.ProfilePlaceholderScreen
@@ -94,9 +95,12 @@ fun MainScaffold(
     ) { padding ->
         NavHost(
             navController = navController,
-            startDestination = MainTab.Feed.route,
+            startDestination = MainTab.Home.route,
             modifier = Modifier.padding(padding)
         ) {
+            composable(MainTab.Home.route) {
+                HomeScreen()
+            }
             composable(MainTab.Feed.route) {
                 FeedScreen(
                     role = session.user.role,

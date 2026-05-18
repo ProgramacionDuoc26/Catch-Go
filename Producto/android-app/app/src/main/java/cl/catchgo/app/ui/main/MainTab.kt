@@ -5,6 +5,7 @@ import androidx.compose.material.icons.automirrored.outlined.Assignment
 import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.ui.graphics.vector.ImageVector
 import cl.catchgo.app.domain.model.UserRole
 
@@ -18,6 +19,13 @@ sealed class MainTab(
         UserRole.EMPRESA -> empresaLabel
         else -> workerLabel
     }
+
+    data object Home : MainTab(
+        route = "home",
+        icon = Icons.Outlined.Home,
+        workerLabel = "Inicio",
+        empresaLabel = "Inicio"
+    )
 
     data object Feed : MainTab(
         route = "feed",
@@ -48,6 +56,6 @@ sealed class MainTab(
     )
 
     companion object {
-        val all: List<MainTab> = listOf(Feed, Applications, Messages, Profile)
+        val all: List<MainTab> = listOf(Home, Feed, Applications, Messages, Profile)
     }
 }
