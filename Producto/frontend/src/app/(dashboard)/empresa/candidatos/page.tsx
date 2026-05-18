@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -93,7 +93,7 @@ function EmpresaCandidatosContent() {
     confirmWebpayPayout();
   }, [searchParams, addNotification, router]);
 
-  const fetchInitialData = async (isSilent = false) => {
+  const fetchInitialData = useCallback(async (isSilent = false) => {
     if (!isSilent) setLoading(true);
     try {
       let realEmpresaId = '';
@@ -179,11 +179,11 @@ function EmpresaCandidatosContent() {
     } finally {
       if (!isSilent) setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchInitialData();
-  }, [tabParam]); // Recargar datos si cambia el tab vía URL (notificaciones)
+  }, [tabParam, fetchInitialData]); // Recargar datos si cambia el tab vía URL (notificaciones)
 
   // Polling en segundo plano para actualizar estados automáticamente
   useEffect(() => {
@@ -191,7 +191,7 @@ function EmpresaCandidatosContent() {
       fetchInitialData(true);
     }, 8000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchInitialData]);
 
   const handleAction = async (applicationId: string, status: string) => {
     try {

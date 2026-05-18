@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Button } from "@/components/ui/Button";
 import { useSettings } from "@/context/SettingsContext";
 import { SettingsDrawer } from "./SettingsDrawer";
+import { sanitizeUrl } from "@/lib/api/profile";
 
 import { NotificationBell } from "./NotificationBell";
 
@@ -147,7 +148,7 @@ export function Navbar() {
                     <div className="relative w-8 h-8 rounded-full overflow-hidden border border-primary/20 bg-gray-100 flex items-center justify-center">
                       {userData?.foto || userData?.photoUrl ? (
                         <Image 
-                          src={userData.foto || userData.photoUrl} 
+                          src={sanitizeUrl(userData.foto || userData.photoUrl) || ""} 
                           alt="Profile" 
                           fill
                           className="object-cover"
@@ -173,7 +174,7 @@ export function Navbar() {
                     <div className="relative w-8 h-8 rounded-full overflow-hidden border border-primary/20 bg-gray-100 flex items-center justify-center">
                       {userData?.foto || userData?.photoUrl ? (
                         <Image 
-                          src={userData.foto || userData.photoUrl} 
+                          src={sanitizeUrl(userData.foto || userData.photoUrl) || ""} 
                           alt="Profile" 
                           fill
                           className="object-cover"

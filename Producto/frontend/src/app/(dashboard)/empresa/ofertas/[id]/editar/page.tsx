@@ -157,6 +157,10 @@ export default function EmpresaOfertaEditarPage() {
                 onLocationChange={(lat, lng) => {
                   setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
                 }}
+                address={formData.ubicacion}
+                onAddressChange={(addr) => {
+                  setFormData(prev => ({ ...prev, ubicacion: addr }));
+                }}
               />
             </div>
           </CardContent>

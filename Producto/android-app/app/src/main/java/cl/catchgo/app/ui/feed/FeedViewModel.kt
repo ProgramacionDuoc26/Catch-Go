@@ -72,6 +72,7 @@ class FeedViewModel @Inject constructor(
                 it.company.contains(query, ignoreCase = true) ||
                 it.comuna.contains(query, ignoreCase = true)
         }
+        val sortedOffers = filteredOffers.sortedByDescending { it.id.toLongOrNull() ?: 0L }
 
         // Filter applications based on selected tab and search query
         val filteredApps = when (currentTab) {
@@ -90,7 +91,7 @@ class FeedViewModel @Inject constructor(
         FeedUiState(
             isLoading = false,
             isRefreshing = isRefreshing,
-            offers = filteredOffers,
+            offers = sortedOffers,
             selectedCategory = category,
             searchQuery = query,
             profileCompletion = completion,

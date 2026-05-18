@@ -23,7 +23,9 @@ data class CrearOfertaUiState(
     val fechaFin: String = "",
     val isLoading: Boolean = false,
     val success: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null
 )
 
 @HiltViewModel
@@ -42,6 +44,44 @@ class CrearOfertaViewModel @Inject constructor(
     fun onRemuneracionChange(v: String) = _state.update { it.copy(remuneracion = v) }
     fun onFechaInicioChange(v: String) = _state.update { it.copy(fechaInicio = v) }
     fun onFechaFinChange(v: String) = _state.update { it.copy(fechaFin = v) }
+    fun onLocationChange(lat: Double, lon: Double) = _state.update { it.copy(latitude = lat, longitude = lon) }
+
+    fun searchAddress(context: android.content.Context, addressQuery: String) {
+        if (addressQuery.isBlank()) return
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            runCatching {
+                val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())
+                @Suppress("DEPRECATION")
+                val addresses = geocoder.getFromLocationName(addressQuery, 1)
+                if (!addresses.isNullOrEmpty()) {
+                    val addr = addresses[0]
+                    _state.update { it.copy(latitude = addr.latitude, longitude = addr.longitude, error = null) }
+                } else {
+                    _state.update { it.copy(error = "No se pudo encontrar la dirección") }
+                }
+            }.onFailure { e ->
+                _state.update { it.copy(error = "Error al buscar dirección: ${e.localizedMessage}") }
+            }
+        }
+    }
+
+    fun reverseGeocode(context: android.content.Context, lat: Double, lon: Double) {
+        _state.update { it.copy(latitude = lat, longitude = lon) }
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            runCatching {
+                val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())
+                @Suppress("DEPRECATION")
+                val addresses = geocoder.getFromLocation(lat, lon, 1)
+                if (!addresses.isNullOrEmpty()) {
+                    val addr = addresses[0]
+                    val fullAddress = addr.getAddressLine(0) ?: "${addr.thoroughfare ?: ""} ${addr.subThoroughfare ?: ""}, ${addr.locality ?: ""}".trim()
+                    if (fullAddress.isNotBlank()) {
+                        _state.update { it.copy(ubicacion = fullAddress) }
+                    }
+                }
+            }
+        }
+    }
 
     fun submit() {
         val s = _state.value
@@ -61,7 +101,9 @@ class CrearOfertaViewModel @Inject constructor(
                     remuneracion = s.remuneracion.toIntOrNull() ?: 0,
                     fechaInicio = s.fechaInicio,
                     fechaFin = s.fechaFin.ifBlank { null },
-                    empresaId = session.user.id
+                    empresaId = session.user.id,
+                    latitude = s.latitude,
+                    longitude = s.longitude
                 )
                 jobsApi.create(request)
                 _state.update { it.copy(isLoading = false, success = true) }

@@ -87,8 +87,8 @@ fun OfferCard(
                 ) {
                     if (!photoUrl.isNullOrBlank()) {
                         val mappedUrl = photoUrl
-                            .replace("localhost", "10.0.2.2")
-                            .replace("127.0.0.1", "10.0.2.2")
+                            .replace("localhost", cl.catchgo.app.data.remote.ApiConfig.HOST)
+                            .replace("127.0.0.1", cl.catchgo.app.data.remote.ApiConfig.HOST)
                         AsyncImage(
                             model = mappedUrl,
                             contentDescription = null,
@@ -125,6 +125,7 @@ fun OfferCard(
 
             Spacer(Modifier.height(Spacing.sm))
 
+            // Fila 1: Dirección con truncado para evitar overflow
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
@@ -137,19 +138,30 @@ fun OfferCard(
                     modifier = Modifier.size(14.dp)
                 )
                 Text(
-                    text = "$comuna · $jornada" + (if (distanceKm != null) " · 📍 ${String.format("%.1f", distanceKm)} km" else ""),
+                    text = "$comuna · $jornada",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Gray500
+                    color = Gray500,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
                 )
-
-                if (salaryText != null) {
-                    Spacer(Modifier.weight(1f))
+                if (distanceKm != null) {
                     Text(
-                        text = salaryText,
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = Teal500
+                        text = "📍 ${"%.1f".format(distanceKm)} km",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Gray500
                     )
                 }
+            }
+
+            // Fila 2: Salario (siempre en su propia línea)
+            if (salaryText != null) {
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = salaryText,
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = Teal500
+                )
             }
         }
     }
@@ -175,3 +187,4 @@ private fun ScoreIndicator(score: Int) {
         )
     }
 }
+

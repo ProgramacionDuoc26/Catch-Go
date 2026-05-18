@@ -70,6 +70,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -172,7 +173,10 @@ fun ProfilePlaceholderScreen(
     }
 
     LaunchedEffect(uiState.saveSuccess) {
-        if (uiState.saveSuccess) viewModel.clearSaveSuccess()
+        if (uiState.saveSuccess) {
+            Toast.makeText(context, "Perfil guardado con éxito", Toast.LENGTH_SHORT).show()
+            viewModel.clearSaveSuccess()
+        }
     }
 
     LaunchedEffect(uiState.accountDeleted) {
@@ -414,8 +418,8 @@ private fun ProfileHeader(
                         isUploadingPhoto -> CircularProgressIndicator(color = White, modifier = Modifier.size(32.dp), strokeWidth = 2.dp)
                         photoUrl != null -> {
                             val mappedUrl = photoUrl
-                                .replace("localhost", "10.0.2.2")
-                                .replace("127.0.0.1", "10.0.2.2")
+                                .replace("localhost", cl.catchgo.app.data.remote.ApiConfig.HOST)
+                                .replace("127.0.0.1", cl.catchgo.app.data.remote.ApiConfig.HOST)
                             AsyncImage(model = mappedUrl, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                         }
                         else -> Text(text = session.user.fullName?.firstOrNull()?.uppercase() ?: "?", fontSize = 34.sp, fontWeight = FontWeight.ExtraBold, color = White)
@@ -454,7 +458,7 @@ private fun ProfileHeader(
                 Box(
                     modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(Teal500.copy(alpha = 0.25f)).padding(horizontal = 12.dp, vertical = 5.dp)
                 ) { Text("Perfil Trabajador", style = MaterialTheme.typography.labelMedium, color = Teal200) }
-                
+
                 val isPremium = plan == "PREMIUM" || plan == "ENTERPRISE"
                 if (isPremium) {
                     Box(
@@ -465,8 +469,6 @@ private fun ProfileHeader(
                         modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(androidx.compose.ui.graphics.Color.LightGray.copy(alpha = 0.25f)).padding(horizontal = 12.dp, vertical = 5.dp)
                     ) { Text("Plan Gratuito", style = MaterialTheme.typography.labelMedium, color = androidx.compose.ui.graphics.Color.LightGray) }
                 }
-
-                LevelBadge(nivel = session.user.nivel)
             }
         }
     }
@@ -695,7 +697,7 @@ private fun CvSection(cvUrl: String?, isUploading: Boolean, onPickCv: () -> Unit
                 }
                 Row {
                     TextButton(onClick = {
-                        val mappedCvUrl = cvUrl.replace("localhost", "10.0.2.2")
+                        val mappedCvUrl = cvUrl.replace("localhost", cl.catchgo.app.data.remote.ApiConfig.HOST)
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(mappedCvUrl)))
                     }) { Text("Ver", color = Teal500, style = MaterialTheme.typography.labelMedium) }
                     TextButton(onClick = onPickCv) { Text("Cambiar", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), style = MaterialTheme.typography.labelMedium) }
@@ -957,7 +959,7 @@ private fun SuscripcionSection(plan: String) {
                 Spacer(Modifier.height(Spacing.sm))
                 androidx.compose.material3.Button(
                     onClick = {
-                        val webpayUrl = "http://10.0.2.2:3000/trabajador/suscripcion"
+                        val webpayUrl = "http://${cl.catchgo.app.data.remote.ApiConfig.HOST}:3000/trabajador/suscripcion"
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(webpayUrl)))
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -982,3 +984,4 @@ private fun SuscripcionSection(plan: String) {
         }
     }
 }
+

@@ -54,11 +54,13 @@ class NotificationRepositoryImpl @Inject constructor(
                 Log.d("NotificationRepository", "STOMP Connected successfully")
 
                 // Subscribe to user specific topic using StompSubscribeHeaders
-                val topic = "/topic/user/\$userId"
+                val topic = "/topic/user/$userId"
                 val subscription = session.subscribe(StompSubscribeHeaders(destination = topic))
-
+                Log.d("NotificationRepository", "Subscribed to topic: $topic")
+                
                 subscription.collect { message ->
                     val bodyText = message.bodyAsText
+                    Log.d("NotificationRepository", "Received raw message: $bodyText")
                     val dto = json.decodeFromString<NotificationDto>(bodyText)
                     val appNotif = AppNotification(
                         id = dto.id ?: UUID.randomUUID().toString(),
@@ -69,7 +71,7 @@ class NotificationRepositoryImpl @Inject constructor(
                         isRead = false
                     )
                     
-                    // Add to list
+                    // Add to list, newest first
                     _notifications.update { current ->
                         listOf(appNotif) + current
                     }
@@ -81,6 +83,7 @@ class NotificationRepositoryImpl @Inject constructor(
                         "warning" -> NotificationSoundPlayer.playWarning()
                         else -> NotificationSoundPlayer.playInfo()
                     }
+                    Log.d("NotificationRepository", "Processed notification: ${appNotif.title}")
                 }
 
             } catch (e: Exception) {

@@ -201,11 +201,22 @@ function TrabajadorOfertasContent() {
       try {
         await jobsApi.updateApplicationStatus(selectedAppForValidation.id, 'PAGO_DISPUTADO');
         
-        // Guardar detalles de la disputa en localStorage para el panel del admin
-        localStorage.setItem(`payment_dispute_${selectedAppForValidation.id}`, JSON.stringify({
+        // Guardar detalles de la disputa en la API global (y fallback en localStorage)
+        const disputeData = {
           reason: reason,
           date: new Date().toISOString()
-        }));
+        };
+        localStorage.setItem(`payment_dispute_${selectedAppForValidation.id}`, JSON.stringify(disputeData));
+        
+        try {
+          await fetch('/api/disputes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ appId: selectedAppForValidation.id, reason: reason })
+          });
+        } catch (e) {
+          console.error("No se pudo guardar la disputa en la API global", e);
+        }
 
         setApplications(prev => prev.map(a => 
           String(a.id) === String(selectedAppForValidation.id) ? { ...a, estado: 'PAGO_DISPUTADO' } : a
@@ -502,7 +513,7 @@ function TrabajadorOfertasContent() {
                     onClick={() => setSelectedAppForValidation({ ...application, oferta })}
                     className="gap-2 bg-green-600 hover:bg-green-700 border-green-600"
                   >
-                    <DollarSign size={16} /> Validar Pago
+                    <DollarSign size={16} /> Confirmar Pago
                   </Button>
                 )}
 
@@ -547,14 +558,15 @@ function TrabajadorOfertasContent() {
                   </Button>
                 )}
 
-                {isApplied && appEstado !== 'PAGO_ENVIADO' && appEstado !== 'PAGO_CONFIRMADO' && (
+                {isApplied && appEstado !== 'PAGO_ENVIADO' && appEstado !== 'PAGO_CONFIRMADO' && !isCompleted && (
                   <Button 
                     variant="outline"
                     disabled
                     className="min-w-[140px] gap-2"
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    {appEstado === 'ACEPTADO' ? 'Seleccionado' : 'Postulado'}
+                    {appEstado === 'ACEPTADO' ? 'Seleccionado' : 
+                     appEstado === 'TRABAJO_FINALIZADO' ? 'Esperando Pago' : 'Postulado'}
                   </Button>
                 )}
               </CardFooter>

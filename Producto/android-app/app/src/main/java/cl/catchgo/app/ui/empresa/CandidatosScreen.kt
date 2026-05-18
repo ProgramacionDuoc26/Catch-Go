@@ -32,6 +32,9 @@ import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -53,13 +56,33 @@ import cl.catchgo.app.ui.theme.Navy
 import cl.catchgo.app.ui.theme.Spacing
 import cl.catchgo.app.ui.theme.White
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun CandidatosScreen(modifier: Modifier = Modifier) {
     val viewModel: CandidatosViewModel = hiltViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    LaunchedEffect(Unit) {
+        viewModel.load()
+    }
+
     var tabIndex by remember { mutableIntStateOf(0) }
     var candidatoParaCalificar by remember { mutableStateOf<CandidatoItem?>(null) }
+
+    val context = LocalContext.current
+    LaunchedEffect(state.error) {
+        state.error?.let { err ->
+            Toast.makeText(context, err, Toast.LENGTH_LONG).show()
+            viewModel.clearError()
+        }
+    }
+
+    LaunchedEffect(state.successMessage) {
+        state.successMessage?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            viewModel.clearMessage()
+        }
+    }
 
     val tabs = listOf("Nuevos", "En Proceso", "Por Calificar", "Historial")
 
@@ -87,35 +110,42 @@ fun CandidatosScreen(modifier: Modifier = Modifier) {
         }
 
         when {
-            state.isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            state.isLoading && state.candidatos.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = BrandBlue600)
             }
             else -> {
-                val filtered = state.candidatos.filter { matchesTab(it.estado, tabIndex) }
-                if (filtered.isEmpty()) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        EmptyState(
-                            title = "Sin candidatos aquí",
-                            description = "Las postulaciones aparecerán aquí en este estado.",
-                            icon = {
-                                Icon(Icons.Outlined.Groups, null, tint = Color.Gray, modifier = Modifier.size(40.dp))
-                            }
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(Spacing.md),
-                        verticalArrangement = Arrangement.spacedBy(Spacing.sm)
-                    ) {
-                        items(filtered, key = { it.applicationId }) { candidato ->
-                            CandidatoCard(
-                                candidato = candidato,
-                                onAceptar = { viewModel.updateStatus(candidato.applicationId, "ACEPTADO") },
-                                onRechazar = { viewModel.updateStatus(candidato.applicationId, "RECHAZADO") },
-                                onValidarTrabajo = { viewModel.updateStatus(candidato.applicationId, "TRABAJO_FINALIZADO") },
-                                onCalificar = { candidatoParaCalificar = candidato }
+                androidx.compose.material3.pulltorefresh.PullToRefreshBox(
+                    isRefreshing = state.isLoading,
+                    onRefresh = viewModel::load,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    val filtered = state.candidatos.filter { matchesTab(it.estado, tabIndex) }
+                    if (filtered.isEmpty()) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            EmptyState(
+                                title = "Sin candidatos aquí",
+                                description = "Las postulaciones aparecerán aquí en este estado.",
+                                icon = {
+                                    Icon(Icons.Outlined.Groups, null, tint = Color.Gray, modifier = Modifier.size(40.dp))
+                                }
                             )
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(Spacing.md),
+                            verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+                        ) {
+                            items(filtered, key = { it.applicationId }) { candidato ->
+                                CandidatoCard(
+                                    candidato = candidato,
+                                    onAceptar = { viewModel.updateStatus(candidato.applicationId, "ACEPTADO") },
+                                    onRechazar = { viewModel.updateStatus(candidato.applicationId, "RECHAZADO") },
+                                    onValidarTrabajo = { viewModel.updateStatus(candidato.applicationId, "TRABAJO_FINALIZADO") },
+                                    onGenerarPago = { viewModel.updateStatus(candidato.applicationId, "PAGO_ENVIADO") },
+                                    onCalificar = { candidatoParaCalificar = candidato }
+                                )
+                            }
                         }
                     }
                 }
@@ -139,7 +169,7 @@ private fun matchesTab(estado: String, tabIndex: Int): Boolean = when (tabIndex)
     0 -> estado == "PENDIENTE"
     1 -> estado in listOf("ACEPTADO", "TRABAJO_FINALIZADO", "PAGO_ENVIADO")
     2 -> estado in listOf("PAGO_CONFIRMADO", "CALIFICADO_TRABAJADOR")
-    3 -> estado in listOf("CALIFICADO_EMPRESA", "RECHAZADO")
+    3 -> estado in listOf("CALIFICADO_EMPRESA", "RECHAZADO", "FINALIZADA")
     else -> false
 }
 
@@ -170,6 +200,7 @@ private fun CandidatoCard(
     onAceptar: () -> Unit,
     onRechazar: () -> Unit,
     onValidarTrabajo: () -> Unit,
+    onGenerarPago: () -> Unit,
     onCalificar: () -> Unit
 ) {
     Card(
@@ -244,6 +275,17 @@ private fun CandidatoCard(
                             Text("Validar Trabajo Realizado")
                         }
                     }
+                    "TRABAJO_FINALIZADO" -> {
+                        Button(
+                            onClick = onGenerarPago,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981))
+                        ) {
+                            Icon(Icons.Outlined.CheckCircle, null, Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Generar Pago")
+                        }
+                    }
                     "PAGO_CONFIRMADO", "CALIFICADO_TRABAJADOR" -> {
                         Button(
                             onClick = onCalificar,
@@ -270,7 +312,7 @@ private fun EstadoBadge(estado: String) {
         "PAGO_ENVIADO" -> "Pago Enviado" to Color(0xFF059669)
         "PAGO_CONFIRMADO" -> "Pago Confirmado" to Color(0xFF059669)
         "CALIFICADO_TRABAJADOR" -> "Te Calificaron" to Color(0xFF7C3AED)
-        "CALIFICADO_EMPRESA" -> "Completado" to Color(0xFF6B7280)
+        "CALIFICADO_EMPRESA", "FINALIZADA" -> "Completado" to Color(0xFF6B7280)
         "RECHAZADO" -> "Rechazado" to Color(0xFFDC2626)
         else -> estado to Color.Gray
     }

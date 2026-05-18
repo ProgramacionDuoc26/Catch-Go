@@ -283,6 +283,49 @@ class EmpresaPerfilViewModel @Inject constructor(
         }
     }
 
+    fun searchAddress(addressQuery: String) {
+        if (addressQuery.isBlank()) return
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())
+                @Suppress("DEPRECATION")
+                val addresses = geocoder.getFromLocationName(addressQuery, 1)
+                if (!addresses.isNullOrEmpty()) {
+                    val addr = addresses[0]
+                    _uiState.update { it.copy(latitude = addr.latitude, longitude = addr.longitude, hasLocation = true, errorMessage = null) }
+                    val updated = currentProfile.copy(userId = userId, latitude = addr.latitude, longitude = addr.longitude)
+                    profileRepository.saveProfile(updated).onSuccess { saved -> currentProfile = saved }
+                } else {
+                    _uiState.update { it.copy(errorMessage = "No se pudo encontrar la dirección") }
+                }
+            }.onFailure { e ->
+                _uiState.update { it.copy(errorMessage = "Error al buscar dirección: ${e.localizedMessage}") }
+            }
+        }
+    }
+
+    fun reverseGeocode(lat: Double, lon: Double) {
+        _uiState.update { it.copy(latitude = lat, longitude = lon, hasLocation = true) }
+        val updated = currentProfile.copy(userId = userId, latitude = lat, longitude = lon)
+        viewModelScope.launch {
+            profileRepository.saveProfile(updated).onSuccess { saved -> currentProfile = saved }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())
+                @Suppress("DEPRECATION")
+                val addresses = geocoder.getFromLocation(lat, lon, 1)
+                if (!addresses.isNullOrEmpty()) {
+                    val addr = addresses[0]
+                    val fullAddress = addr.getAddressLine(0) ?: "${addr.thoroughfare ?: ""} ${addr.subThoroughfare ?: ""}, ${addr.locality ?: ""}".trim()
+                    if (fullAddress.isNotBlank()) {
+                        _uiState.update { it.copy(address = fullAddress) }
+                    }
+                }
+            }
+        }
+    }
+
     private fun computeRadar(s: EmpresaPerfilUiState): RadarData {
         val perfilScore = listOf(s.name, s.rut, s.representativeName, s.phone, s.address, s.description)
             .count { it.isNotBlank() }.toDouble() / 6.0 * 100.0

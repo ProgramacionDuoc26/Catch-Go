@@ -16,7 +16,8 @@ import javax.inject.Inject
 data class EmpresaOfertasUiState(
     val isLoading: Boolean = true,
     val ofertas: List<JobOfferDto> = emptyList(),
-    val error: String? = null
+    val error: String? = null,
+    val successMessage: String? = null
 )
 
 @HiltViewModel
@@ -39,6 +40,7 @@ class EmpresaOfertasViewModel @Inject constructor(
                 val session = sessionStore.session.first() ?: return@launch
                 val all = jobsApi.list()
                 val mine = all.filter { it.empresaId == session.user.id }
+                    .sortedByDescending { it.id }
                 _state.update { it.copy(isLoading = false, ofertas = mine) }
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false, error = e.message) }
@@ -48,8 +50,24 @@ class EmpresaOfertasViewModel @Inject constructor(
 
     fun delete(id: Long) {
         viewModelScope.launch {
-            runCatching { jobsApi.delete(id) }
-            _state.update { it.copy(ofertas = it.ofertas.filter { o -> o.id != id }) }
+            val result = runCatching { jobsApi.delete(id) }
+            result.onSuccess { response ->
+                if (response.isSuccessful) {
+                    _state.update { it.copy(ofertas = it.ofertas.filter { o -> o.id != id }, successMessage = "Oferta eliminada con éxito") }
+                } else {
+                    _state.update { it.copy(error = "No se pudo eliminar la oferta: ${response.message().ifBlank { "Error de red" }}") }
+                }
+            }.onFailure { e ->
+                _state.update { it.copy(error = "No se pudo eliminar la oferta: ${e.localizedMessage}") }
+            }
         }
+    }
+
+    fun clearError() {
+        _state.update { it.copy(error = null) }
+    }
+
+    fun clearMessage() {
+        _state.update { it.copy(successMessage = null) }
     }
 }

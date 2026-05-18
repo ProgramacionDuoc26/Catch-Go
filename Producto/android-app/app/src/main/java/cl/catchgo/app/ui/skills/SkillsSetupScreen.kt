@@ -40,6 +40,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -58,6 +60,7 @@ fun SkillsSetupScreen(
     viewModel: SkillsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -117,7 +120,12 @@ fun SkillsSetupScreen(
 
             PrimaryButton(
                 text = if (state.isSaving) "Guardando..." else "Guardar habilidades",
-                onClick = { viewModel.guardar(onBack) },
+                onClick = {
+                    viewModel.guardar {
+                        Toast.makeText(context, "Habilidades guardadas con éxito", Toast.LENGTH_SHORT).show()
+                        onBack()
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !state.isSaving && state.selectedIds.isNotEmpty()
             )

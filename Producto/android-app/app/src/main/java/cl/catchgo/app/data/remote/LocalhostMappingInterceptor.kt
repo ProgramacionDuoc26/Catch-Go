@@ -16,10 +16,12 @@ class LocalhostMappingInterceptor @Inject constructor() : Interceptor {
                 val contentType = body.contentType()
                 val bodyString = body.string()
                 val mappedBodyString = bodyString
-                    .replace("http://localhost", "http://10.0.2.2")
-                    .replace("https://localhost", "https://10.0.2.2")
-                    .replace("http://127.0.0.1", "http://10.0.2.2")
-                    .replace("https://127.0.0.1", "https://10.0.2.2")
+                    .replace("http://localhost", "http://${ApiConfig.HOST}")
+                    .replace("https://localhost", "https://${ApiConfig.HOST}")
+                    .replace("http://127.0.0.1", "http://${ApiConfig.HOST}")
+                    .replace("https://127.0.0.1", "https://${ApiConfig.HOST}")
+                    .replace("http://10.0.2.2", "http://${ApiConfig.HOST}")
+                    .replace("https://10.0.2.2", "https://${ApiConfig.HOST}")
                 val newBody = mappedBodyString.toResponseBody(contentType)
                 return response.newBuilder().body(newBody).build()
             }

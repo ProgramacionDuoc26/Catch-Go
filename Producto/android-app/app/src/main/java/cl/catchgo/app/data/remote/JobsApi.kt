@@ -30,7 +30,7 @@ interface JobsApi {
     suspend fun update(@Path("id") id: Long, @Body dto: CreateJobOfferRequest): JobOfferDto
 
     @DELETE("jobs/{id}")
-    suspend fun delete(@Path("id") id: Long)
+    suspend fun delete(@Path("id") id: Long): retrofit2.Response<Unit>
 
     @GET("jobs/applications/employer/{employerId}")
     suspend fun listByEmployer(@Path("employerId") employerId: String): List<EmployerApplicationDto>
@@ -39,5 +39,5 @@ interface JobsApi {
     suspend fun updateApplicationStatus(
         @Path("id") id: Long,
         @Body body: UpdateStatusRequest
-    )
+    ): retrofit2.Response<Unit>
 }

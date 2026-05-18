@@ -701,8 +701,8 @@ private fun Header(offer: JobOffer) {
             ) {
                 if (!offer.photoUrl.isNullOrBlank()) {
                     val mappedUrl = offer.photoUrl
-                        .replace("localhost", "10.0.2.2")
-                        .replace("127.0.0.1", "10.0.2.2")
+                        .replace("localhost", cl.catchgo.app.data.remote.ApiConfig.HOST)
+                        .replace("127.0.0.1", cl.catchgo.app.data.remote.ApiConfig.HOST)
                     AsyncImage(
                         model = mappedUrl,
                         contentDescription = null,
@@ -835,4 +835,5 @@ private fun RequirementChip(text: String) {
         )
     }
 }
+
 

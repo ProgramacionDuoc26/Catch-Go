@@ -44,7 +44,8 @@ data class CandidatosUiState(
     val isLoading: Boolean = true,
     val candidatos: List<CandidatoItem> = emptyList(),
     val empresaProfile: ProfileRemoteDto? = null,
-    val error: String? = null
+    val error: String? = null,
+    val successMessage: String? = null
 )
 
 @HiltViewModel
@@ -169,35 +170,75 @@ class CandidatosViewModel @Inject constructor(
 
     fun updateStatus(applicationId: Long, newStatus: String) {
         viewModelScope.launch {
-            runCatching {
-                jobsApi.updateApplicationStatus(applicationId, UpdateStatusRequest(newStatus))
-                _state.update { s ->
-                    s.copy(candidatos = s.candidatos.map {
-                        if (it.applicationId == applicationId) it.copy(estado = newStatus) else it
-                    })
+            val result = runCatching {
+                val response = jobsApi.updateApplicationStatus(applicationId, UpdateStatusRequest(newStatus))
+                if (!response.isSuccessful) {
+                    throw IllegalStateException("Error al actualizar estado: ${response.code()}")
                 }
+            }
+            result.onSuccess {
+                val msg = when (newStatus) {
+                    "ACEPTADO" -> "Postulación aceptada con éxito"
+                    "RECHAZADO" -> "Postulación rechazada"
+                    "PAGO_ENVIADO" -> "Pago enviado con éxito"
+                    "PAGO_CONFIRMADO" -> "Pago confirmado con éxito"
+                    else -> "Estado actualizado con éxito"
+                }
+                _state.update { s ->
+                    s.copy(
+                        successMessage = msg,
+                        candidatos = s.candidatos.map {
+                            if (it.applicationId == applicationId) it.copy(estado = newStatus) else it
+                        }
+                    )
+                }
+            }.onFailure { e ->
+                _state.update { it.copy(error = "Error al actualizar estado: ${e.localizedMessage}") }
             }
         }
     }
 
     fun submitRating(candidato: CandidatoItem, stars: Int) {
         viewModelScope.launch {
-            runCatching {
-                val profile = candidato.workerProfile ?: return@runCatching
-                val count = profile.ratingCount ?: 0
-                val current = profile.rating ?: 0.0
-                val newCount = count + 1
-                val newRating = (current * count + stars) / newCount
-                val updated = profile.copy(rating = newRating, ratingCount = newCount)
-                profileApi.saveProfile(updated)
-                jobsApi.updateApplicationStatus(candidato.applicationId, UpdateStatusRequest("CALIFICADO_EMPRESA"))
-                _state.update { s ->
-                    s.copy(candidatos = s.candidatos.map {
-                        if (it.applicationId == candidato.applicationId) it.copy(estado = "CALIFICADO_EMPRESA") else it
-                    })
+            val result = runCatching {
+                val profile = candidato.workerProfile
+                if (profile != null) {
+                    val count = profile.ratingCount ?: 0
+                    val current = profile.rating ?: 0.0
+                    val newCount = count + 1
+                    val newRating = (current * count + stars) / newCount
+                    val updated = profile.copy(rating = newRating, ratingCount = newCount)
+                    profileApi.saveProfile(updated)
                 }
+                
+                val targetStatus = if (candidato.estado == "CALIFICADO_TRABAJADOR") "FINALIZADA" else "CALIFICADO_EMPRESA"
+                val response = jobsApi.updateApplicationStatus(candidato.applicationId, UpdateStatusRequest(targetStatus))
+                if (!response.isSuccessful) {
+                    throw IllegalStateException("Error al actualizar estado: ${response.code()}")
+                }
+                targetStatus
+            }
+            result.onSuccess { targetStatus ->
+                _state.update { s ->
+                    s.copy(
+                        successMessage = "Calificación enviada con éxito",
+                        candidatos = s.candidatos.map {
+                            if (it.applicationId == candidato.applicationId) it.copy(estado = targetStatus) else it
+                        }
+                    )
+                }
+            }.onFailure { e ->
+                _state.update { it.copy(error = "Error al calificar: ${e.localizedMessage}") }
             }
         }
+    }
+
+    fun clearError() {
+        _state.update { it.copy(error = null) }
+    }
+
+    fun clearMessage() {
+        _state.update { it.copy(successMessage = null) }
     }
 
     private fun buildSolicitud(

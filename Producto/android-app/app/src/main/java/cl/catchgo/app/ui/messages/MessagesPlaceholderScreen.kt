@@ -14,9 +14,17 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -91,11 +99,21 @@ fun NotificationsScreen(
                     verticalArrangement = Arrangement.spacedBy(Spacing.sm),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(notifications) { notif ->
-                        NotificationCard(
-                            notification = notif,
-                            onClick = { viewModel.markAsRead(notif.id) }
-                        )
+                    items(notifications, key = { it.id }) { notif ->
+                        var visible by remember { mutableStateOf(false) }
+                        LaunchedEffect(key1 = notif.id) {
+                            visible = true
+                        }
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = visible,
+                            enter = fadeIn() + slideInVertically(initialOffsetY = { -40 }),
+                            exit = fadeOut()
+                        ) {
+                            NotificationCard(
+                                notification = notif,
+                                onClick = { viewModel.markAsRead(notif.id) }
+                            )
+                        }
                     }
                 }
             }

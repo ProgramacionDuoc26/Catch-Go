@@ -43,7 +43,13 @@ public class JobOfferService {
         List<JobApplication> existingApps = applicationRepository.findByUserIdAndJobId(userId, jobId);
         boolean hasActiveApp = existingApps.stream().anyMatch(app -> {
             String state = app.getEstado();
-            return !state.equals("RECHAZADO") && !state.equals("FINALIZADA") && !state.equals("CALIFICADO_TRABAJADOR");
+            // Estados que se consideran "terminados" y permiten volver a postular
+            return !state.equals("RECHAZADO")
+                && !state.equals("FINALIZADA")
+                && !state.equals("CALIFICADO_TRABAJADOR")
+                && !state.equals("CALIFICADO_EMPRESA")
+                && !state.equals("PAGO_CONFIRMADO")
+                && !state.equals("ARCHIVADA");
         });
         if (hasActiveApp) {
             throw new RuntimeException("Ya tienes una postulación activa a esta oferta");
@@ -105,7 +111,10 @@ public class JobOfferService {
         return applicationRepository.findAll();
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public void delete(Long id) {
+        List<JobApplication> applications = applicationRepository.findByJobId(id);
+        applicationRepository.deleteAll(applications);
         repository.deleteById(id);
     }
 

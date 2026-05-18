@@ -39,6 +39,7 @@ import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.IconButton
@@ -69,6 +70,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -144,7 +146,12 @@ fun EmpresaPerfilScreen(
         uri?.let { viewModel.onDocPicked(it) }
     }
     LaunchedEffect(session.user.id) { viewModel.loadProfile(session.user.id) }
-    LaunchedEffect(uiState.saveSuccess) { if (uiState.saveSuccess) viewModel.clearSaveSuccess() }
+    LaunchedEffect(uiState.saveSuccess) {
+        if (uiState.saveSuccess) {
+            Toast.makeText(context, "Perfil corporativo guardado con éxito", Toast.LENGTH_SHORT).show()
+            viewModel.clearSaveSuccess()
+        }
+    }
     LaunchedEffect(uiState.accountDeleted) { if (uiState.accountDeleted) viewModel.onLogout() }
 
     if (showPhotoOptions) {
@@ -202,7 +209,18 @@ fun EmpresaPerfilScreen(
                     val fixed = if (!v.startsWith("+56 ")) "+56 " else "+56 " + v.drop(4).filter { it.isDigit() }.take(9)
                     viewModel.onFieldChange("phone", fixed)
                 }, "Teléfono corporativo", icon = Icons.Outlined.Phone, keyboardType = KeyboardType.Phone)
-                EmpresaField(uiState.address, { viewModel.onFieldChange("address", it) }, "Dirección de la empresa", placeholder = "Calle Falsa 123, Santiago", icon = Icons.Outlined.Home)
+                EmpresaField(
+                    value = uiState.address,
+                    onValueChange = { viewModel.onFieldChange("address", it) },
+                    label = "Dirección de la empresa",
+                    placeholder = "Calle Falsa 123, Santiago",
+                    icon = Icons.Outlined.Home,
+                    trailingIcon = {
+                        IconButton(onClick = { viewModel.searchAddress(uiState.address) }) {
+                            Icon(Icons.Outlined.Search, contentDescription = "Buscar dirección", tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                )
                 EmpresaField(
                     value = uiState.description,
                     onValueChange = { viewModel.onFieldChange("description", it) },
@@ -216,7 +234,7 @@ fun EmpresaPerfilScreen(
             MapPickerView(
                 latitude = uiState.latitude,
                 longitude = uiState.longitude,
-                onLocationSelected = { lat, lon -> viewModel.updateLocation(lat, lon) },
+                onLocationSelected = { lat, lon -> viewModel.reverseGeocode(lat, lon) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -372,6 +390,7 @@ private fun EmpresaField(
     modifier: Modifier = Modifier,
     placeholder: String? = null,
     icon: ImageVector? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
     singleLine: Boolean = true,
     minLines: Int = 1,
@@ -383,7 +402,7 @@ private fun EmpresaField(
         label = { Text(if (locked) "$label (bloqueado)" else label) },
         placeholder = placeholder?.let { { Text(it, color = Gray500) } },
         leadingIcon = icon?.let { { Icon(it, null, tint = if (locked) Gray500 else Teal500, modifier = Modifier.size(18.dp)) } },
-        trailingIcon = if (locked) ({ Icon(Icons.Outlined.Lock, null, tint = Gray500, modifier = Modifier.size(16.dp)) }) else null,
+        trailingIcon = if (locked) ({ Icon(Icons.Outlined.Lock, null, tint = Gray500, modifier = Modifier.size(16.dp)) }) else trailingIcon,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         singleLine = singleLine,
         minLines = minLines,
@@ -741,7 +760,7 @@ private fun EmpresaSuscripcionSection(plan: String) {
                 Spacer(Modifier.height(Spacing.sm))
                 androidx.compose.material3.Button(
                     onClick = {
-                        val webpayUrl = "http://10.0.2.2:3000/empresa/suscripcion"
+                        val webpayUrl = "http://${cl.catchgo.app.data.remote.ApiConfig.HOST}:3000/empresa/suscripcion"
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(webpayUrl)))
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -766,3 +785,4 @@ private fun EmpresaSuscripcionSection(plan: String) {
         }
     }
 }
+

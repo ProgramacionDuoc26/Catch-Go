@@ -31,7 +31,7 @@ class JobsRepositoryImpl @Inject constructor(
         cache.map { offers ->
             offers
                 .let { if (filter.category == null) it else it.filter { o -> o.category == filter.category } }
-                .sortedByDescending { it.score }
+                .sortedWith(compareByDescending<JobOffer> { it.score }.thenByDescending { it.id.toLongOrNull() ?: 0L })
         }
 
     override suspend fun refresh(): Result<Unit> = runCatching {
@@ -78,7 +78,7 @@ class JobsRepositoryImpl @Inject constructor(
                     distanceKm = if (dist >= 0.0) dist else null,
                     photoUrl = companyProfile?.photoUrl
                 )
-            }.sortedByDescending { it.score }
+            }.sortedWith(compareByDescending<JobOffer> { it.score }.thenByDescending { it.id.toLongOrNull() ?: 0L })
         }
     }
 

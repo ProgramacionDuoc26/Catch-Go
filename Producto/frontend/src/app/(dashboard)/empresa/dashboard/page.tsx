@@ -44,7 +44,9 @@ export default function EmpresaDashboard() {
 
         const offersRes = await jobsApi.list();
         if (offersRes.data) {
-          const myOffers = offersRes.data.filter((o: any) => o.empresaId === realEmpresaId);
+          const myOffers = offersRes.data
+            .filter((o: any) => o.empresaId === realEmpresaId)
+            .sort((a: any, b: any) => Number(b.id) - Number(a.id));
           setRecentOffers(myOffers.slice(0, 3));
           
           const appsRes = await jobsApi.getApplicationsByEmployerId(realEmpresaId);

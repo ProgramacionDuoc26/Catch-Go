@@ -246,9 +246,29 @@ export default function AdminDashboard() {
           }
         }
 
-        const dispute = localStorage.getItem(`payment_dispute_${app.id}`) 
-          ? JSON.parse(localStorage.getItem(`payment_dispute_${app.id}`)!) 
-          : { reason: "Sin motivo especificado", date: new Date().toISOString() };
+        let dispute = null;
+        try {
+          const res = await fetch(`${window.location.origin}/api/disputes?appId=${app.id}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data) dispute = data;
+          }
+        } catch (e) {
+          console.error("Error cargando disputa desde API en admin:", e);
+        }
+
+        if (!dispute) {
+          const localVal = localStorage.getItem(`payment_dispute_${app.id}`);
+          if (localVal) {
+            try {
+              dispute = JSON.parse(localVal);
+            } catch (err) {}
+          }
+        }
+
+        if (!dispute) {
+          dispute = { reason: "Sin motivo especificado", date: new Date().toISOString() };
+        }
 
         return {
           ...app,

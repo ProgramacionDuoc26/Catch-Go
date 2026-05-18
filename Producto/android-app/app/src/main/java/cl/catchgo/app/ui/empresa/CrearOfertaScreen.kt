@@ -33,6 +33,8 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -55,6 +57,7 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Work
+import androidx.compose.material.icons.outlined.Search
 import cl.catchgo.app.ui.theme.BrandBlue700
 import cl.catchgo.app.ui.theme.Spacing
 import cl.catchgo.app.ui.theme.Teal500
@@ -62,6 +65,7 @@ import cl.catchgo.app.ui.theme.Gray200
 import cl.catchgo.app.ui.theme.Gray500
 import cl.catchgo.app.ui.theme.NavyDeep
 import cl.catchgo.app.ui.theme.White
+import cl.catchgo.app.ui.components.MapPickerView
 
 private val CATEGORIAS = listOf(
     "Guardia", "Aseo / Limpieza", "Seguridad Eventos",
@@ -80,8 +84,12 @@ fun CrearOfertaScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var categoriaExpanded by remember { mutableStateOf(false) }
 
+    val context = LocalContext.current
     LaunchedEffect(state.success) {
-        if (state.success) onBack()
+        if (state.success) {
+            Toast.makeText(context, "Oferta publicada con éxito", Toast.LENGTH_SHORT).show()
+            onBack()
+        }
     }
 
     Scaffold(
@@ -216,10 +224,23 @@ fun CrearOfertaScreen(
                     OutlinedTextField(
                         value = state.ubicacion,
                         onValueChange = viewModel::onUbicacionChange,
-                        label = { Text("Ubicación") },
+                        label = { Text("Dirección del lugar de trabajo *") },
+                        placeholder = { Text("Ej. Av. Andrés Bello 2425, Providencia") },
                         leadingIcon = { Icon(Icons.Outlined.Place, null, tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
+                        trailingIcon = {
+                            IconButton(onClick = { viewModel.searchAddress(context, state.ubicacion) }) {
+                                Icon(Icons.Outlined.Search, contentDescription = "Buscar dirección", tint = MaterialTheme.colorScheme.primary)
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
+                    )
+
+                    MapPickerView(
+                        latitude = state.latitude,
+                        longitude = state.longitude,
+                        onLocationSelected = { lat, lon -> viewModel.reverseGeocode(context, lat, lon) },
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     OutlinedTextField(
