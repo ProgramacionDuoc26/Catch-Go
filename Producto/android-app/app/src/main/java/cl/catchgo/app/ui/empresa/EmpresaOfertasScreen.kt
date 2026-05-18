@@ -75,7 +75,7 @@ fun EmpresaOfertasScreen(
         PullToRefreshBox(
             isRefreshing = state.isLoading,
             onRefresh = viewModel::load,
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(bottom = padding.calculateBottomPadding())
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 EmpresaOfertasHeader(count = state.ofertas.size)

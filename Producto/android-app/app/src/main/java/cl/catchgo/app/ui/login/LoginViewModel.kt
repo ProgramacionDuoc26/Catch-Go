@@ -44,4 +44,19 @@ class LoginViewModel @Inject constructor(
                 }
         }
     }
+
+    fun loginGoogle(email: String, displayName: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, errorMessage = null) }
+            authRepository.loginGoogle(email, displayName)
+                .onSuccess {
+                    _state.update { it.copy(isLoading = false) }
+                }
+                .onFailure { throwable ->
+                    _state.update {
+                        it.copy(isLoading = false, errorMessage = ErrorMapper.map(throwable).message)
+                    }
+                }
+        }
+    }
 }

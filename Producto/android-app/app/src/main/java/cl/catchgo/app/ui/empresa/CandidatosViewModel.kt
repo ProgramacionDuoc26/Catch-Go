@@ -12,6 +12,7 @@ import cl.catchgo.app.data.remote.dto.MatchTrabajadorDto
 import cl.catchgo.app.data.remote.dto.ProfileRemoteDto
 import cl.catchgo.app.data.remote.dto.UpdateStatusRequest
 import cl.catchgo.app.domain.repository.MatchingRepository
+import cl.catchgo.app.util.MatchEngine
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -114,18 +115,35 @@ class CandidatosViewModel @Inject constructor(
                         empresaSkills = empresaSkills,
                         workers = workers
                     )
-                    matchingRepository.ejecutarMatching(solicitud).getOrNull()?.forEach { sug ->
-                        val uid = sug.trabajadorPerfilId.toString()
-                        scoreMap[uid] = Triple(
-                            sug.puntajeTotal.toInt(),
-                            sug.puntajeHabilidades.toInt(),
-                            sug.puntajeDistancia.toInt()
-                        )
+                    
+                    val remoteScores = matchingRepository.ejecutarMatching(solicitud).getOrNull()
+                    if (remoteScores != null && remoteScores.isNotEmpty()) {
+                        remoteScores.forEach { sug ->
+                            val uid = sug.trabajadorPerfilId.toString()
+                            scoreMap[uid] = Triple(
+                                sug.puntajeTotal.toInt(),
+                                sug.puntajeHabilidades.toInt(),
+                                sug.puntajeDistancia.toInt()
+                            )
+                        }
+                    } else {
+                        // Fallback local: Si el microservicio remoto falla, calculamos localmente.
+                        val jobDomain = job.toDomain()
+                        workers.forEach { worker ->
+                            val workerId = worker.id ?: return@forEach
+                            val score = MatchEngine.calculate(
+                                worker = worker,
+                                company = empresaProfile,
+                                offer = jobDomain,
+                                plan = empresaProfile?.plan ?: "FREE"
+                            )
+                            scoreMap[workerId.toString()] = Triple(score, 0, 0)
+                        }
                     }
                 }
 
                 val items = appData.map { app ->
-                    val scores = scoreMap[app.userId]
+                    val scores = scoreMap[app.workerProfile?.id?.toString()]
                     CandidatoItem(
                         applicationId = app.applicationId,
                         jobId = app.jobId,

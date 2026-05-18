@@ -19,6 +19,7 @@ object ApiConfig {
     const val JOBS_URL = "http://$HOST:8083/"
     const val PROFILE_URL = "http://$HOST:8082/"
     const val MATCHING_URL = "http://$HOST:8084/"
+    const val NOTIFICATIONS_WS_URL = "ws://$HOST:8088/ws-notifications/websocket"
 
     const val USE_MOCK_AUTH = false
     const val USE_MOCK_JOBS = false

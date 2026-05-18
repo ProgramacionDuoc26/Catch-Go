@@ -45,4 +45,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindMatchingRepository(impl: MatchingRepositoryImpl): MatchingRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindNotificationRepository(impl: cl.catchgo.app.data.repository.NotificationRepositoryImpl): cl.catchgo.app.domain.repository.NotificationRepository
 }

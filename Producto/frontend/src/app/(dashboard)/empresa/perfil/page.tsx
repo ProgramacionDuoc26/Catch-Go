@@ -360,9 +360,9 @@ export default function EmpresaPerfilPage() {
           <h1 className="text-2xl font-bold text-gray-900">Perfil de Empresa</h1>
           <p className="text-sm text-gray-500">Gestiona la identidad y datos de tu organización</p>
         </div>
-        <div className="flex gap-2 text-sm text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-100">
+        <div className="flex gap-2 text-sm text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-100 shadow-sm">
           <span className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 animate-pulse"></span>
-          Perfil Corporativo Verificado
+          Perfil Empresa
         </div>
       </div>
 
@@ -393,6 +393,9 @@ export default function EmpresaPerfilPage() {
               </div>
               <h2 className="text-lg font-bold text-gray-900 text-center">{formData.name || 'Nueva Empresa'}</h2>
               <p className="text-sm text-gray-500">{formData.email}</p>
+              <span className="mt-3 px-3 py-1 text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+                Perfil Empresa
+              </span>
             </CardContent>
           </Card>
 

@@ -27,11 +27,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material.icons.outlined.Business
 import androidx.compose.material.icons.outlined.CameraAlt
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material.icons.outlined.Settings
@@ -45,6 +47,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -192,9 +195,9 @@ fun EmpresaPerfilScreen(
             Spacer(Modifier.height(Spacing.sm))
 
             EmpresaSectionCard(title = "Información de la Organización", icon = Icons.Outlined.Business) {
-                EmpresaField(uiState.name, { viewModel.onFieldChange("name", it) }, "Nombre de la empresa", placeholder = "Nombre legal o fantasía", icon = Icons.Outlined.Business)
-                EmpresaField(uiState.rut, { viewModel.onFieldChange("rut", it) }, "RUT de la empresa", placeholder = "76.123.456-K")
-                EmpresaField(uiState.representativeName, { viewModel.onFieldChange("representativeName", it) }, "Representante Legal", placeholder = "Juan Pérez", icon = Icons.Outlined.Person)
+                EmpresaField(uiState.name, { viewModel.onFieldChange("name", it) }, "Nombre de la empresa", placeholder = "Nombre legal o fantasía", icon = Icons.Outlined.Business, locked = uiState.nameLocked)
+                EmpresaField(uiState.rut, { viewModel.onFieldChange("rut", it) }, "RUT de la empresa", placeholder = "76.123.456-K", locked = uiState.rutLocked)
+                EmpresaField(uiState.representativeName, { viewModel.onFieldChange("representativeName", it) }, "Representante Legal", placeholder = "Juan Pérez", icon = Icons.Outlined.Person, locked = uiState.representativeNameLocked)
                 EmpresaField(uiState.phone, { v ->
                     val fixed = if (!v.startsWith("+56 ")) "+56 " else "+56 " + v.drop(4).filter { it.isDigit() }.take(9)
                     viewModel.onFieldChange("phone", fixed)
@@ -227,12 +230,17 @@ fun EmpresaPerfilScreen(
                 habilidadValorada = uiState.habilidadValorada,
                 onHabilidadChange = { viewModel.onFieldChange("habilidadValorada", it) },
                 ritmo = uiState.ritmo,
-                onRitmoChange = { viewModel.onFieldChange("ritmo", it) }
+                onRitmoChange = { viewModel.onFieldChange("ritmo", it) },
+                locked = uiState.culturaLocked
             )
 
             HorizontalDivider(color = Gray200)
 
             AdnCorporativoSection(radarData = uiState.radarData)
+
+            HorizontalDivider(color = Gray200)
+
+            EmpresaSuscripcionSection(plan = uiState.plan)
 
             HorizontalDivider(color = Gray200)
 
@@ -337,7 +345,7 @@ private fun EmpresaHeader(
             Spacer(Modifier.height(Spacing.sm))
             Box(
                 modifier = androidx.compose.ui.Modifier.clip(RoundedCornerShape(20.dp)).background(Teal500.copy(alpha = 0.25f)).padding(horizontal = 12.dp, vertical = 5.dp)
-            ) { Text("Empresa", style = MaterialTheme.typography.labelMedium, color = Teal200) }
+            ) { Text("Perfil Empresa", style = MaterialTheme.typography.labelMedium, color = Teal200) }
         }
     }
 }
@@ -366,17 +374,20 @@ private fun EmpresaField(
     icon: ImageVector? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
     singleLine: Boolean = true,
-    minLines: Int = 1
+    minLines: Int = 1,
+    locked: Boolean = false
 ) {
     OutlinedTextField(
         value = value,
-        onValueChange = onValueChange,
-        label = { Text(label) },
+        onValueChange = { if (!locked) onValueChange(it) },
+        label = { Text(if (locked) "$label (bloqueado)" else label) },
         placeholder = placeholder?.let { { Text(it, color = Gray500) } },
-        leadingIcon = icon?.let { { Icon(it, null, tint = Teal500, modifier = Modifier.size(18.dp)) } },
+        leadingIcon = icon?.let { { Icon(it, null, tint = if (locked) Gray500 else Teal500, modifier = Modifier.size(18.dp)) } },
+        trailingIcon = if (locked) ({ Icon(Icons.Outlined.Lock, null, tint = Gray500, modifier = Modifier.size(16.dp)) }) else null,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         singleLine = singleLine,
         minLines = minLines,
+        enabled = !locked,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(10.dp)
     )
@@ -418,23 +429,46 @@ private fun CulturaSection(
     habilidadValorada: String,
     onHabilidadChange: (String) -> Unit,
     ritmo: String,
-    onRitmoChange: (String) -> Unit
+    onRitmoChange: (String) -> Unit,
+    locked: Boolean = false
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.lg)) {
         Text("Perfil y Cultura", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
+
+        if (locked) {
+            Surface(
+                color = androidx.compose.ui.graphics.Color(0xFFFFF9C4), // warning yellow
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(Spacing.md),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(Icons.Outlined.Lock, null, tint = androidx.compose.ui.graphics.Color(0xFFF57F17), modifier = Modifier.size(16.dp))
+                    Text(
+                        text = "Perfil y cultura bloqueados (Plan Gratuito). Mejora a Premium para editarlos de nuevo.",
+                        color = androidx.compose.ui.graphics.Color(0xFFE65100),
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+            }
+        }
 
         var giroExpanded by remember { mutableStateOf(false) }
         var tipoExpanded by remember { mutableStateOf(false) }
 
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-            ExposedDropdownMenuBox(expanded = giroExpanded, onExpandedChange = { giroExpanded = it }, modifier = Modifier.weight(1f)) {
+            ExposedDropdownMenuBox(expanded = if (locked) false else giroExpanded, onExpandedChange = { if (!locked) giroExpanded = it }, modifier = Modifier.weight(1f)) {
                 OutlinedTextField(
                     value = giro.ifBlank { "Giro de empresa..." },
                     onValueChange = {},
                     readOnly = true,
+                    enabled = !locked,
                     label = { Text("1. Giro principal") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(giroExpanded) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                    trailingIcon = if (locked) ({ Icon(Icons.Outlined.Lock, null, tint = Gray500, modifier = Modifier.size(16.dp)) }) else ({ ExposedDropdownMenuDefaults.TrailingIcon(giroExpanded) }),
+                    modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
                     shape = RoundedCornerShape(10.dp)
                 )
                 ExposedDropdownMenu(expanded = giroExpanded, onDismissRequest = { giroExpanded = false }) {
@@ -442,14 +476,15 @@ private fun CulturaSection(
                 }
             }
 
-            ExposedDropdownMenuBox(expanded = tipoExpanded, onExpandedChange = { tipoExpanded = it }, modifier = Modifier.weight(1f)) {
+            ExposedDropdownMenuBox(expanded = if (locked) false else tipoExpanded, onExpandedChange = { if (!locked) tipoExpanded = it }, modifier = Modifier.weight(1f)) {
                 OutlinedTextField(
                     value = tipoTrabajador.ifBlank { "Tipo..." },
                     onValueChange = {},
                     readOnly = true,
+                    enabled = !locked,
                     label = { Text("2. Tipo trabajador") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(tipoExpanded) },
-                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                    trailingIcon = if (locked) ({ Icon(Icons.Outlined.Lock, null, tint = Gray500, modifier = Modifier.size(16.dp)) }) else ({ ExposedDropdownMenuDefaults.TrailingIcon(tipoExpanded) }),
+                    modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
                     shape = RoundedCornerShape(10.dp)
                 )
                 ExposedDropdownMenu(expanded = tipoExpanded, onDismissRequest = { tipoExpanded = false }) {
@@ -466,7 +501,7 @@ private fun CulturaSection(
                     Surface(
                         shape = RoundedCornerShape(20.dp),
                         color = if (selected) Teal500 else Gray100,
-                        modifier = Modifier.clickable { onHabilidadChange(if (selected) "" else opt) }
+                        modifier = Modifier.clickable(enabled = !locked) { onHabilidadChange(if (selected) "" else opt) }
                     ) {
                         Text(opt, style = MaterialTheme.typography.labelSmall, color = if (selected) White else Gray700, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
                     }
@@ -482,7 +517,7 @@ private fun CulturaSection(
                     Surface(
                         shape = RoundedCornerShape(20.dp),
                         color = if (selected) Teal50 else Gray100,
-                        modifier = Modifier.clickable { onRitmoChange(if (selected) "" else opt) }
+                        modifier = Modifier.clickable(enabled = !locked) { onRitmoChange(if (selected) "" else opt) }
                     ) {
                         Text(opt, style = MaterialTheme.typography.labelSmall, color = if (selected) Teal500 else Gray700, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
                     }
@@ -560,7 +595,7 @@ private fun EmpresaBankSection(
                 readOnly = true,
                 label = { Text("Banco") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(bancosExpanded) },
-                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
                 shape = RoundedCornerShape(10.dp)
             )
             ExposedDropdownMenu(expanded = bancosExpanded, onDismissRequest = { bancosExpanded = false }) {
@@ -576,7 +611,7 @@ private fun EmpresaBankSection(
                 readOnly = true,
                 label = { Text("Tipo de cuenta") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(tipoExpanded) },
-                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
                 shape = RoundedCornerShape(10.dp)
             )
             ExposedDropdownMenu(expanded = tipoExpanded, onDismissRequest = { tipoExpanded = false }) {
@@ -644,4 +679,90 @@ private fun createLogoUri(context: android.content.Context): Uri {
     val dir = File(context.cacheDir, "images").also { it.mkdirs() }
     val file = File(dir, "logo_${System.currentTimeMillis()}.jpg")
     return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+}
+
+@Composable
+private fun EmpresaSuscripcionSection(plan: String) {
+    val context = LocalContext.current
+    val isPremium = plan == "PREMIUM" || plan == "ENTERPRISE"
+    EmpresaSectionCard(
+        title = if (isPremium) "Suscripción Premium Empresa ⭐" else "Suscripción Premium Empresa",
+        icon = Icons.Outlined.Business
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = if (isPremium) "Plan Premium Corporativo Activo" else "Plan Gratuito Empresa",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                    color = if (isPremium) Teal500 else Gray700
+                )
+                Text(
+                    text = if (isPremium) "Suscripción Activa" else "Prueba gratis",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (isPremium) Teal500 else Gray500
+                )
+            }
+            HorizontalDivider(color = Gray200)
+            
+            Text(
+                text = "Beneficios de tu cuenta Premium:",
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = Gray700
+            )
+            
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = if (isPremium) "✅ Publicaciones destacadas ilimitadas" else "❌ Límite de publicaciones de turnos",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isPremium) Gray900 else Gray500
+                )
+                Text(
+                    text = if (isPremium) "✅ Matching de IA prioritario (+30% bonus)" else "❌ Matching estándar de candidatos",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isPremium) Gray900 else Gray500
+                )
+                Text(
+                    text = if (isPremium) "✅ Acceso a perfiles completos de candidatos" else "❌ Información de contacto restringida",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isPremium) Gray900 else Gray500
+                )
+                Text(
+                    text = if (isPremium) "✅ Edición ilimitada de Perfil y Cultura" else "❌ Perfil y Cultura bloqueados tras configuración",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isPremium) Gray900 else Gray500
+                )
+            }
+
+            if (!isPremium) {
+                Spacer(Modifier.height(Spacing.sm))
+                androidx.compose.material3.Button(
+                    onClick = {
+                        val webpayUrl = "http://10.0.2.2:3000/empresa/suscripcion"
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(webpayUrl)))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = androidx.compose.ui.graphics.Color(0xFFFFC107),
+                        contentColor = NavyDeep
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Star,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = "Mejorar a Premium con Webpay Plus",
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                }
+            }
+        }
+    }
 }

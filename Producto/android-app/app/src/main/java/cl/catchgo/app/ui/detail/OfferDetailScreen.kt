@@ -253,7 +253,7 @@ fun OfferDetailScreen(
                                 }
                                 else -> {
                                     SecondaryButton(
-                                        text = activeApp.rawStatus.lowercase().capitalize(),
+                                        text = activeApp.rawStatus.lowercase().replaceFirstChar { it.uppercase() },
                                         onClick = {},
                                         enabled = false
                                     )

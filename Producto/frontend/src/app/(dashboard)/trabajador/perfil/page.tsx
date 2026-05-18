@@ -417,9 +417,9 @@ export default function TrabajadorPerfilPage() {
     <div className="max-w-7xl mx-auto pb-20 px-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{t("myProfile")}</h1>
-        <div className="flex gap-2 text-sm text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-100">
+        <div className="flex gap-2 text-sm text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-100 shadow-sm">
           <span className="w-2 h-2 bg-green-500 rounded-full mt-1.5 animate-pulse"></span>
-          {t("publicProfileActive")}
+          Perfil Trabajador
         </div>
       </div>
 
@@ -454,6 +454,9 @@ export default function TrabajadorPerfilPage() {
               <h2 className="text-lg font-bold text-gray-900">{formData.name || t("notLoggedIn")}</h2>
               <p className="text-sm text-gray-500">{formData.email}</p>
               <p className="text-xs text-gray-400 mt-1">{formData.phone !== '+56 ' ? formData.phone : ''}</p>
+              <span className="mt-3 px-3 py-1 text-xs font-bold text-violet-700 bg-violet-50 border border-violet-200 rounded-full">
+                Perfil Trabajador
+              </span>
             </CardContent>
           </Card>
 

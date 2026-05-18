@@ -52,7 +52,12 @@ data class EmpresaPerfilUiState(
     val errorMessage: String? = null,
     val isDeletingAccount: Boolean = false,
     val deleteAccountError: String? = null,
-    val accountDeleted: Boolean = false
+    val accountDeleted: Boolean = false,
+    val plan: String = "FREE",
+    val nameLocked: Boolean = false,
+    val rutLocked: Boolean = false,
+    val representativeNameLocked: Boolean = false,
+    val culturaLocked: Boolean = false
 )
 
 @HiltViewModel
@@ -79,6 +84,12 @@ class EmpresaPerfilViewModel @Inject constructor(
                         if (profile.skills?.startsWith("{") == true) JSONObject(profile.skills) else null
                     }.getOrNull()
 
+                    val plan = profile.plan ?: "FREE"
+                    val isPremium = plan == "PREMIUM" || plan == "ENTERPRISE"
+                    val giroSaved = skills?.optString("giro")?.isNotBlank() == true
+                    val tipoSaved = skills?.optString("tipoTrabajador")?.isNotBlank() == true
+                    val culturaLocked = (giroSaved || tipoSaved) && !isPremium
+
                     val newState = _uiState.value.copy(
                         isLoading = false,
                         photoUrl = profile.photoUrl,
@@ -99,7 +110,12 @@ class EmpresaPerfilViewModel @Inject constructor(
                         giro = skills?.optString("giro", "") ?: "",
                         tipoTrabajador = skills?.optString("tipoTrabajador", "") ?: "",
                         habilidadValorada = skills?.optString("habilidadValorada", "") ?: "",
-                        ritmo = skills?.optString("ritmo", "") ?: ""
+                        ritmo = skills?.optString("ritmo", "") ?: "",
+                        plan = plan,
+                        nameLocked = !profile.name.isNullOrBlank(),
+                        rutLocked = !profile.rut.isNullOrBlank() || !skills?.optString("rut").isNullOrBlank(),
+                        representativeNameLocked = !skills?.optString("representativeName").isNullOrBlank(),
+                        culturaLocked = culturaLocked
                     )
                     _uiState.update { newState.copy(radarData = computeRadar(newState)) }
                 } else {
@@ -164,7 +180,23 @@ class EmpresaPerfilViewModel @Inject constructor(
             profileRepository.saveProfile(dto)
                 .onSuccess { saved ->
                     currentProfile = saved
-                    _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
+                    val plan = saved.plan ?: "FREE"
+                    val isPremium = plan == "PREMIUM" || plan == "ENTERPRISE"
+                    val giroSaved = s.giro.isNotBlank()
+                    val tipoSaved = s.tipoTrabajador.isNotBlank()
+                    val culturaLocked = (giroSaved || tipoSaved) && !isPremium
+
+                    _uiState.update {
+                        it.copy(
+                            isSaving = false,
+                            saveSuccess = true,
+                            plan = plan,
+                            nameLocked = !saved.name.isNullOrBlank(),
+                            rutLocked = !saved.rut.isNullOrBlank() || s.rut.isNotBlank(),
+                            representativeNameLocked = s.representativeName.isNotBlank(),
+                            culturaLocked = culturaLocked
+                        )
+                    }
                 }
                 .onFailure { e ->
                     _uiState.update { it.copy(isSaving = false, errorMessage = e.message ?: "Error al guardar") }

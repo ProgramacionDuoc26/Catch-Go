@@ -72,6 +72,11 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.maps.compose)
 
+    implementation(libs.google.play.services.auth)
+
+    implementation(libs.krossbow.stomp)
+    implementation(libs.krossbow.websocket)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

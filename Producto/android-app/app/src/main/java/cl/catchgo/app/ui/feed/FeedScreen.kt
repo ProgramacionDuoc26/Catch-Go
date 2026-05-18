@@ -628,7 +628,7 @@ private fun ApplicationCard(
                     "CALIFICADO_TRABAJADOR" -> "Finalizada"
                     "FINALIZADA" -> "Finalizada"
                     "ARCHIVADA" -> "Archivada"
-                    else -> application.rawStatus.lowercase().capitalize()
+                    else -> application.rawStatus.lowercase().replaceFirstChar { it.uppercase() }
                 }
                 
                 val type = when (application.rawStatus) {

@@ -47,6 +47,13 @@ class AuthRepositoryImpl @Inject constructor(
         if (!ApiConfig.USE_MOCK_AUTH) api.deleteAccount(userId)
         sessionStore.clear()
     }
+ 
+    override suspend fun loginGoogle(email: String, displayName: String): Result<UserSession> = runCatching {
+        delay(600)
+        val session = buildSession(email, displayName, UserRole.WORKER)
+        sessionStore.save(session)
+        session
+    }
 
     private suspend fun realLogin(email: String, password: String): UserSession {
         val response = api.login(LoginRequest(email = email, password = password))

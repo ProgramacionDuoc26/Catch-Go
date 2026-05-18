@@ -342,6 +342,11 @@ export default function AdminDashboard() {
             Centro de Control
           </h1>
           <p className="text-slate-500 font-medium">Bienvenido, Miguel Admin</p>
+          <div className="mt-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded-full">
+              🛡️ Perfil Admin
+            </span>
+          </div>
         </div>
 
         <div className="flex bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200">

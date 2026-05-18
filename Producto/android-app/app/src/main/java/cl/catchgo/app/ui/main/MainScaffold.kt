@@ -28,7 +28,7 @@ import cl.catchgo.app.ui.detail.OfferDetailScreen
 import cl.catchgo.app.ui.empresa.CrearOfertaScreen
 import cl.catchgo.app.ui.feed.FeedScreen
 import cl.catchgo.app.ui.home.HomeScreen
-import cl.catchgo.app.ui.messages.MessagesPlaceholderScreen
+import cl.catchgo.app.ui.messages.NotificationsScreen
 import cl.catchgo.app.ui.empresa.EmpresaPerfilScreen
 import cl.catchgo.app.ui.profile.ProfilePlaceholderScreen
 import cl.catchgo.app.ui.profile.AjustesScreen
@@ -116,7 +116,7 @@ fun MainScaffold(
                     onApplicationClick = { offerId -> navController.navigate(offerDetailRoute(offerId)) }
                 )
             }
-            composable(MainTab.Messages.route) { MessagesPlaceholderScreen() }
+            composable(MainTab.Messages.route) { NotificationsScreen() }
             composable(MainTab.Profile.route) {
                 if (session.user.role == UserRole.EMPRESA) {
                     EmpresaPerfilScreen(
