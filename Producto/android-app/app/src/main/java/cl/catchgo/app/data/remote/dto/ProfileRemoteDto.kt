@@ -1,0 +1,34 @@
+package cl.catchgo.app.data.remote.dto
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class ProfileRemoteDto(
+    val id: Long? = null,
+    val userId: String? = null,
+    val name: String? = null,
+    val email: String? = null,
+    val phone: String? = null,
+    val birthDate: String? = null,
+    val photoUrl: String? = null,
+    val cvUrl: String? = null,
+    val description: String? = null,
+    val type: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val skills: String? = null,
+    val rating: Double? = null,
+    val ratingCount: Int? = null,
+    val rut: String? = null,
+    val bankName: String? = null,
+    val accountType: String? = null,
+    val accountNumber: String? = null,
+    val plan: String? = null,
+    val planExpiry: String? = null
+)
+
+@Serializable
+data class FileUploadResponse(
+    val url: String,
+    val fileName: String
+)
