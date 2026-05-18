@@ -496,10 +496,10 @@ private fun CulturaSection(
 private fun DocLegalSection(docUrl: String?, isUploading: Boolean, onPickDoc: () -> Unit) {
     val context = LocalContext.current
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-        Text("Documentación Legal", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = Gray900)
+        Text("Documentación Legal", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
         Surface(
             shape = RoundedCornerShape(12.dp),
-            color = Gray100,
+            color = MaterialTheme.colorScheme.surfaceVariant,
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
@@ -513,7 +513,7 @@ private fun DocLegalSection(docUrl: String?, isUploading: Boolean, onPickDoc: ()
                     tint = Teal500,
                     modifier = Modifier.size(32.dp)
                 )
-                Text("Estatutos / RUT de la Empresa", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold), color = Gray900)
+                Text("Estatutos / RUT de la Empresa", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
                 Text("Sube un documento que acredite la organización (PDF o imagen)", style = MaterialTheme.typography.bodySmall, color = Gray500)
                 if (docUrl != null) {
                     TextButton(onClick = { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(docUrl))) }) {

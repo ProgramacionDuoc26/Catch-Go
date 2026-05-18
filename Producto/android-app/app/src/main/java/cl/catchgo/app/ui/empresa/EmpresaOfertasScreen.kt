@@ -148,7 +148,7 @@ private fun OfertaEmpresaCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(Spacing.md)) {
@@ -160,7 +160,8 @@ private fun OfertaEmpresaCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         oferta.titulo ?: "Sin título",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         oferta.ubicacion ?: "Sin ubicación",
@@ -172,9 +173,9 @@ private fun OfertaEmpresaCard(
                     Icon(Icons.Outlined.Delete, null, tint = Color(0xFFDC2626))
                 }
             }
-
+ 
             Spacer(Modifier.height(Spacing.xs))
-
+ 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
@@ -195,7 +196,7 @@ private fun OfertaEmpresaCard(
                 Text(
                     "\$${"%,d".format(oferta.remuneracion ?: 0).replace(",", ".")}",
                     style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-                    color = BrandBlue700
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
 

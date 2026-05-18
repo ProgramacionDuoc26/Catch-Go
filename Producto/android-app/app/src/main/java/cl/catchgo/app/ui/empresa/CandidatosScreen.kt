@@ -68,8 +68,8 @@ fun CandidatosScreen(modifier: Modifier = Modifier) {
 
         ScrollableTabRow(
             selectedTabIndex = tabIndex,
-            containerColor = White,
-            contentColor = BrandBlue700,
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.primary,
             edgePadding = Spacing.md
         ) {
             tabs.forEachIndexed { index, title ->
@@ -175,7 +175,7 @@ private fun CandidatoCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(Spacing.md)) {
@@ -187,7 +187,8 @@ private fun CandidatoCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         candidato.nombre,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         "Postula a: ${candidato.jobTitle}",
@@ -203,7 +204,7 @@ private fun CandidatoCard(
                 Text(
                     candidato.descripcion,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.DarkGray,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                     maxLines = 2
                 )
             }
