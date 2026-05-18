@@ -1,5 +1,6 @@
 package cl.catchgo.app.ui.detail
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,10 +21,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.AttachMoney
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.WorkOutline
+import androidx.compose.material.icons.outlined.StarOutline
+import androidx.compose.material.icons.outlined.Star
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Cancel
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -90,6 +97,8 @@ fun OfferDetailScreen(
     val scope = rememberCoroutineScope()
     var showSheet by remember { mutableStateOf(false) }
     var showDistanceDialog by remember { mutableStateOf(false) }
+    var showRatingDialog by remember { mutableStateOf(false) }
+    var showDisputeDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
@@ -97,6 +106,9 @@ fun OfferDetailScreen(
                 DetailEvent.ApplicationSucceeded -> {
                     showSheet = false
                     snackbarHostState.showSnackbar("Postulación enviada")
+                }
+                is DetailEvent.StatusUpdated -> {
+                    snackbarHostState.showSnackbar(event.message)
                 }
             }
         }
@@ -124,24 +136,129 @@ fun OfferDetailScreen(
         },
         bottomBar = {
             val offer = state.offer
+            val activeApp = state.activeApplication
             if (offer != null) {
-                Surface(color = White, shadowElevation = 0.dp) {
-                    Box(
+                Surface(color = White, shadowElevation = 8.dp) {
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = Spacing.lg, vertical = Spacing.md)
+                            .padding(horizontal = Spacing.lg, vertical = Spacing.md),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        if (state.isApplied) {
-                            SecondaryButton(
-                                text = "Ya postulaste",
-                                onClick = {},
-                                enabled = false
-                            )
-                        } else {
+                        if (state.isActionLoading) {
+                            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator(color = Teal500)
+                            }
+                        } else if (activeApp == null) {
                             PrimaryButton(
                                 text = "Postular a esta oferta",
                                 onClick = { showSheet = true }
                             )
+                        } else {
+                            // Flow options based on status
+                            when (activeApp.rawStatus) {
+                                "PENDIENTE", "ACEPTADO" -> {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                                    ) {
+                                        Box(modifier = Modifier.weight(1f)) {
+                                            SecondaryButton(
+                                                text = if (activeApp.rawStatus == "ACEPTADO") "Seleccionado (Espera Pago)" else "Postulado",
+                                                onClick = {},
+                                                enabled = false
+                                            )
+                                        }
+                                        androidx.compose.material3.OutlinedButton(
+                                            onClick = {
+                                                activeApp.id.toLongOrNull()?.let { appId ->
+                                                    viewModel.cancelPostulation(appId)
+                                                }
+                                            },
+                                            colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+                                                contentColor = androidx.compose.ui.graphics.Color.Red
+                                            ),
+                                            border = BorderStroke(1.dp, androidx.compose.ui.graphics.Color.Red),
+                                            shape = RoundedCornerShape(8.dp),
+                                            modifier = Modifier.height(48.dp)
+                                        ) {
+                                            Text("Cancelar", fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
+                                "PAGO_ENVIADO" -> {
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalArrangement = Arrangement.spacedBy(Spacing.xs)
+                                    ) {
+                                        androidx.compose.material3.Button(
+                                            onClick = {
+                                                activeApp.id.toLongOrNull()?.let { appId ->
+                                                    viewModel.updateApplicationStatus(appId, "PAGO_CONFIRMADO")
+                                                }
+                                            },
+                                            modifier = Modifier.fillMaxWidth().height(48.dp),
+                                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                                containerColor = androidx.compose.ui.graphics.Color(0xFF059669)
+                                            ),
+                                            shape = RoundedCornerShape(8.dp)
+                                        ) {
+                                            Text("Confirmar Recepción de Pago ✅", color = White, fontWeight = FontWeight.Bold)
+                                        }
+                                        androidx.compose.material3.TextButton(
+                                            onClick = { showDisputeDialog = true },
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Text("No he recibido el pago / Reportar ⚠️", color = androidx.compose.ui.graphics.Color.Red, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
+                                "PAGO_DISPUTADO" -> {
+                                    androidx.compose.material3.Button(
+                                        onClick = {},
+                                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                            containerColor = androidx.compose.ui.graphics.Color(0xFFD97706)
+                                        ),
+                                        enabled = false,
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Text("En Revisión de Admin ⏳", color = White, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                                "PAGO_CONFIRMADO", "CALIFICADO_EMPRESA" -> {
+                                    androidx.compose.material3.Button(
+                                        onClick = { showRatingDialog = true },
+                                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                            containerColor = androidx.compose.ui.graphics.Color(0xFFFFB300)
+                                        ),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Text("Calificar Empresa ⭐", color = White, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                                "FINALIZADA", "CALIFICADO_TRABAJADOR" -> {
+                                    androidx.compose.material3.Button(
+                                        onClick = {},
+                                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                            containerColor = androidx.compose.ui.graphics.Color(0xFF059669)
+                                        ),
+                                        enabled = false,
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Text("Trabajo Completado y Calificado 🎉", color = White, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                                else -> {
+                                    SecondaryButton(
+                                        text = activeApp.rawStatus.lowercase().capitalize(),
+                                        onClick = {},
+                                        enabled = false
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -179,6 +296,7 @@ fun OfferDetailScreen(
 
             state.offer != null -> OfferDetailContent(
                 offer = state.offer!!,
+                activeApplication = state.activeApplication,
                 onShowDistanceClick = { showDistanceDialog = true },
                 modifier = Modifier.padding(padding)
             )
@@ -251,12 +369,165 @@ fun OfferDetailScreen(
             shape = RoundedCornerShape(16.dp)
         )
     }
+
+    if (showRatingDialog && state.activeApplication != null) {
+        var stars by remember { mutableStateOf(5) }
+        var feedback by remember { mutableStateOf("") }
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showRatingDialog = false },
+            title = {
+                Text(
+                    text = "Calificar Empresa ⭐",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                )
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "¿Cómo fue tu experiencia trabajando con ${state.offer?.company ?: "la empresa"}?",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Gray700
+                    )
+                    
+                    // Star selector
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        (1..5).forEach { index ->
+                            IconButton(onClick = { stars = index }) {
+                                Icon(
+                                    imageVector = if (index <= stars) Icons.Filled.Star else Icons.Outlined.StarOutline,
+                                    contentDescription = "$index estrellas",
+                                    tint = if (index <= stars) androidx.compose.ui.graphics.Color(0xFFFFB300) else Gray500,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
+                        }
+                    }
+                    
+                    // Feedback text field
+                    androidx.compose.material3.OutlinedTextField(
+                        value = feedback,
+                        onValueChange = { feedback = it },
+                        label = { Text("Comentario u opinión (opcional)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 4,
+                        colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Teal500,
+                            focusedLabelColor = Teal500
+                        )
+                    )
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.Button(
+                    onClick = {
+                        val appId = state.activeApplication!!.id.toLongOrNull()
+                        if (appId != null) {
+                            val nextStatus = if (state.activeApplication!!.rawStatus == "CALIFICADO_EMPRESA") "FINALIZADA" else "CALIFICADO_TRABAJADOR"
+                            viewModel.updateApplicationStatus(appId, nextStatus)
+                        }
+                        showRatingDialog = false
+                    },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Teal500)
+                ) {
+                    Text("Enviar Calificación", color = White, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { showRatingDialog = false }) {
+                    Text("Cancelar", color = Gray500)
+                }
+            },
+            containerColor = White,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
+    if (showDisputeDialog && state.activeApplication != null) {
+        var reason by remember { mutableStateOf("") }
+        var isError by remember { mutableStateOf(false) }
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showDisputeDialog = false },
+            title = {
+                Text(
+                    text = "Reportar Problema con Pago ⚠️",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                )
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Describe el problema con el pago (ej: no se ve el comprobante, el monto no coincide, no he recibido la transferencia). Esto alertará a un administrador.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Gray700
+                    )
+                    
+                    androidx.compose.material3.OutlinedTextField(
+                        value = reason,
+                        onValueChange = { 
+                            reason = it
+                            isError = false
+                        },
+                        label = { Text("Motivo del reporte") },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 4,
+                        isError = isError,
+                        colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = androidx.compose.ui.graphics.Color.Red,
+                            focusedLabelColor = androidx.compose.ui.graphics.Color.Red
+                        )
+                    )
+                    if (isError) {
+                        Text(
+                            text = "Debes ingresar un motivo para reportar.",
+                            color = androidx.compose.ui.graphics.Color.Red,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                androidx.compose.material3.Button(
+                    onClick = {
+                        if (reason.trim().isBlank()) {
+                            isError = true
+                        } else {
+                            val appId = state.activeApplication!!.id.toLongOrNull()
+                            if (appId != null) {
+                                viewModel.updateApplicationStatus(appId, "PAGO_DISPUTADO")
+                            }
+                            showDisputeDialog = false
+                        }
+                    },
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color.Red)
+                ) {
+                    Text("Reportar Problema", color = White, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { showDisputeDialog = false }) {
+                    Text("Cancelar", color = Gray500)
+                }
+            },
+            containerColor = White,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun OfferDetailContent(
     offer: JobOffer,
+    activeApplication: cl.catchgo.app.domain.model.JobApplication?,
     onShowDistanceClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -266,6 +537,78 @@ private fun OfferDetailContent(
             .verticalScroll(rememberScrollState())
     ) {
         Header(offer)
+
+        activeApplication?.let { app ->
+            val (bannerBg, bannerBorder, bannerText, bannerIcon, bannerDesc) = when (app.rawStatus) {
+                "PENDIENTE" -> listOf(
+                    BrandBlue50, BrandBlue700.copy(alpha = 0.3f), BrandBlue700, 
+                    Icons.Outlined.Schedule, "Has postulado a este turno. Esperando selección de la empresa."
+                )
+                "ACEPTADO" -> listOf(
+                    Teal50, Teal700.copy(alpha = 0.3f), Teal700, 
+                    Icons.Outlined.CheckCircle, "¡Fuiste seleccionado! Realiza el turno según las fechas acordadas."
+                )
+                "RECHAZADO" -> listOf(
+                    androidx.compose.ui.graphics.Color(0xFFFEF2F2), androidx.compose.ui.graphics.Color(0xFFFCA5A5), androidx.compose.ui.graphics.Color(0xFF991B1B), 
+                    Icons.Outlined.Cancel, "Tu postulación no fue seleccionada esta vez."
+                )
+                "PAGO_ENVIADO" -> listOf(
+                    Teal50, Teal700.copy(alpha = 0.3f), Teal700, 
+                    Icons.Outlined.AttachMoney, "La empresa reportó el envío de tu pago. Por favor, revísalo y valídalo abajo."
+                )
+                "PAGO_DISPUTADO" -> listOf(
+                    androidx.compose.ui.graphics.Color(0xFFFFFBEB), androidx.compose.ui.graphics.Color(0xFFFDE68A), androidx.compose.ui.graphics.Color(0xFF92400E), 
+                    Icons.Outlined.Warning, "Reportaste una discrepancia con el pago. Un administrador revisará tu caso."
+                )
+                "PAGO_CONFIRMADO", "CALIFICADO_EMPRESA" -> listOf(
+                    Teal50, Teal700.copy(alpha = 0.3f), Teal700, 
+                    Icons.Outlined.Star, "Pago recibido con éxito. Por favor califica a la empresa para finalizar."
+                )
+                "FINALIZADA", "CALIFICADO_TRABAJADOR" -> listOf(
+                    Teal50, Teal700.copy(alpha = 0.3f), Teal700, 
+                    Icons.Outlined.CheckCircle, "¡Turno completado y calificado con éxito! Gracias por tu trabajo."
+                )
+                else -> listOf(
+                    Gray100, Gray200, Gray700, 
+                    Icons.Outlined.WorkOutline, "Estado: ${app.rawStatus}"
+                )
+            }
+            
+            Surface(
+                color = bannerBg as androidx.compose.ui.graphics.Color,
+                border = BorderStroke(1.dp, bannerBorder as androidx.compose.ui.graphics.Color),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Spacing.lg, vertical = Spacing.sm)
+            ) {
+                Row(
+                    modifier = Modifier.padding(Spacing.md),
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+                ) {
+                    Icon(
+                        imageVector = bannerIcon as ImageVector,
+                        contentDescription = null,
+                        tint = bannerText as androidx.compose.ui.graphics.Color,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Column {
+                        Text(
+                            text = "Estado de tu Postulación",
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            color = bannerText
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = bannerDesc as String,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = bannerText.copy(alpha = 0.85f)
+                        )
+                    }
+                }
+            }
+        }
 
         Column(
             modifier = Modifier.padding(horizontal = Spacing.lg),

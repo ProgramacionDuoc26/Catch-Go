@@ -78,6 +78,51 @@ class ApplicationsRepositoryImpl @Inject constructor(
 
     override suspend fun refreshFromBackend() = loadFromBackend()
 
+    override suspend fun updateStatus(applicationId: Long, newStatus: String): Result<Unit> = runCatching {
+        if (ApiConfig.USE_MOCK_APPLICATIONS) {
+            delay(500)
+            cache.value = cache.value.map { app ->
+                if (app.id == applicationId.toString()) {
+                    val statusEnum = when (newStatus) {
+                        "ACEPTADO" -> ApplicationStatus.ACCEPTED
+                        "RECHAZADO" -> ApplicationStatus.REJECTED
+                        else -> app.status
+                    }
+                    app.copy(rawStatus = newStatus, status = statusEnum)
+                } else app
+            }
+        } else {
+            val response = api.updateApplicationStatus(applicationId, cl.catchgo.app.data.remote.dto.UpdateStatusRequest(newStatus))
+            if (!response.isSuccessful) {
+                throw IllegalStateException("Error al actualizar estado: ${response.code()}")
+            }
+            // Update local cache
+            cache.value = cache.value.map { app ->
+                if (app.id == applicationId.toString()) {
+                    val statusEnum = when (newStatus) {
+                        "ACEPTADO" -> ApplicationStatus.ACCEPTED
+                        "RECHAZADO" -> ApplicationStatus.REJECTED
+                        else -> app.status
+                    }
+                    app.copy(rawStatus = newStatus, status = statusEnum)
+                } else app
+            }
+        }
+    }
+
+    override suspend fun cancelApplication(applicationId: Long): Result<Unit> = runCatching {
+        if (ApiConfig.USE_MOCK_APPLICATIONS) {
+            delay(500)
+            cache.value = cache.value.filter { it.id != applicationId.toString() }
+        } else {
+            val response = api.deleteApplication(applicationId)
+            if (!response.isSuccessful) {
+                throw IllegalStateException("Error al cancelar postulación: ${response.code()}")
+            }
+            cache.value = cache.value.filter { it.id != applicationId.toString() }
+        }
+    }
+
     suspend fun loadFromBackend() {
         if (ApiConfig.USE_MOCK_APPLICATIONS) return
         val userId = sessionStore.session.first()?.user?.id ?: return

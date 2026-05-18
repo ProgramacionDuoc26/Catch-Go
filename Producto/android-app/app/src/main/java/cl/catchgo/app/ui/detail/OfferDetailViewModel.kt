@@ -33,9 +33,13 @@ class OfferDetailViewModel @Inject constructor(
 
     val state: StateFlow<OfferDetailUiState> = combine(
         internalState,
-        applicationsRepository.observeAppliedOfferIds()
-    ) { ui, appliedIds ->
-        ui.copy(isApplied = offerId in appliedIds)
+        applicationsRepository.observeMyApplications()
+    ) { ui, apps ->
+        val activeApp = apps.find { it.offerId == offerId }
+        ui.copy(
+            isApplied = activeApp != null,
+            activeApplication = activeApp
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), OfferDetailUiState())
 
     private val _events = Channel<DetailEvent>(Channel.BUFFERED)
@@ -63,6 +67,38 @@ class OfferDetailViewModel @Inject constructor(
         }
     }
 
+    fun cancelPostulation(applicationId: Long) {
+        viewModelScope.launch {
+            internalState.update { it.copy(isActionLoading = true, actionError = null) }
+            applicationsRepository.cancelApplication(applicationId)
+                .onSuccess {
+                    internalState.update { it.copy(isActionLoading = false) }
+                    _events.send(DetailEvent.StatusUpdated("Postulación cancelada con éxito"))
+                }
+                .onFailure { e ->
+                    internalState.update {
+                        it.copy(isActionLoading = false, actionError = ErrorMapper.map(e).message)
+                    }
+                }
+        }
+    }
+
+    fun updateApplicationStatus(applicationId: Long, newStatus: String) {
+        viewModelScope.launch {
+            internalState.update { it.copy(isActionLoading = true, actionError = null) }
+            applicationsRepository.updateStatus(applicationId, newStatus)
+                .onSuccess {
+                    internalState.update { it.copy(isActionLoading = false) }
+                    _events.send(DetailEvent.StatusUpdated("Estado actualizado a $newStatus"))
+                }
+                .onFailure { e ->
+                    internalState.update {
+                        it.copy(isActionLoading = false, actionError = ErrorMapper.map(e).message)
+                    }
+                }
+        }
+    }
+
     fun clearApplyError() {
         internalState.update { it.copy(applyError = null) }
     }
@@ -85,4 +121,5 @@ class OfferDetailViewModel @Inject constructor(
 
 sealed interface DetailEvent {
     data object ApplicationSucceeded : DetailEvent
+    data class StatusUpdated(val message: String) : DetailEvent
 }
