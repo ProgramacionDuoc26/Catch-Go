@@ -34,10 +34,12 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Phone
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -112,6 +114,7 @@ private val TIPOS_CUENTA = listOf("VISTA" to "Cuenta Vista / RUT", "CORRIENTE" t
 @Composable
 fun EmpresaPerfilScreen(
     session: UserSession,
+    onNavigateToSettings: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: EmpresaPerfilViewModel = hiltViewModel()
 ) {
@@ -178,7 +181,8 @@ fun EmpresaPerfilScreen(
             session = session,
             photoUrl = uiState.photoUrl,
             isUploading = uiState.isUploadingPhoto,
-            onPickPhoto = { showPhotoOptions = true }
+            onPickPhoto = { showPhotoOptions = true },
+            onNavigateToSettings = onNavigateToSettings
         )
 
         Column(
@@ -280,12 +284,31 @@ fun EmpresaPerfilScreen(
 }
 
 @Composable
-private fun EmpresaHeader(session: UserSession, photoUrl: String?, isUploading: Boolean, onPickPhoto: () -> Unit) {
+private fun EmpresaHeader(
+    session: UserSession,
+    photoUrl: String?,
+    isUploading: Boolean,
+    onPickPhoto: () -> Unit,
+    onNavigateToSettings: () -> Unit
+) {
     Box(
         modifier = Modifier.fillMaxWidth()
             .background(Brush.verticalGradient(colors = listOf(NavyDeep, Navy, BrandBlue600)))
             .padding(horizontal = Spacing.lg, vertical = Spacing.xl)
     ) {
+        IconButton(
+            onClick = onNavigateToSettings,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(40.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Settings,
+                contentDescription = "Ajustes",
+                tint = White
+            )
+        }
+
         Column(horizontalAlignment = Alignment.Start) {
             Box(modifier = Modifier.size(80.dp)) {
                 Surface(
@@ -321,13 +344,13 @@ private fun EmpresaHeader(session: UserSession, photoUrl: String?, isUploading: 
 
 @Composable
 private fun EmpresaSectionCard(title: String, icon: ImageVector, content: @Composable () -> Unit) {
-    Surface(color = White, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth(), shadowElevation = 1.dp) {
+    Surface(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth(), shadowElevation = 1.dp) {
         Column(modifier = Modifier.padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 Icon(icon, null, tint = Teal500, modifier = Modifier.size(18.dp))
-                Text(title, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = Gray900)
+                Text(title, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
             }
-            HorizontalDivider(color = Gray200)
+            HorizontalDivider(color = Gray200.copy(alpha = 0.5f))
             content()
         }
     }
@@ -366,7 +389,7 @@ private fun AdnCorporativoSection(radarData: RadarData?) {
         Text(
             "ADN Corporativo",
             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-            color = Gray900
+            color = MaterialTheme.colorScheme.onSurface
         )
         Text(
             "Completa tu perfil de cultura para visualizar tu ADN organizacional",
@@ -398,7 +421,7 @@ private fun CulturaSection(
     onRitmoChange: (String) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.lg)) {
-        Text("Perfil y Cultura", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = Gray900)
+        Text("Perfil y Cultura", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
 
         var giroExpanded by remember { mutableStateOf(false) }
         var tipoExpanded by remember { mutableStateOf(false) }

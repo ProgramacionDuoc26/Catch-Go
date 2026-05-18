@@ -37,10 +37,12 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Phone
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.UploadFile
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -134,6 +136,7 @@ private val TIPOS_CUENTA = listOf("VISTA" to "Cuenta Vista / RUT", "CORRIENTE" t
 fun ProfilePlaceholderScreen(
     session: UserSession,
     onNavigateToSkills: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -215,7 +218,8 @@ fun ProfilePlaceholderScreen(
             rating = uiState.rating,
             ratingCount = uiState.ratingCount,
             isUploadingPhoto = uiState.isUploadingPhoto,
-            onPickPhoto = { showPhotoOptions = true }
+            onPickPhoto = { showPhotoOptions = true },
+            onNavigateToSettings = onNavigateToSettings
         )
 
         Column(
@@ -377,7 +381,8 @@ private fun ProfileHeader(
     rating: Double?,
     ratingCount: Int?,
     isUploadingPhoto: Boolean,
-    onPickPhoto: () -> Unit
+    onPickPhoto: () -> Unit,
+    onNavigateToSettings: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -385,6 +390,19 @@ private fun ProfileHeader(
             .background(Brush.verticalGradient(colors = listOf(NavyDeep, Navy, BrandBlue600)))
             .padding(horizontal = Spacing.lg, vertical = Spacing.xl)
     ) {
+        IconButton(
+            onClick = onNavigateToSettings,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(40.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Settings,
+                contentDescription = "Ajustes",
+                tint = White
+            )
+        }
+
         Column(horizontalAlignment = Alignment.Start) {
             Box(modifier = Modifier.size(80.dp)) {
                 Box(
@@ -459,13 +477,13 @@ private fun SectionCard(
     icon: ImageVector,
     content: @Composable () -> Unit
 ) {
-    Surface(color = White, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth(), shadowElevation = 1.dp) {
+    Surface(color = MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(12.dp), modifier = Modifier.fillMaxWidth(), shadowElevation = 1.dp) {
         Column(modifier = Modifier.padding(Spacing.md), verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 Icon(icon, null, tint = Teal500, modifier = Modifier.size(18.dp))
-                Text(title, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = Gray900)
+                Text(title, style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
             }
-            HorizontalDivider(color = Gray200)
+            HorizontalDivider(color = Gray200.copy(alpha = 0.5f))
             content()
         }
     }
@@ -662,7 +680,7 @@ private fun RadarSkillsSection(
 private fun CvSection(cvUrl: String?, isUploading: Boolean, onPickCv: () -> Unit) {
     val context = LocalContext.current
     Column {
-        Text("Currículum", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = Gray900)
+        Text("Currículum", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
         Spacer(Modifier.height(8.dp))
         when {
             isUploading -> Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -672,22 +690,22 @@ private fun CvSection(cvUrl: String?, isUploading: Boolean, onPickCv: () -> Unit
             cvUrl != null -> Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Icon(Icons.Outlined.Description, null, tint = Teal500, modifier = Modifier.size(18.dp))
-                    Text("CV cargado", style = MaterialTheme.typography.bodySmall, color = Gray700)
+                    Text("CV cargado", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
                 }
                 Row {
                     TextButton(onClick = {
                         val mappedCvUrl = cvUrl.replace("localhost", "10.0.2.2")
                         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(mappedCvUrl)))
                     }) { Text("Ver", color = Teal500, style = MaterialTheme.typography.labelMedium) }
-                    TextButton(onClick = onPickCv) { Text("Cambiar", color = Gray500, style = MaterialTheme.typography.labelMedium) }
+                    TextButton(onClick = onPickCv) { Text("Cambiar", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), style = MaterialTheme.typography.labelMedium) }
                 }
             }
             else -> OutlinedButton(
                 onClick = onPickCv,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Gray700),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Gray200)
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Icon(Icons.Outlined.UploadFile, null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
@@ -814,7 +832,7 @@ private fun HistorialSection(historial: List<JobApplication>) {
         Text(
             "Historial de Postulaciones",
             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
-            color = Gray900
+            color = MaterialTheme.colorScheme.onSurface
         )
         if (historial.isEmpty()) {
             Text("Sin postulaciones recientes.", style = MaterialTheme.typography.bodySmall, color = Gray500)
@@ -827,7 +845,7 @@ private fun HistorialSection(historial: List<JobApplication>) {
 @Composable
 private fun HistorialItem(app: JobApplication) {
     Surface(
-        color = White,
+        color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(10.dp),
         shadowElevation = 1.dp,
         modifier = Modifier.fillMaxWidth()
@@ -841,7 +859,7 @@ private fun HistorialItem(app: JobApplication) {
                 Text(
                     app.offerTitle,
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                    color = Gray900,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1
                 )
                 if (app.company.isNotBlank()) {

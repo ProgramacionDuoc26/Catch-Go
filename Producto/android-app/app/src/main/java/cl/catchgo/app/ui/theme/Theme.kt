@@ -1,6 +1,7 @@
 package cl.catchgo.app.ui.theme
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
@@ -27,10 +28,34 @@ private val CatchLightColors = lightColorScheme(
     onErrorContainer = Error600
 )
 
+private val CatchDarkColors = darkColorScheme(
+    primary = BrandBlue400,
+    onPrimary = NavyDeep,
+    primaryContainer = Navy,
+    onPrimaryContainer = BrandBlue50,
+    secondary = Gray300,
+    onSecondary = NavyDeep,
+    secondaryContainer = Gray900,
+    onSecondaryContainer = Gray100,
+    background = NavyDeep,
+    onBackground = White,
+    surface = Navy,
+    onSurface = White,
+    surfaceVariant = NavyMid,
+    onSurfaceVariant = Gray300,
+    outline = Gray700,
+    outlineVariant = Gray900,
+    error = Error600,
+    onError = White,
+    errorContainer = Error50,
+    onErrorContainer = Error600
+)
+
 @Composable
 fun CatchGoTheme(content: @Composable () -> Unit) {
+    val colors = if (ThemeManager.isDarkMode) CatchDarkColors else CatchLightColors
     MaterialTheme(
-        colorScheme = CatchLightColors,
+        colorScheme = colors,
         typography = CatchTypography,
         shapes = CatchShapes,
         content = content

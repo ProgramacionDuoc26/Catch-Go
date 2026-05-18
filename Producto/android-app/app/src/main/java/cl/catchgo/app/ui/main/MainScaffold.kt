@@ -31,6 +31,7 @@ import cl.catchgo.app.ui.home.HomeScreen
 import cl.catchgo.app.ui.messages.MessagesPlaceholderScreen
 import cl.catchgo.app.ui.empresa.EmpresaPerfilScreen
 import cl.catchgo.app.ui.profile.ProfilePlaceholderScreen
+import cl.catchgo.app.ui.profile.AjustesScreen
 import cl.catchgo.app.ui.skills.SkillsSetupScreen
 import cl.catchgo.app.ui.theme.BrandBlue700
 import cl.catchgo.app.ui.theme.Gray200
@@ -40,6 +41,7 @@ import cl.catchgo.app.ui.theme.White
 private const val ROUTE_OFFER_DETAIL = "offer/{id}"
 private const val ROUTE_SKILLS_SETUP = "skills_setup"
 private const val ROUTE_CREAR_OFERTA = "crear_oferta"
+private const val ROUTE_AJUSTES = "ajustes"
 private fun offerDetailRoute(id: String) = "offer/$id"
 
 @Composable
@@ -117,11 +119,15 @@ fun MainScaffold(
             composable(MainTab.Messages.route) { MessagesPlaceholderScreen() }
             composable(MainTab.Profile.route) {
                 if (session.user.role == UserRole.EMPRESA) {
-                    EmpresaPerfilScreen(session = session)
+                    EmpresaPerfilScreen(
+                        session = session,
+                        onNavigateToSettings = { navController.navigate(ROUTE_AJUSTES) }
+                    )
                 } else {
                     ProfilePlaceholderScreen(
                         session = session,
-                        onNavigateToSkills = { navController.navigate(ROUTE_SKILLS_SETUP) }
+                        onNavigateToSkills = { navController.navigate(ROUTE_SKILLS_SETUP) },
+                        onNavigateToSettings = { navController.navigate(ROUTE_AJUSTES) }
                     )
                 }
             }
@@ -130,6 +136,9 @@ fun MainScaffold(
             }
             composable(ROUTE_CREAR_OFERTA) {
                 CrearOfertaScreen(onBack = { navController.popBackStack() })
+            }
+            composable(ROUTE_AJUSTES) {
+                AjustesScreen(onBack = { navController.popBackStack() })
             }
             composable(
                 route = ROUTE_OFFER_DETAIL,
