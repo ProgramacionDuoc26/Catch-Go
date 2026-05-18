@@ -103,10 +103,8 @@ fun LoginScreen(
         onSubmit = viewModel::onSubmit,
         onRegisterClick = onRegisterClick,
         onGoogleClick = {
-            // Sign out first to force account chooser selection
-            googleSignInClient.signOut().addOnCompleteListener {
-                launcher.launch(googleSignInClient.signInIntent)
-            }
+            // Launch directly and cleanly
+            launcher.launch(googleSignInClient.signInIntent)
         },
         modifier = modifier
     )
