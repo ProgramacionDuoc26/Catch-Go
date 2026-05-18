@@ -1,6 +1,9 @@
 package cl.catchgo.app.ui.login
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -86,25 +89,25 @@ private fun LoginContent(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Surface(
-                    modifier = Modifier.size(64.dp),
-                    shape = CircleShape,
-                    color = Teal500.copy(alpha = 0.25f)
+                    modifier = Modifier
+                        .size(180.dp, 80.dp)
+                        .padding(bottom = 8.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = White,
+                    shadowElevation = 4.dp
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "C",
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = White
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(12.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = cl.catchgo.app.R.drawable.logo),
+                            contentDescription = "Catch & Go Logo",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit
                         )
                     }
                 }
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    text = "Catch-Go",
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.ExtraBold),
-                    color = White
-                )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = "Conectamos trabajo con talento",

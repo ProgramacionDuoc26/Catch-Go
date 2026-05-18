@@ -18,7 +18,8 @@ internal object MockJobs {
             salaryUnit = "turno",
             description = "Reposición de góndolas y armado de pedidos online en supermercado de alto flujo.",
             requirements = listOf("Mayor de 18", "Disponibilidad inmediata"),
-            score = 92
+            score = 92,
+            photoUrl = "https://images.unsplash.com/photo-1542838132-92c53300491e?w=120&auto=format&fit=crop&q=60"
         ),
         JobOffer(
             id = "j-002",
@@ -33,7 +34,8 @@ internal object MockJobs {
             salaryUnit = "día",
             description = "Reposición y ordenamiento en sala. Capacitación incluida.",
             requirements = listOf("Mayor de 18"),
-            score = 88
+            score = 88,
+            photoUrl = "https://images.unsplash.com/photo-1607344645866-009c320c5ab8?w=120&auto=format&fit=crop&q=60"
         ),
         JobOffer(
             id = "j-003",
@@ -48,7 +50,8 @@ internal object MockJobs {
             salaryUnit = "turno",
             description = "Atención de huéspedes y registro de novedades. Hotel 5 estrellas.",
             requirements = listOf("Inglés básico", "Presentación impecable"),
-            score = 85
+            score = 85,
+            photoUrl = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=120&auto=format&fit=crop&q=60"
         ),
         JobOffer(
             id = "j-004",
@@ -63,7 +66,8 @@ internal object MockJobs {
             salaryUnit = "turno",
             description = "Conserje de edificio residencial. Recepción de correspondencia y control de visitas.",
             requirements = listOf("Mayor de 18", "Experiencia previa deseable"),
-            score = 82
+            score = 82,
+            photoUrl = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=120&auto=format&fit=crop&q=60"
         ),
         JobOffer(
             id = "j-005",
@@ -78,7 +82,8 @@ internal object MockJobs {
             salaryUnit = "turno",
             description = "Vigilancia perimetral en bodega industrial.",
             requirements = listOf("OS10 vigente", "Mayor de 21"),
-            score = 78
+            score = 78,
+            photoUrl = "https://images.unsplash.com/photo-1582139329536-e7284fece509?w=120&auto=format&fit=crop&q=60"
         ),
         JobOffer(
             id = "j-006",
@@ -93,7 +98,8 @@ internal object MockJobs {
             salaryUnit = "día",
             description = "Control de acceso en complejo de oficinas.",
             requirements = listOf("OS10 vigente"),
-            score = 75
+            score = 75,
+            photoUrl = "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=120&auto=format&fit=crop&q=60"
         ),
         JobOffer(
             id = "j-007",
@@ -108,7 +114,8 @@ internal object MockJobs {
             salaryUnit = "día",
             description = "Cosecha de uva. Movilización proporcionada desde puntos de encuentro.",
             requirements = listOf("Mayor de 18", "Disponibilidad por 4 semanas"),
-            score = 90
+            score = 90,
+            photoUrl = "https://images.unsplash.com/photo-1506306813292-23c241a3fa40?w=120&auto=format&fit=crop&q=60"
         ),
         JobOffer(
             id = "j-008",
@@ -123,7 +130,8 @@ internal object MockJobs {
             salaryUnit = "día",
             description = "Cosecha de naranjas y mandarinas. Pago semanal.",
             requirements = listOf("Mayor de 18"),
-            score = 71
+            score = 71,
+            photoUrl = "https://images.unsplash.com/photo-1610348725531-843dff563e2c?w=120&auto=format&fit=crop&q=60"
         ),
         JobOffer(
             id = "j-009",
@@ -138,7 +146,8 @@ internal object MockJobs {
             salaryUnit = "día",
             description = "Cuidado de dos niños (4 y 7 años). Apoyo en tareas escolares.",
             requirements = listOf("Experiencia comprobable", "Referencias"),
-            score = 95
+            score = 95,
+            photoUrl = "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=120&auto=format&fit=crop&q=60"
         ),
         JobOffer(
             id = "j-010",
@@ -153,7 +162,8 @@ internal object MockJobs {
             salaryUnit = "turno",
             description = "Apoyo en ingreso de público y guía a butacas en partidos de fútbol y conciertos.",
             requirements = listOf("Mayor de 18", "Disponibilidad fin de semana"),
-            score = 68
+            score = 68,
+            photoUrl = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=120&auto=format&fit=crop&q=60"
         ),
         JobOffer(
             id = "j-011",
@@ -168,7 +178,8 @@ internal object MockJobs {
             salaryUnit = "turno",
             description = "Limpieza profunda de oficinas corporativas.",
             requirements = listOf("Mayor de 18"),
-            score = 80
+            score = 80,
+            photoUrl = "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=120&auto=format&fit=crop&q=60"
         ),
         JobOffer(
             id = "j-012",
@@ -183,7 +194,8 @@ internal object MockJobs {
             salaryUnit = "día",
             description = "Carga y descarga de camiones en centro de distribución. Trabajo físico exigente.",
             requirements = listOf("Mayor de 18", "Buena condición física"),
-            score = 73
+            score = 73,
+            photoUrl = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=120&auto=format&fit=crop&q=60"
         )
     )
 }

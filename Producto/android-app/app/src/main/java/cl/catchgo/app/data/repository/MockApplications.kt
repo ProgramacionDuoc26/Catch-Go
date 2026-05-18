@@ -15,7 +15,9 @@ internal object MockApplications {
             comuna = "Las Condes",
             message = "Tengo experiencia previa en hoteles boutique.",
             status = ApplicationStatus.ACCEPTED,
-            createdAtIso = Instant.now().minus(2, ChronoUnit.DAYS).toString()
+            rawStatus = "ACEPTADO",
+            createdAtIso = Instant.now().minus(2, ChronoUnit.DAYS).toString(),
+            photoUrl = "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=120&auto=format&fit=crop&q=60"
         ),
         JobApplication(
             id = "a-002",
@@ -25,7 +27,9 @@ internal object MockApplications {
             comuna = "Pirque",
             message = null,
             status = ApplicationStatus.PENDING,
-            createdAtIso = Instant.now().minus(5, ChronoUnit.HOURS).toString()
+            rawStatus = "PENDIENTE",
+            createdAtIso = Instant.now().minus(5, ChronoUnit.HOURS).toString(),
+            photoUrl = "https://images.unsplash.com/photo-1506306813292-23c241a3fa40?w=120&auto=format&fit=crop&q=60"
         ),
         JobApplication(
             id = "a-003",
@@ -35,7 +39,9 @@ internal object MockApplications {
             comuna = "Ñuñoa",
             message = "Disponible este fin de semana.",
             status = ApplicationStatus.REJECTED,
-            createdAtIso = Instant.now().minus(7, ChronoUnit.DAYS).toString()
+            rawStatus = "RECHAZADO",
+            createdAtIso = Instant.now().minus(7, ChronoUnit.DAYS).toString(),
+            photoUrl = "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=120&auto=format&fit=crop&q=60"
         )
     )
 }

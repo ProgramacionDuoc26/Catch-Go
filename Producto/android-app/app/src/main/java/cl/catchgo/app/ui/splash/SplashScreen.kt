@@ -59,30 +59,25 @@ fun SplashScreen(onFinished: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Surface(
-                modifier = Modifier.size(80.dp),
-                shape = CircleShape,
-                color = Teal500.copy(alpha = 0.2f)
+                modifier = Modifier
+                    .size(220.dp, 120.dp)
+                    .padding(bottom = 16.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+                color = White,
+                shadowElevation = 8.dp
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text(
-                        text = "C",
-                        fontSize = 40.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = White
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    androidx.compose.foundation.Image(
+                        painter = androidx.compose.ui.res.painterResource(id = cl.catchgo.app.R.drawable.logo),
+                        contentDescription = "Catch & Go Logo",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Fit
                     )
                 }
             }
-
-            Spacer(Modifier.height(24.dp))
-
-            Text(
-                text = "Catch-Go",
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 36.sp
-                ),
-                color = White
-            )
 
             Spacer(Modifier.height(8.dp))
 

@@ -1,6 +1,9 @@
 package cl.catchgo.app.ui.home
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -131,16 +134,24 @@ private fun SectionInicio(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Surface(
-                    color = White.copy(alpha = 0.15f),
+                    modifier = Modifier
+                        .size(160.dp, 70.dp)
+                        .padding(bottom = Spacing.md),
                     shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.padding(bottom = Spacing.md)
+                    color = White,
+                    shadowElevation = 2.dp
                 ) {
-                    Text(
-                        text = "Catch&Go",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                        color = White,
-                        modifier = Modifier.padding(horizontal = Spacing.md, vertical = Spacing.xs)
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize().padding(8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = cl.catchgo.app.R.drawable.logo),
+                            contentDescription = "Catch & Go Logo",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
                 }
 
                 Text(
@@ -704,32 +715,34 @@ private fun SubHeaderRow(
     title: String,
     onBack: () -> Unit
 ) {
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(bottom = 1.dp, color = Gray200),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Spacing.sm, vertical = Spacing.xs),
-            verticalAlignment = Alignment.CenterVertically
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Surface(
+            color = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                    contentDescription = "Volver",
-                    tint = BrandBlue700
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Spacing.sm, vertical = Spacing.xs),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                        contentDescription = "Volver",
+                        tint = BrandBlue700
+                    )
+                }
+
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = BrandBlue700,
+                    modifier = Modifier.padding(start = Spacing.xs)
                 )
             }
-
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = BrandBlue700,
-                modifier = Modifier.padding(start = Spacing.xs)
-            )
         }
+        androidx.compose.material3.HorizontalDivider(color = Gray200)
     }
 }
 

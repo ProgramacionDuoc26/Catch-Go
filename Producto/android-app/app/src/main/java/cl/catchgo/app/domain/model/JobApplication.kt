@@ -9,5 +9,6 @@ data class JobApplication(
     val message: String?,
     val status: ApplicationStatus,
     val createdAtIso: String,
-    val rawStatus: String = "PENDIENTE"
+    val rawStatus: String = "PENDIENTE",
+    val photoUrl: String? = null
 )

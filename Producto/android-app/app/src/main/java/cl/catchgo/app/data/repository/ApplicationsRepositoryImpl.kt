@@ -48,7 +48,8 @@ class ApplicationsRepositoryImpl @Inject constructor(
                 comuna = offer.comuna,
                 message = message?.takeIf { it.isNotBlank() },
                 status = ApplicationStatus.PENDING,
-                createdAtIso = Instant.now().toString()
+                createdAtIso = Instant.now().toString(),
+                photoUrl = offer.photoUrl
             )
             cache.value = listOf(application) + cache.value
             application
@@ -69,7 +70,8 @@ class ApplicationsRepositoryImpl @Inject constructor(
                 message = message?.takeIf { it.isNotBlank() },
                 status = ApplicationStatus.PENDING,
                 rawStatus = "PENDIENTE",
-                createdAtIso = Instant.now().toString()
+                createdAtIso = Instant.now().toString(),
+                photoUrl = offer?.photoUrl
             )
             cache.value = listOf(application) + cache.value
             application
@@ -132,7 +134,7 @@ class ApplicationsRepositoryImpl @Inject constructor(
                 val domain = dto.toDomain()
                 val offer = jobsRepository.getOffer(dto.jobId.toString()).getOrNull()
                 if (offer != null) {
-                    domain.copy(company = offer.company, comuna = offer.comuna)
+                    domain.copy(company = offer.company, comuna = offer.comuna, photoUrl = offer.photoUrl)
                 } else domain
             }
         }.getOrNull() ?: return

@@ -58,9 +58,14 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.ui.draw.clip
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import cl.catchgo.app.ui.components.StatusBadge
@@ -538,11 +543,22 @@ private fun ApplicationsList(
     }
 }
 
+private val avatarColors = listOf(
+    Color(0xFF0E7490) to Color(0xFFECFEFF),
+    Color(0xFF1D4ED8) to Color(0xFFEFF6FF),
+    Color(0xFF7C3AED) to Color(0xFFF5F3FF),
+    Color(0xFF0F766E) to Color(0xFFF0FDFA),
+    Color(0xFFB45309) to Color(0xFFFFFBEB),
+    Color(0xFF9D174D) to Color(0xFFFFF1F2),
+)
+
 @Composable
 private fun ApplicationCard(
     application: JobApplication,
     onClick: () -> Unit
 ) {
+    val colorPair = avatarColors[application.company.hashCode().and(0x7FFFFFFF) % avatarColors.size]
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -558,9 +574,36 @@ private fun ApplicationCard(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                horizontalArrangement = Arrangement.spacedBy(Spacing.sm),
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(colorPair.second),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (!application.photoUrl.isNullOrBlank()) {
+                        val mappedUrl = application.photoUrl
+                            .replace("localhost", "10.0.2.2")
+                            .replace("127.0.0.1", "10.0.2.2")
+                        AsyncImage(
+                            model = mappedUrl,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Text(
+                            text = application.company.firstOrNull()?.uppercase() ?: "?",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colorPair.first
+                        )
+                    }
+                }
+
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = application.offerTitle,
@@ -572,7 +615,6 @@ private fun ApplicationCard(
                         color = Gray500
                     )
                 }
-                Spacer(modifier = Modifier.width(Spacing.xs))
                 
                 val display = when (application.rawStatus) {
                     "PENDIENTE" -> "Pendiente"
