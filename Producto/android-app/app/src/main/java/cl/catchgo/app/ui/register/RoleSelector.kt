@@ -72,10 +72,10 @@ private fun RoleCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val borderColor = if (selected) BrandBlue700 else Gray300
+    val borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
     val borderWidth = if (selected) 2.dp else 1.dp
-    val bg = if (selected) BrandBlue50 else White
-    val accent = if (selected) BrandBlue700 else Gray700
+    val bg = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surface
+    val accent = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
 
     Card(
         onClick = onClick,

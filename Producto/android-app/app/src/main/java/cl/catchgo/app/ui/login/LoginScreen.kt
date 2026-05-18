@@ -122,7 +122,7 @@ private fun LoginContent(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
             shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-            color = White,
+            color = MaterialTheme.colorScheme.background,
             shadowElevation = 0.dp
         ) {
             Column(
