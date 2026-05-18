@@ -298,7 +298,7 @@ fun AjustesScreen(
                         }
                         Switch(
                             checked = ThemeManager.isDarkMode,
-                            onCheckedChange = { ThemeManager.setDarkModeForUser(session.user.id, it) },
+                            onCheckedChange = { ThemeManager.setDarkModeForUser(ThemeManager.activeUserId ?: "", it) },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = White,
                                 checkedTrackColor = Teal500
