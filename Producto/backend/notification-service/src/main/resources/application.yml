@@ -14,7 +14,7 @@ spring:
 
 logging:
   level:
-    com.catchandgo: DEBUG
+    com.catchandgo: INFO
 
 management:
   health:

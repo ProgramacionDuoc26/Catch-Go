@@ -28,7 +28,7 @@ spring:
           predicates:
             - Path=/matching/**
         - id: notification-service
-          uri: ${NOTIFICATION_SERVICE_WS_URL:ws://notification-service.railway.internal:8085}
+          uri: ${NOTIFICATION_SERVICE_URL:http://notification-service.railway.internal:8085}
           predicates:
             - Path=/ws-notifications/**
 
