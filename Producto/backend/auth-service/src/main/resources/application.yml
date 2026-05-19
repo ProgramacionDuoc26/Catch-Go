@@ -8,6 +8,12 @@ spring:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/catchandgo}
     username: ${SPRING_DATASOURCE_USERNAME:catchandgo}
     password: ${SPRING_DATASOURCE_PASSWORD:catchandgo}
+    hikari:
+      maximum-pool-size: 2
+      minimum-idle: 1
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
   jpa:
     hibernate:
       ddl-auto: none
@@ -24,6 +30,9 @@ spring:
       port: ${SPRING_DATA_REDIS_PORT:${REDISPORT:${REDIS_PORT:6379}}}
 
 management:
+  health:
+    redis:
+      enabled: false
   endpoints:
     web:
       exposure:
