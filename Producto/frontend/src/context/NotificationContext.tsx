@@ -137,9 +137,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       if (stompClient.current) return;
 
       console.log('Connecting to WebSocket for user:', userId);
-      const socket = new SockJS(`${getNotificationBaseUrl()}/ws-notifications`);
+      const wsUrl = `${getNotificationBaseUrl()}/ws-notifications`;
       const stomp = new Client({
-        webSocketFactory: () => socket,
+        webSocketFactory: () => new SockJS(wsUrl),
         debug: (str) => console.log('STOMP: ' + str),
         reconnectDelay: 5000,
         onConnect: () => {
