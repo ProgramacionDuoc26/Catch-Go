@@ -3,8 +3,8 @@ server:
 
 logging:
   level:
-    root: DEBUG
-    org.springframework.web: DEBUG
+    root: INFO
+    org.springframework.web: INFO
     org.hibernate: INFO
 
 spring:
