@@ -9,7 +9,7 @@ WORKDIR /app
 COPY . .
 
 # Compilar solo el módulo auth-service y sus dependencias comunes
-RUN mvn clean package -pl auth-service -am -DskipTests
+RUN mvn clean package -DskipTests
 
 # ── Runtime ──
 FROM eclipse-temurin:21-jre-alpine

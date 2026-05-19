@@ -5,7 +5,7 @@
 FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
 WORKDIR /app
 COPY . .
-RUN mvn clean package -pl api-gateway -am -DskipTests -Dmaven.repo.local=/tmp/m2
+RUN mvn clean package -DskipTests -Dmaven.repo.local=/tmp/m2
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
