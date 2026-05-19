@@ -8,27 +8,27 @@ spring:
     gateway:
       routes:
         - id: auth-service
-          uri: ${AUTH_SERVICE_URL:http://localhost:8081}
+          uri: ${AUTH_SERVICE_URL:http://auth-service.railway.internal:8081}
           predicates:
             - Path=/auth/**
         - id: profile-service
-          uri: ${PROFILE_SERVICE_URL:http://localhost:8082}
+          uri: ${PROFILE_SERVICE_URL:http://profile-service.railway.internal:8082}
           predicates:
             - Path=/profiles/**
         - id: profile-files
-          uri: ${PROFILE_SERVICE_URL:http://localhost:8082}
+          uri: ${PROFILE_SERVICE_URL:http://profile-service.railway.internal:8082}
           predicates:
             - Path=/files/**
         - id: jobs-service
-          uri: ${JOBS_SERVICE_URL:http://localhost:8083}
+          uri: ${JOBS_SERVICE_URL:http://jobs-service.railway.internal:8083}
           predicates:
             - Path=/jobs/**
         - id: matching-service
-          uri: ${MATCHING_SERVICE_URL:http://localhost:8084}
+          uri: ${MATCHING_SERVICE_URL:http://matching-service.railway.internal:8084}
           predicates:
             - Path=/matching/**
         - id: notification-service
-          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8085}
+          uri: ${NOTIFICATION_SERVICE_WS_URL:ws://notification-service.railway.internal:8085}
           predicates:
             - Path=/ws-notifications/**
 
