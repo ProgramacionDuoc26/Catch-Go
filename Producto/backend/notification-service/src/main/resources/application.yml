@@ -8,6 +8,7 @@ spring:
     redis:
       host: ${REDISHOST:${REDIS_HOST:localhost}}
       port: ${REDISPORT:${REDIS_PORT:6379}}
+      password: ${REDISPASSWORD:${REDIS_PASSWORD:}}
       timeout: 5000ms
       connect-timeout: 5000ms
 
