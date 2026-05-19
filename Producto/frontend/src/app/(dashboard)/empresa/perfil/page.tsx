@@ -185,7 +185,7 @@ export default function EmpresaPerfilPage() {
       }
     };
     fetchProfile();
-  }, [router, savedProfile?.latitude]);
+  }, [router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     let { id, value } = e.target;

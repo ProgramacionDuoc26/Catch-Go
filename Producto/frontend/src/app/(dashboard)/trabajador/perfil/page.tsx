@@ -239,7 +239,7 @@ export default function TrabajadorPerfilPage() {
       }
     };
     fetchProfile();
-  }, [router, savedProfile?.latitude]);
+  }, [router]);
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
