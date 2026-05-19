@@ -3,9 +3,16 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
+  const requestUrl = new URL(request.url)
+  const searchParams = requestUrl.searchParams
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/'
+
+  // Reconstruct absolute URL using forwarded headers to avoid container internal IP (0.0.0.0)
+  const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || requestUrl.host;
+  const proto = request.headers.get('x-forwarded-proto') || 'https';
+  const cleanHost = host.includes('0.0.0.0') ? 'catch-go-production.up.railway.app' : host;
+  const origin = `${proto}://${cleanHost}`;
 
   if (code) {
     const cookieStore = cookies()
