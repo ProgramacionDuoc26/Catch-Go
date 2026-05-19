@@ -10,20 +10,20 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:catchandgo}
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: true
   flyway:
     enabled: true
-    baseline-on-migrate: false
+    baseline-on-migrate: true
     repair-on-migrate: true
     validate-on-migrate: false
     table: flyway_schema_history_jobs
   data:
     redis:
-      host: ${SPRING_DATA_REDIS_HOST:localhost}
-      port: ${SPRING_DATA_REDIS_PORT:6379}
+      host: ${SPRING_DATA_REDIS_HOST:${REDISHOST:${REDIS_HOST:localhost}}}
+      port: ${SPRING_DATA_REDIS_PORT:${REDISPORT:${REDIS_PORT:6379}}}
 
 management:
   endpoints:

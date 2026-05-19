@@ -31,4 +31,4 @@ COPY --from=builder /app/${MODULE}/target/*.jar app.jar
 # Puerto por defecto (se sobrescribe en docker-compose si es necesario)
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-Xmx256m", "-jar", "app.jar"]

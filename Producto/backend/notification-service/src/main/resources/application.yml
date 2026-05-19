@@ -6,9 +6,17 @@ spring:
     name: notification-service
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: ${REDISHOST:${REDIS_HOST:localhost}}
+      port: ${REDISPORT:${REDIS_PORT:6379}}
+      timeout: 5000ms
+      connect-timeout: 5000ms
 
 logging:
   level:
     com.catchandgo: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

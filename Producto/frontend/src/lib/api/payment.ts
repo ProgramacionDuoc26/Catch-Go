@@ -1,6 +1,7 @@
 import { api } from './client';
+import { getServiceBaseUrl } from './base';
 
-const BASE = (process.env.NEXT_PUBLIC_PROFILE_SERVICE_URL || 'http://localhost:8082') + '/profiles/webpay';
+const BASE = getServiceBaseUrl('NEXT_PUBLIC_PROFILE_SERVICE_URL', 'http://localhost:8082') + '/profiles/webpay';
 
 export interface WebpayInitResponse {
   token: string;

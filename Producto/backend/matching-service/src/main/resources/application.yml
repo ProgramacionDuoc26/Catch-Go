@@ -10,7 +10,7 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD:catchandgo}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: true
@@ -21,8 +21,8 @@ spring:
     validate-on-migrate: false
   data:
     redis:
-      host: ${SPRING_DATA_REDIS_HOST:localhost}
-      port: ${SPRING_DATA_REDIS_PORT:6379}
+      host: ${SPRING_DATA_REDIS_HOST:${REDISHOST:${REDIS_HOST:localhost}}}
+      port: ${SPRING_DATA_REDIS_PORT:${REDISPORT:${REDIS_PORT:6379}}}
 
 management:
   endpoints:
