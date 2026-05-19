@@ -7,7 +7,37 @@
     <artifactId>catch-and-go-monorepo</artifactId>
     <version>0.0.1-SNAPSHOT</version>
   </parent>
-  <artifactId>api-gateway</artifactId>
+  <properties>
+    <spring-boot.version>3.3.13</spring-boot.version>
+    <spring-framework.version>6.1.18</spring-framework.version>
+    <spring-cloud.version>2023.0.4</spring-cloud.version>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-framework-bom</artifactId>
+        <version>${spring-framework.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-dependencies</artifactId>
+        <version>${spring-cloud.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -26,22 +56,6 @@
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
       <version>2.6.0</version>
-    </dependency>
-    <dependency>
-      <groupId>com.catchandgo</groupId>
-      <artifactId>common-security</artifactId>
-      <version>${project.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-web</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.catchandgo</groupId>
-      <artifactId>common-jwt</artifactId>
-      <version>${project.version}</version>
     </dependency>
 
     <dependency>
