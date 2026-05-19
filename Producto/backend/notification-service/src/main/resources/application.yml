@@ -16,6 +16,9 @@ logging:
     com.catchandgo: DEBUG
 
 management:
+  health:
+    redis:
+      enabled: false
   endpoints:
     web:
       exposure:

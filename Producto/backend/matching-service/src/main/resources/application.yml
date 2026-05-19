@@ -31,6 +31,9 @@ spring:
       port: ${SPRING_DATA_REDIS_PORT:${REDISPORT:${REDIS_PORT:6379}}}
 
 management:
+  health:
+    redis:
+      enabled: false
   endpoints:
     web:
       exposure:
