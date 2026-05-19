@@ -1,6 +1,8 @@
 import { api } from './client';
+import { getServiceBaseUrl } from './base';
 
-const BASE = (process.env.NEXT_PUBLIC_PROFILE_SERVICE_URL || 'http://localhost:8082') + '/profiles';
+const PROFILE_BASE = getServiceBaseUrl('NEXT_PUBLIC_PROFILE_SERVICE_URL', 'http://localhost:8082');
+const BASE = `${PROFILE_BASE}/profiles`;
 
 export interface Profile {
   id?: number;
@@ -35,9 +37,7 @@ export function sanitizeUrl(url: string | undefined): string | undefined {
   
   // Reemplazar la IP del emulador Android (10.0.2.2) por el host del servicio de perfil
   // (por defecto, http://localhost:8082 o el configurado en variables de entorno)
-  const targetHost = process.env.NEXT_PUBLIC_PROFILE_SERVICE_URL 
-    ? process.env.NEXT_PUBLIC_PROFILE_SERVICE_URL.replace(/\/$/, '') 
-    : 'http://localhost:8082';
+  const targetHost = PROFILE_BASE;
 
   if (url.includes('10.0.2.2:8082')) {
     return url.replace(/http:\/\/10\.0\.2\.2:8082/g, targetHost);

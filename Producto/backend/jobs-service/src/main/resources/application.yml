@@ -1,13 +1,13 @@
 server:
-  port: 8083
+  port: ${SERVER_PORT:8083}
 
 spring:
   application:
     name: jobs-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/catchandgo
-    username: catchandgo
-    password: catchandgo
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/catchandgo}
+    username: ${SPRING_DATASOURCE_USERNAME:catchandgo}
+    password: ${SPRING_DATASOURCE_PASSWORD:catchandgo}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -22,8 +22,8 @@ spring:
     table: flyway_schema_history_jobs
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
 
 management:
   endpoints:

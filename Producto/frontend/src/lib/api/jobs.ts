@@ -1,7 +1,8 @@
 import { api } from './client';
+import { getServiceBaseUrl } from './base';
 import type { Oferta, CreateOfertaRequest } from './types';
 
-const BASE = process.env.NEXT_PUBLIC_JOBS_SERVICE_URL ?? 'http://localhost:8083';
+const BASE = getServiceBaseUrl('NEXT_PUBLIC_JOBS_SERVICE_URL', 'http://localhost:8083');
 
 export const jobsApi = {
   /**

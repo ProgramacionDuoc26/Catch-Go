@@ -1,4 +1,6 @@
-const PROFILE_BASE = process.env.NEXT_PUBLIC_PROFILE_SERVICE_URL || 'http://localhost:8082';
+import { getServiceBaseUrl } from '../api/base';
+
+const PROFILE_BASE = getServiceBaseUrl('NEXT_PUBLIC_PROFILE_SERVICE_URL', 'http://localhost:8082');
 
 /**
  * Sube un archivo al backend Java (profile-service).

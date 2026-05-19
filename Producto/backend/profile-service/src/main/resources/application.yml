@@ -1,5 +1,5 @@
 server:
-  port: 8082
+  port: ${SERVER_PORT:8082}
 
 logging:
   level:
@@ -11,9 +11,9 @@ spring:
   application:
     name: profile-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/catchandgo
-    username: catchandgo
-    password: catchandgo
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/catchandgo}
+    username: ${SPRING_DATASOURCE_USERNAME:catchandgo}
+    password: ${SPRING_DATASOURCE_PASSWORD:catchandgo}
   jpa:
     hibernate:
       ddl-auto: none
@@ -28,8 +28,8 @@ spring:
     table: flyway_schema_history_profiles
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
 
 management:
   endpoints:
@@ -42,4 +42,4 @@ spring.servlet.multipart:
   max-request-size: 10MB
 
 file:
-  upload-dir: /app/uploads
+  upload-dir: ${FILE_UPLOAD_DIR:/app/uploads}

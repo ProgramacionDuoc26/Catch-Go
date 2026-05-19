@@ -1,7 +1,8 @@
 import { api } from './client';
+import { getServiceBaseUrl } from './base';
 import type { MatchSuggestion } from './types';
 
-const BASE = process.env.NEXT_PUBLIC_MATCHING_SERVICE_URL ?? 'http://localhost:8084';
+const BASE = getServiceBaseUrl('NEXT_PUBLIC_MATCHING_SERVICE_URL', 'http://localhost:8084');
 
 export const matchingApi = {
   /**

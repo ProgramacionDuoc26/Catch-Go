@@ -1,6 +1,7 @@
 package com.catchandgo.auth;
 
 import com.catchandgo.common.jwt.JwtService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -21,8 +22,10 @@ public class AuthServiceApplication {
     }
 
     @Bean
-    public JwtService jwtService() {
-        return new JwtService("very-secret-key-that-is-at-least-32-characters-long-12345");
+    public JwtService jwtService(
+            @Value("${JWT_SECRET:very-secret-key-that-is-at-least-32-characters-long-12345}") String jwtSecret
+    ) {
+        return new JwtService(jwtSecret);
     }
 
     @Bean

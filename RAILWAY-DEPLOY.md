@@ -51,6 +51,9 @@ Para **cada microservicio** hacer lo mismo:
      - Ejemplo para auth: `auth-service/Dockerfile`
 3. En **Settings → Variables**: pegar las variables del archivo `.env.railway.example`
 4. En **Settings → Networking** (solo api-gateway): **Generate Domain** para obtener la URL pública
+5. Verificar que **Dockerfile Path** apunte al archivo del servicio dentro de `Producto/backend`
+   - Ejemplo: `auth-service/Dockerfile`
+   - No usar el `Dockerfile` raíz de `Producto/backend` en servicios individuales
 
 **Orden recomendado de creación:**
 1. `auth-service`
@@ -70,6 +73,7 @@ Para **cada microservicio** hacer lo mismo:
    - **Dockerfile Path:** `Dockerfile`
 3. En **Settings → Variables**: pegar las variables del frontend del `.env.railway.example`
    - Asegurarse de que `NEXT_PUBLIC_API_URL` apunte al dominio público del `api-gateway`
+   - Dejar `NEXT_PUBLIC_NOTIFICATION_SERVICE_URL` con la misma URL del gateway salvo que decidas exponer `notification-service` por separado
 4. En **Settings → Networking**: **Generate Domain** para obtener la URL pública del frontend
 
 ---

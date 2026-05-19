@@ -1,7 +1,8 @@
 import { api } from './client';
+import { getServiceBaseUrl } from './base';
 import type { LoginRequest, RegisterRequest, AuthResponse } from './types';
 
-const BASE = process.env.NEXT_PUBLIC_AUTH_SERVICE_URL ?? 'http://localhost:8081';
+const BASE = getServiceBaseUrl('NEXT_PUBLIC_AUTH_SERVICE_URL', 'http://localhost:8081');
 
 export const authApi = {
   /**

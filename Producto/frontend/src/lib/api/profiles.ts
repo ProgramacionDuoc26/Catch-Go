@@ -1,7 +1,8 @@
 import { api } from './client';
+import { getServiceBaseUrl } from './base';
 import type { Trabajador, Empresa } from './types';
 
-const BASE = process.env.NEXT_PUBLIC_PROFILE_SERVICE_URL ?? 'http://localhost:8082';
+const BASE = getServiceBaseUrl('NEXT_PUBLIC_PROFILE_SERVICE_URL', 'http://localhost:8082');
 
 export const profilesApi = {
   /**

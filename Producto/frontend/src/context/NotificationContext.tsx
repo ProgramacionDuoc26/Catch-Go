@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { usePathname } from 'next/navigation';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { getNotificationBaseUrl } from '@/lib/api/base';
 import { useSettings } from './SettingsContext';
 
 interface Notification {
@@ -136,7 +137,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       if (stompClient.current) return;
 
       console.log('Connecting to WebSocket for user:', userId);
-      const socket = new SockJS('http://localhost:8088/ws-notifications');
+      const socket = new SockJS(`${getNotificationBaseUrl()}/ws-notifications`);
       const stomp = new Client({
         webSocketFactory: () => socket,
         debug: (str) => console.log('STOMP: ' + str),

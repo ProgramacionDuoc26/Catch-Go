@@ -1,9 +1,11 @@
 import { api } from './client';
+import { getServiceBaseUrl } from './base';
 import { Profile } from './profile';
 import { Oferta } from './types';
 
-const PROFILE_BASE = process.env.NEXT_PUBLIC_PROFILE_SERVICE_URL || 'http://localhost:8082';
-const JOBS_BASE = process.env.NEXT_PUBLIC_JOBS_SERVICE_URL || 'http://localhost:8083';
+const AUTH_BASE = getServiceBaseUrl('NEXT_PUBLIC_AUTH_SERVICE_URL', 'http://localhost:8081');
+const PROFILE_BASE = getServiceBaseUrl('NEXT_PUBLIC_PROFILE_SERVICE_URL', 'http://localhost:8082');
+const JOBS_BASE = getServiceBaseUrl('NEXT_PUBLIC_JOBS_SERVICE_URL', 'http://localhost:8083');
 
 export interface AdminStats {
   totalWorkers: number;
@@ -55,7 +57,7 @@ export const adminApi = {
 
   createAdmin: async (adminData: any) => {
     // 1. Create in Auth Service
-    const authRes = await api.post<any>(`http://localhost:8081/auth/register`, {
+    const authRes = await api.post<any>(`${AUTH_BASE}/auth/register`, {
       email: adminData.email,
       password: adminData.password,
       nombre: adminData.name,
@@ -86,7 +88,7 @@ export const adminApi = {
   deleteAdmin: async (userId: string) => {
     // We should ideally delete from both Auth and Profile
     // but most systems prioritize Auth
-    await api.delete(`http://localhost:8081/auth/user/${userId}`);
+    await api.delete(`${AUTH_BASE}/auth/user/${userId}`);
     return api.delete(`${PROFILE_BASE}/profiles/${userId}`);
   }
 };
