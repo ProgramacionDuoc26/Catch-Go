@@ -4,9 +4,8 @@
 
 FROM maven:3.9.5-eclipse-temurin-21-alpine AS builder
 WORKDIR /app
-ARG CACHE_BUST=1
 COPY . .
-RUN mvn clean package -pl api-gateway -am -DskipTests
+RUN mvn clean package -pl api-gateway -am -DskipTests -Dmaven.repo.local=/tmp/m2
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
