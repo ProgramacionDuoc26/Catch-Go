@@ -2,7 +2,7 @@
 # Railway build context: Producto/backend
 # El api-gateway es el único servicio con dominio público expuesto
 
-FROM maven:3.9.9-eclipse-temurin-21-alpine AS builder
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS builder
 WORKDIR /app
 COPY . .
 RUN mvn clean package -pl api-gateway -am -DskipTests -Dmaven.repo.local=/tmp/m2
