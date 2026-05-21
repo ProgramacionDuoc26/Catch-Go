@@ -54,6 +54,7 @@ public class ProfileService {
         entity.setType(dto.getType());
         entity.setLatitude(dto.getLatitude());
         entity.setLongitude(dto.getLongitude());
+        entity.setSkills(dto.getSkills());
 
         return mapper.toDto(repository.save(entity));
     }

@@ -293,7 +293,23 @@ class ProfileViewModel @Inject constructor(
     fun updateLocation(lat: Double, lon: Double) {
         viewModelScope.launch {
             _uiState.update { it.copy(latitude = lat, longitude = lon, hasLocation = true) }
-            val updated = currentProfile.copy(userId = userId, latitude = lat, longitude = lon)
+            val s = _uiState.value
+            val existingSkills = runCatching {
+                if (currentProfile.skills?.startsWith("{") == true)
+                    org.json.JSONObject(currentProfile.skills) else org.json.JSONObject()
+            }.getOrDefault(org.json.JSONObject())
+            existingSkills.put("address", s.address)
+            existingSkills.put("rut", s.rut)
+            val habArr = org.json.JSONArray()
+            s.skillsHabilidades.forEach { habArr.put(it) }
+            existingSkills.put("habilidades", habArr)
+            existingSkills.put("ambiente", s.skillsAmbiente)
+            existingSkills.put("caracteristica", s.skillsCaracteristica)
+            existingSkills.put("preferencia", s.skillsPreferencia)
+            val updated = currentProfile.copy(
+                userId = userId, latitude = lat, longitude = lon,
+                skills = existingSkills.toString()
+            )
             profileRepository.saveProfile(updated).onSuccess { saved -> currentProfile = saved }
         }
     }

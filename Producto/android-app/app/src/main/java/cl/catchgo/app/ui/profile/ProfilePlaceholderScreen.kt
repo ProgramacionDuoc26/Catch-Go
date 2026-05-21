@@ -167,7 +167,10 @@ fun ProfilePlaceholderScreen(
     }
 
     LaunchedEffect(uiState.saveSuccess) {
-        if (uiState.saveSuccess) viewModel.clearSaveSuccess()
+        if (uiState.saveSuccess) {
+            android.widget.Toast.makeText(context, "Perfil guardado", android.widget.Toast.LENGTH_SHORT).show()
+            viewModel.clearSaveSuccess()
+        }
     }
 
     LaunchedEffect(uiState.accountDeleted) {
