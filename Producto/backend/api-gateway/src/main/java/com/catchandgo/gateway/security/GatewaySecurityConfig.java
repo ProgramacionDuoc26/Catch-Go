@@ -6,17 +6,20 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 @Configuration
 @EnableWebFluxSecurity
 public class GatewaySecurityConfig {
 
     @Bean
     SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
+        return http
+                .cors(withDefaults())
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/actuator/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/auth/**").permitAll()
                         .anyExchange().permitAll())
-                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .build();
     }
 }
