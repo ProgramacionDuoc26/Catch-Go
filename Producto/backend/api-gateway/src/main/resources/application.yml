@@ -1,11 +1,38 @@
 server:
   port: ${PORT:${SERVER_PORT:8080}}
-
 spring:
   application:
     name: api-gateway
   cloud:
     gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origin-patterns:
+              - "http://localhost:3000"
+              - "https://localhost:3000"
+              - "http://127.0.0.1:3000"
+              - "https://*.up.railway.app"
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowed-headers:
+              - Content-Type
+              - Authorization
+              - Accept
+              - Origin
+              - Access-Control-Request-Method
+              - Access-Control-Request-Headers
+              - X-Requested-With
+            exposed-headers:
+              - Authorization
+              - Content-Type
+            allow-credentials: true
+            max-age: 3600
       routes:
         - id: auth-service
           uri: ${AUTH_SERVICE_URL:http://auth-service.railway.internal:8081}
@@ -31,7 +58,6 @@ spring:
           uri: ${NOTIFICATION_SERVICE_URL:http://notification-service.railway.internal:8085}
           predicates:
             - Path=/ws-notifications/**
-
 management:
   endpoints:
     web:
