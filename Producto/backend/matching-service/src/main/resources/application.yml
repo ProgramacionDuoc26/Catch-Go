@@ -25,6 +25,7 @@ spring:
     baseline-on-migrate: true
     repair-on-migrate: true
     validate-on-migrate: false
+    table: flyway_schema_history_matching
   data:
     redis:
       host: ${SPRING_DATA_REDIS_HOST:${REDISHOST:${REDIS_HOST:localhost}}}

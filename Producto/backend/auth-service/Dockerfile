@@ -9,7 +9,7 @@ WORKDIR /app
 COPY . .
 
 # Compilar solo el módulo auth-service y sus dependencias comunes
-RUN mvn clean package -DskipTests
+RUN mvn clean package -pl auth-service -am -DskipTests -Dmaven.repo.local=/tmp/m2
 
 # ── Runtime ──
 FROM eclipse-temurin:21-jre-alpine

@@ -13,6 +13,9 @@ async function request<T>(
   url: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos
+
   try {
     const token = typeof window !== 'undefined'
       ? localStorage.getItem('auth_token')
@@ -20,12 +23,15 @@ async function request<T>(
 
     const response = await fetch(url, {
       ...options,
+      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
       },
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -54,6 +60,14 @@ async function request<T>(
     
     return { data, error: null, status: response.status };
   } catch (err) {
+    clearTimeout(timeoutId);
+    if (err instanceof Error && err.name === 'AbortError') {
+      return {
+        data: null,
+        error: 'La solicitud tardó demasiado. Por favor intenta nuevamente.',
+        status: 0,
+      };
+    }
     return {
       data: null,
       error: err instanceof Error ? err.message : 'Error de red',
