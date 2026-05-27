@@ -32,6 +32,10 @@ spring:
     repair-on-migrate: true
     validate-on-migrate: false
     table: flyway_schema_history_profiles
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
   data:
     redis:
       host: ${SPRING_DATA_REDIS_HOST:${REDISHOST:${REDIS_HOST:localhost}}}
@@ -46,10 +50,6 @@ management:
     web:
       exposure:
         include: health,info,metrics
-
-spring.servlet.multipart:
-  max-file-size: 10MB
-  max-request-size: 10MB
 
 file:
   upload-dir: ${FILE_UPLOAD_DIR:/app/uploads}
