@@ -167,6 +167,7 @@ export default function TrabajadorPerfilPage() {
         console.log('Respuesta del servidor:', res);
 
         if (res.data) {
+          const parsedSkills = res.data.skills && res.data.skills.startsWith('{') ? JSON.parse(res.data.skills) : {};
           const p = {
             ...res.data,
             userId: realUserId,
@@ -175,12 +176,10 @@ export default function TrabajadorPerfilPage() {
             phone: res.data.phone || initialData.phone || '',
             photoUrl: res.data.photoUrl || initialData.photo || '',
             type: 'TRABAJADOR' as const,
-            // Recuperar datos extendidos del campo skills (RUT, Dirección)
-            ...(res.data.skills && res.data.skills.startsWith('{') ? JSON.parse(res.data.skills) : {})
+            address: res.data.address || parsedSkills.address || '',
+            certificateUrl: res.data.certificateUrl || parsedSkills.certificateUrl || '',
+            rut: res.data.rut || parsedSkills.rut || initialData.rut || '',
           };
-          if (!p.rut && initialData.rut) {
-            p.rut = initialData.rut;
-          }
           setFormData(p);
           setSavedProfile(p);
           if (res.data.birthDate) setBirthDateLocked(true);
@@ -273,22 +272,8 @@ export default function TrabajadorPerfilPage() {
 
     setSaving(true);
     try {
-      // Persistir datos extendidos en skills
-      const extendedData = {
-        rut: formData.rut,
-        address: formData.address,
-        certificateUrl: formData.certificateUrl
-      };
-
-      const dataToSave = {
-        ...formData,
-        skills: JSON.stringify({
-          ...(formData.skills && formData.skills.startsWith('{') ? JSON.parse(formData.skills) : {}),
-          ...extendedData
-        })
-      };
-
-      const res = await profileApi.save(dataToSave);
+      // Ahora enviamos formData con address y certificateUrl nativos como campos de primer nivel
+      const res = await profileApi.save(formData);
       if (!res.error) {
         // Actualizamos con los datos devueltos por el servidor (pueden tener IDs generados)
         const updatedData = res.data || formData;

@@ -13,6 +13,9 @@ public class ProfileDto {
     private String photoUrl;
     private String cvUrl;
     private String description;
+    private String address;
+    private String certificateUrl;
+    private String representativeName;
     private String rut;
     private String bankName;
     private String accountType;
@@ -45,6 +48,12 @@ public class ProfileDto {
     public void setCvUrl(String cvUrl) { this.cvUrl = cvUrl; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+    public String getCertificateUrl() { return certificateUrl; }
+    public void setCertificateUrl(String certificateUrl) { this.certificateUrl = certificateUrl; }
+    public String getRepresentativeName() { return representativeName; }
+    public void setRepresentativeName(String representativeName) { this.representativeName = representativeName; }
 
     public String getRut() { return rut; }
     public void setRut(String rut) { this.rut = rut; }

@@ -56,6 +56,9 @@ public class ProfileService {
             entity.setPhotoUrl(dto.getPhotoUrl());
             entity.setCvUrl(dto.getCvUrl());
             entity.setDescription(dto.getDescription());
+            entity.setAddress(dto.getAddress());
+            entity.setCertificateUrl(dto.getCertificateUrl());
+            entity.setRepresentativeName(dto.getRepresentativeName());
             entity.setBankName(dto.getBankName());
             entity.setAccountType(dto.getAccountType());
             entity.setAccountNumber(dto.getAccountNumber());

@@ -136,6 +136,7 @@ export default function EmpresaPerfilPage() {
         const res = await profileApi.getByUserId(realUserId);
 
         if (res.data) {
+          const parsedSkills = res.data.skills && res.data.skills.startsWith('{') ? JSON.parse(res.data.skills) : {};
           const p = {
             ...res.data,
             userId: realUserId,
@@ -144,12 +145,10 @@ export default function EmpresaPerfilPage() {
             phone: res.data.phone || initialData.phone || '',
             photoUrl: res.data.photoUrl || initialData.photo || '',
             type: 'EMPRESA' as const,
-            // Recuperar datos extendidos del campo skills si existen
-            ...(res.data.skills ? JSON.parse(res.data.skills) : {})
+            address: res.data.address || parsedSkills.address || '',
+            representativeName: res.data.representativeName || parsedSkills.representativeName || '',
+            rut: res.data.rut || parsedSkills.rut || initialData.rut || '',
           };
-          if (!p.rut && initialData.rut) {
-            p.rut = initialData.rut;
-          }
           setFormData(p);
           setSavedProfile(p);
         } else {
@@ -218,19 +217,10 @@ export default function EmpresaPerfilPage() {
 
     setSaving(true);
     try {
-      // Empaquetar RUT, Representante y Dirección en el campo skills para persistencia
-      const extendedData = {
-        rut: formData.rut,
-        representativeName: formData.representativeName,
-        address: formData.address
-      };
-      
+      // Enviar formData con todos los campos directamente (address, representativeName, rut son columnas propias)
       const dataToSave = {
         ...formData,
-        skills: JSON.stringify({
-          ...skillsData,
-          ...extendedData
-        })
+        skills: JSON.stringify(skillsData)
       };
 
       const res = await profileApi.save(dataToSave);

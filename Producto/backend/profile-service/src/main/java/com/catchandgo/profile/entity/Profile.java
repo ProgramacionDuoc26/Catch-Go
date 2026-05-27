@@ -25,6 +25,15 @@ public class Profile {
     private String cvUrl;
     private String description;
     
+    @Column(columnDefinition = "TEXT")
+    private String address;
+    
+    @Column(columnDefinition = "TEXT")
+    private String certificateUrl;
+    
+    @Column(columnDefinition = "TEXT")
+    private String representativeName;
+    
     // Datos Bancarios
     private String rut;
     private String bankName;
@@ -69,6 +78,12 @@ public class Profile {
     public void setCvUrl(String cvUrl) { this.cvUrl = cvUrl; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+    public String getCertificateUrl() { return certificateUrl; }
+    public void setCertificateUrl(String certificateUrl) { this.certificateUrl = certificateUrl; }
+    public String getRepresentativeName() { return representativeName; }
+    public void setRepresentativeName(String representativeName) { this.representativeName = representativeName; }
     public String getRut() { return rut; }
     public void setRut(String rut) { this.rut = rut; }
     public String getBankName() { return bankName; }

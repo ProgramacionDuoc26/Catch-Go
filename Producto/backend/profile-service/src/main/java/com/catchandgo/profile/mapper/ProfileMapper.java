@@ -21,6 +21,9 @@ public class ProfileMapper {
         dto.setPhotoUrl(entity.getPhotoUrl());
         dto.setCvUrl(entity.getCvUrl());
         dto.setDescription(entity.getDescription());
+        dto.setAddress(entity.getAddress());
+        dto.setCertificateUrl(entity.getCertificateUrl());
+        dto.setRepresentativeName(entity.getRepresentativeName());
         dto.setRut(entity.getRut());
         dto.setBankName(entity.getBankName());
         dto.setAccountType(entity.getAccountType());
@@ -50,6 +53,9 @@ public class ProfileMapper {
         entity.setPhotoUrl(dto.getPhotoUrl());
         entity.setCvUrl(dto.getCvUrl());
         entity.setDescription(dto.getDescription());
+        entity.setAddress(dto.getAddress());
+        entity.setCertificateUrl(dto.getCertificateUrl());
+        entity.setRepresentativeName(dto.getRepresentativeName());
         entity.setRut(dto.getRut());
         entity.setBankName(dto.getBankName());
         entity.setAccountType(dto.getAccountType());
