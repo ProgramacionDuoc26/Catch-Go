@@ -3,6 +3,8 @@ package com.catchandgo.profile.controller;
 import com.catchandgo.profile.dto.ProfileDto;
 import com.catchandgo.profile.service.ProfileService;
 import java.util.List;
+import java.util.Map;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,8 +32,20 @@ public class ProfileController {
     }
 
     @PostMapping
-    public ProfileDto save(@RequestBody ProfileDto dto) {
-        return service.saveOrUpdate(dto);
+    public ResponseEntity<?> save(@RequestBody ProfileDto dto) {
+        try {
+            ProfileDto saved = service.saveOrUpdate(dto);
+            return ResponseEntity.ok(saved);
+        } catch (IllegalArgumentException e) {
+            System.err.println("[ProfileController] Validation error: " + e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            System.err.println("[ProfileController] Error saving profile: " + e.getClass().getName() + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
+        }
     }
 
     @DeleteMapping("/user/{userId}")
