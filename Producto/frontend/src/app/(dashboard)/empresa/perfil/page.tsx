@@ -90,7 +90,7 @@ export default function EmpresaPerfilPage() {
       setLoading(true);
       let realUserId = '';
       try {
-        let initialData = { name: '', email: '', phone: '+56 ', photo: '' };
+        let initialData = { name: '', email: '', phone: '+56 ', photo: '', rut: '' };
 
         // 1. Intentar primero con localStorage (fuente de verdad de la sesión activa en el frontend)
         const storedUser = localStorage.getItem('user_info');
@@ -102,7 +102,8 @@ export default function EmpresaPerfilPage() {
               name: userData.nombre || userData.name || '', 
               email: userData.email || '', 
               phone: userData.telefono || userData.phone || '+56 ',
-              photo: userData.foto || userData.photoUrl || ''
+              photo: userData.foto || userData.photoUrl || '',
+              rut: userData.rut || ''
             };
           } catch (e) {
             console.error('Error al parsear user_info de localStorage:', e);
@@ -120,7 +121,8 @@ export default function EmpresaPerfilPage() {
               name: supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || '', 
               email: supabaseUser.email || '', 
               phone: '+56 ',
-              photo: supabaseUser.user_metadata?.avatar_url || ''
+              photo: supabaseUser.user_metadata?.avatar_url || '',
+              rut: ''
             };
           }
         }
@@ -145,6 +147,9 @@ export default function EmpresaPerfilPage() {
             // Recuperar datos extendidos del campo skills si existen
             ...(res.data.skills ? JSON.parse(res.data.skills) : {})
           };
+          if (!p.rut && initialData.rut) {
+            p.rut = initialData.rut;
+          }
           setFormData(p);
           setSavedProfile(p);
         } else {
@@ -154,7 +159,8 @@ export default function EmpresaPerfilPage() {
             name: initialData.name, 
             email: initialData.email, 
             phone: initialData.phone,
-            photoUrl: initialData.photo
+            photoUrl: initialData.photo,
+            rut: initialData.rut || prev.rut
           }));
         }
       } catch (error) {
@@ -551,6 +557,7 @@ export default function EmpresaPerfilPage() {
               <div className="pt-4 border-t border-gray-100">
                 <LocationPicker 
                   apiKey={GOOGLE_MAPS_API_KEY}
+                  label="Ingresa la dirección comercial de tu empresa"
                   initialLat={formData.latitude}
                   initialLng={formData.longitude}
                   onLocationChange={async (lat, lng) => {

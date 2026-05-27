@@ -22,13 +22,13 @@ public class ProfileService {
     }
 
     public ProfileDto findByUserId(String userId) {
-        return repository.findByUserId(userId)
+        return repository.findFirstByUserId(userId)
                 .map(mapper::toDto)
                 .orElse(null);
     }
 
     public ProfileDto saveOrUpdate(ProfileDto dto) {
-        Profile entity = repository.findByUserId(dto.getUserId())
+        Profile entity = repository.findFirstByUserId(dto.getUserId())
                 .orElse(new Profile());
         
         // Actualizamos campos
@@ -68,6 +68,6 @@ public class ProfileService {
     }
 
     public void deleteByUserId(String userId) {
-        repository.findByUserId(userId).ifPresent(repository::delete);
+        repository.findFirstByUserId(userId).ifPresent(repository::delete);
     }
 }

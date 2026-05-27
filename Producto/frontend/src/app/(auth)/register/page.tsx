@@ -96,7 +96,13 @@ export default function RegisterPage() {
         setGlobalError(res.error || 'Ocurrió un error en el registro');
       } else {
         if (res.data?.token) localStorage.setItem('auth_token', res.data.token);
-        if (res.data?.usuario) localStorage.setItem('user_info', JSON.stringify(res.data.usuario));
+        if (res.data?.usuario) {
+          const userWithRut = { 
+            ...res.data.usuario, 
+            rut: accountType === 'trabajador' ? formData.rut : formData.companyRut 
+          };
+          localStorage.setItem('user_info', JSON.stringify(userWithRut));
+        }
         router.push(accountType === 'trabajador' ? '/trabajador/perfil' : '/empresa/perfil');
       }
     } catch (err: any) {

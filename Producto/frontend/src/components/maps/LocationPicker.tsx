@@ -11,6 +11,7 @@ interface LocationPickerProps {
   address?: string;
   onAddressChange?: (address: string) => void;
   apiKey: string;
+  label?: string;
 }
 
 const DEFAULT_CENTER = { lat: -33.4489, lng: -70.6693 }; // Santiago, Chile
@@ -21,7 +22,8 @@ export default function LocationPicker({
   onLocationChange, 
   address,
   onAddressChange,
-  apiKey 
+  apiKey,
+  label
 }: LocationPickerProps) {
   const [markerPos, setMarkerPos] = useState({ 
     lat: initialLat || DEFAULT_CENTER.lat, 
@@ -135,7 +137,7 @@ export default function LocationPicker({
       {/* Address Search Field */}
       <div className="flex flex-col gap-1.5">
         <label className="text-xs font-bold uppercase tracking-wider text-gray-400">
-          Buscar Dirección del Lugar de Trabajo
+          {label || "Buscar Dirección del Lugar de Trabajo"}
         </label>
         <div className="flex gap-2">
           <input
