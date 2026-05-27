@@ -204,17 +204,10 @@ export default function EmpresaPerfilPage() {
   };
 
   const handleSave = async () => {
-    // VALIDACION DE CAMPOS OBLIGATORIOS
+    // VALIDACION DE CAMPOS OBLIGATORIOS (solo los mínimos necesarios)
     const required = [
       { field: 'name', label: 'Nombre de la Empresa' },
-      { field: 'rut', label: 'RUT' },
-      { field: 'representativeName', label: 'Representante Legal' },
-      { field: 'address', label: 'Dirección' },
       { field: 'phone', label: 'Teléfono' },
-      { field: 'description', label: 'Descripción/Aptitudes' },
-      { field: 'bankName', label: 'Banco' },
-      { field: 'accountType', label: 'Tipo de Cuenta' },
-      { field: 'accountNumber', label: 'Número de Cuenta' }
     ];
 
     const missing = required.filter(r => !formData[r.field as keyof typeof formData]);

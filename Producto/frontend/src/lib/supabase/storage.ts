@@ -1,30 +1,33 @@
-import { getServiceBaseUrl } from '../api/base';
-
-const PROFILE_BASE = getServiceBaseUrl('NEXT_PUBLIC_PROFILE_SERVICE_URL', 'http://localhost:8082');
+import { createClient } from './client';
 
 /**
- * Sube un archivo al backend Java (profile-service).
- * Retorna la URL pública completa del archivo guardado.
+ * Sube un archivo al Supabase Storage y retorna la URL pública.
+ * Usa el bucket 'profiles' en Supabase para almacenamiento persistente.
+ * (El backend Java guarda en disco local que se borra en cada redeploy de Railway)
  */
 export async function uploadFile(file: File, userId: string): Promise<string> {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('userId', userId);
+  const supabase = createClient();
 
-  const response = await fetch(`${PROFILE_BASE}/files/upload`, {
-    method: 'POST',
-    body: formData,
-  });
+  // Generar nombre único con extensión original
+  const ext = file.name.includes('.') ? file.name.substring(file.name.lastIndexOf('.')) : '';
+  const fileName = `${userId}/${Date.now()}_${Math.random().toString(36).substring(2)}${ext}`;
 
-  if (!response.ok) {
-    let errorMsg = 'Error al subir archivo';
-    try {
-      const errData = await response.json();
-      errorMsg = errData.error || errorMsg;
-    } catch { /* ignore */ }
-    throw new Error(errorMsg);
+  const { data, error } = await supabase.storage
+    .from('profiles')
+    .upload(fileName, file, {
+      cacheControl: '3600',
+      upsert: true,
+      contentType: file.type || 'application/octet-stream',
+    });
+
+  if (error) {
+    throw new Error(`Error al subir archivo: ${error.message}`);
   }
 
-  const data = await response.json();
-  return `${PROFILE_BASE}${data.url}`;
+  // Obtener URL pública del archivo
+  const { data: { publicUrl } } = supabase.storage
+    .from('profiles')
+    .getPublicUrl(data.path);
+
+  return publicUrl;
 }

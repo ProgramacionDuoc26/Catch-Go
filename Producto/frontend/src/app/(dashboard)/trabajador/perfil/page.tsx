@@ -259,16 +259,10 @@ export default function TrabajadorPerfilPage() {
   };
 
   const handleSave = async () => {
-    // VALIDACION DE CAMPOS OBLIGATORIOS
+    // VALIDACION DE CAMPOS OBLIGATORIOS (solo los mínimos necesarios)
     const required = [
       { field: 'name', label: 'Nombre' },
-      { field: 'rut', label: 'RUT' },
-      { field: 'address', label: 'Dirección' },
       { field: 'phone', label: 'Teléfono' },
-      { field: 'birthDate', label: 'Fecha de Nacimiento' },
-      { field: 'bankName', label: 'Banco' },
-      { field: 'accountType', label: 'Tipo de Cuenta' },
-      { field: 'accountNumber', label: 'Número de Cuenta' }
     ];
 
     const missing = required.filter(r => !formData[r.field as keyof typeof formData]);
