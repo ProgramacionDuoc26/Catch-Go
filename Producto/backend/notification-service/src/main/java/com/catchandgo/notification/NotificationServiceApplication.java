@@ -28,13 +28,17 @@ public class NotificationServiceApplication {
         return http.build();
     }
 
+    /**
+     * CORS simplificado: no enviar Access-Control-Allow-Credentials ni
+     * Access-Control-Allow-Origin con valor explícito del origin.
+     * El API Gateway maneja CORS de forma centralizada.
+     * Usar applyPermitDefaultValues para no generar cabeceras duplicadas.
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.applyPermitDefaultValues();
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
