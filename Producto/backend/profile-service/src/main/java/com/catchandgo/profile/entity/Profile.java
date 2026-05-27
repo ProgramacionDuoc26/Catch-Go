@@ -18,7 +18,10 @@ public class Profile {
     private LocalDate birthDate;
     
     // Datos Profesionales/Empresa
+    @Column(columnDefinition = "TEXT")
     private String photoUrl;
+    
+    @Column(columnDefinition = "TEXT")
     private String cvUrl;
     private String description;
     
