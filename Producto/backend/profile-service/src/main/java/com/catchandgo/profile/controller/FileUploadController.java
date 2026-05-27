@@ -45,7 +45,7 @@ public class FileUploadController {
 
             // Guardar archivo
             Path filePath = dir.resolve(fileName);
-            file.transferTo(filePath.toFile());
+            Files.copy(file.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
             // Construir URL pública
             String fileUrl = "/files/view/" + userId + "/" + fileName;
