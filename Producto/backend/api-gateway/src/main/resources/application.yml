@@ -9,7 +9,7 @@ spring:
   cloud:
     gateway:
       default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Methods Access-Control-Allow-Headers Access-Control-Allow-Credentials, RETAIN_UNIQUE
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Methods Access-Control-Allow-Headers Access-Control-Allow-Credentials, RETAIN_FIRST
       routes:
         - id: auth-service
           uri: ${AUTH_SERVICE_URL:http://auth-service.railway.internal:8081}
