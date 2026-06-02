@@ -48,7 +48,11 @@ public class ProfileMapper {
         entity.setEmail(dto.getEmail());
         entity.setPhone(dto.getPhone());
         if (dto.getBirthDate() != null && !dto.getBirthDate().isEmpty()) {
-            entity.setBirthDate(LocalDate.parse(dto.getBirthDate()));
+            try {
+                entity.setBirthDate(LocalDate.parse(dto.getBirthDate()));
+            } catch (Exception e) {
+                System.err.println("[ProfileMapper] Error parsing birthDate: " + dto.getBirthDate() + ", error: " + e.getMessage());
+            }
         }
         entity.setPhotoUrl(dto.getPhotoUrl());
         entity.setCvUrl(dto.getCvUrl());

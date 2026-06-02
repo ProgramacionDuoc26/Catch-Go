@@ -25,6 +25,9 @@ spring:
     baseline-on-migrate: true
     baseline-version: "0"
     table: flyway_schema_history_auth
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: false
   data:
     redis:
       host: ${SPRING_DATA_REDIS_HOST:${REDISHOST:${REDIS_HOST:localhost}}}
