@@ -16,10 +16,17 @@ public class JobOffer {
     private String descripcion;
     private String ubicacion;
     private Integer remuneracion;
+    @jakarta.persistence.Column(name = "fecha_inicio")
     private String fechaInicio;
+    
+    @jakarta.persistence.Column(name = "fecha_fin")
     private String fechaFin;
+    
     private String estado;
+    
+    @jakarta.persistence.Column(name = "empresa_id")
     private String empresaId;
+    
     private Double latitude;
     private Double longitude;
     private String categoria;

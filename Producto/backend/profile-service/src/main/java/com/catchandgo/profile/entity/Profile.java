@@ -11,33 +11,42 @@ public class Profile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    @Column(name = "user_id")
     private String userId; // ID del usuario en Auth (Keycloak/Supabase)
     private String name;
     private String email;
     private String phone;
+    
+    @Column(name = "birth_date")
     private LocalDate birthDate;
     
     // Datos Profesionales/Empresa
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "photo_url", columnDefinition = "TEXT")
     private String photoUrl;
     
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "cv_url", columnDefinition = "TEXT")
     private String cvUrl;
     private String description;
     
     @Column(columnDefinition = "TEXT")
     private String address;
     
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "certificate_url", columnDefinition = "TEXT")
     private String certificateUrl;
     
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "representative_name", columnDefinition = "TEXT")
     private String representativeName;
     
     // Datos Bancarios
     private String rut;
+    
+    @Column(name = "bank_name")
     private String bankName;
+    
+    @Column(name = "account_type")
     private String accountType;
+    
+    @Column(name = "account_number")
     private String accountNumber;
     
     // Tipo de Perfil: TRABAJADOR o EMPRESA
@@ -53,10 +62,14 @@ public class Profile {
 
     // Calificación
     private Double rating;
+    
+    @Column(name = "rating_count")
     private Integer ratingCount;
 
     // Plan de Suscripción
     private String plan = "TRIAL";
+    
+    @Column(name = "plan_expiry")
     private LocalDateTime planExpiry;
 
     // Getters y Setters
