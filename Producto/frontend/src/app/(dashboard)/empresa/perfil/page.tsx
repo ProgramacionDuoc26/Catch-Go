@@ -543,6 +543,7 @@ export default function EmpresaPerfilPage() {
                   label="Ingresa la dirección comercial de tu empresa"
                   initialLat={formData.latitude}
                   initialLng={formData.longitude}
+                  hideSearch={true}
                   onLocationChange={async (lat, lng) => {
                     setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
                     

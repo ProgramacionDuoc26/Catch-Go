@@ -12,6 +12,7 @@ interface LocationPickerProps {
   onAddressChange?: (address: string) => void;
   apiKey: string;
   label?: string;
+  hideSearch?: boolean;
 }
 
 const DEFAULT_CENTER = { lat: -33.4489, lng: -70.6693 }; // Santiago, Chile
@@ -23,7 +24,8 @@ export default function LocationPicker({
   address,
   onAddressChange,
   apiKey,
-  label
+  label,
+  hideSearch = false
 }: LocationPickerProps) {
   const [markerPos, setMarkerPos] = useState({ 
     lat: initialLat || DEFAULT_CENTER.lat, 
@@ -135,33 +137,35 @@ export default function LocationPicker({
   return (
     <div className="space-y-4">
       {/* Address Search Field */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-bold uppercase tracking-wider text-gray-400">
-          {label || "Buscar Dirección del Lugar de Trabajo"}
-        </label>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                handleSearch();
-              }
-            }}
-            placeholder="Ej. Av. Andrés Bello 2425, Providencia"
-            className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-primary focus:border-primary shadow-sm text-sm"
-          />
-          <button
-            type="button"
-            onClick={handleSearch}
-            className="bg-primary text-white px-5 py-3 rounded-md hover:bg-primary-dark transition-colors text-sm font-semibold shadow-sm min-h-[44px]"
-          >
-            Buscar
-          </button>
+      {!hideSearch && (
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-bold uppercase tracking-wider text-gray-400">
+            {label || "Buscar Dirección del Lugar de Trabajo"}
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleSearch();
+                }
+              }}
+              placeholder="Ej. Av. Andrés Bello 2425, Providencia"
+              className="flex-1 px-4 py-3 border border-gray-300 rounded-md focus:ring-primary focus:border-primary shadow-sm text-sm"
+            />
+            <button
+              type="button"
+              onClick={handleSearch}
+              className="bg-primary text-white px-5 py-3 rounded-md hover:bg-primary-dark transition-colors text-sm font-semibold shadow-sm min-h-[44px]"
+            >
+              Buscar
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex justify-between items-center">
         <label className="text-xs font-bold uppercase tracking-wider text-gray-400">

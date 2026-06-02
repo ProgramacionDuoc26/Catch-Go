@@ -599,6 +599,7 @@ export default function TrabajadorPerfilPage() {
                   label="Ingresa tu dirección de residencia"
                   initialLat={formData.latitude}
                   initialLng={formData.longitude}
+                  hideSearch={true}
                   onLocationChange={async (lat, lng) => {
                     setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }));
                     
