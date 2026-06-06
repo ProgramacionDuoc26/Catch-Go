@@ -89,6 +89,6 @@ export const adminApi = {
     // We should ideally delete from both Auth and Profile
     // but most systems prioritize Auth
     await api.delete(`${AUTH_BASE}/auth/user/${userId}`);
-    return api.delete(`${PROFILE_BASE}/profiles/${userId}`);
+    return api.delete(`${PROFILE_BASE}/profiles/user/${userId}`);
   }
 };
