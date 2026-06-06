@@ -10,14 +10,22 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -36,18 +44,60 @@ fun RegisterScreen(
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    
+    var showTermsDialog by remember { mutableStateOf(false) }
+    var localErrorMessage by remember { mutableStateOf<String?>(null) }
+
     RegisterContent(
-        state = state,
-        onRoleSelect = viewModel::onRoleSelect,
-        onEmailChange = viewModel::onEmailChange,
-        onPasswordChange = viewModel::onPasswordChange,
-        onFullNameChange = viewModel::onFullNameChange,
-        onRutChange = viewModel::onRutChange,
-        onPhoneChange = viewModel::onPhoneChange,
-        onSubmit = viewModel::onSubmit,
+        state = state.copy(errorMessage = localErrorMessage ?: state.errorMessage),
+        onRoleSelect = {
+            localErrorMessage = null
+            viewModel.onRoleSelect(it)
+        },
+        onEmailChange = {
+            localErrorMessage = null
+            viewModel.onEmailChange(it)
+        },
+        onPasswordChange = {
+            localErrorMessage = null
+            viewModel.onPasswordChange(it)
+        },
+        onFullNameChange = {
+            localErrorMessage = null
+            viewModel.onFullNameChange(it)
+        },
+        onRutChange = {
+            localErrorMessage = null
+            viewModel.onRutChange(it)
+        },
+        onPhoneChange = {
+            localErrorMessage = null
+            viewModel.onPhoneChange(it)
+        },
+        onSubmit = {
+            localErrorMessage = null
+            showTermsDialog = true
+        },
         onLoginClick = onLoginClick,
         modifier = modifier
     )
+
+    if (showTermsDialog && state.role != null) {
+        TermsAndConditionsDialog(
+            role = state.role!!,
+            onAccept = {
+                showTermsDialog = false
+                viewModel.onSubmit()
+            },
+            onReject = {
+                showTermsDialog = false
+                localErrorMessage = "Solicitud rechazada: Debe aceptar los términos y condiciones de privacidad (Ley 19.628) para registrarse."
+            },
+            onDismiss = {
+                showTermsDialog = false
+            }
+        )
+    }
 }
 
 @Composable
@@ -182,5 +232,66 @@ private fun RegisterScreenPreview() {
             onSubmit = {},
             onLoginClick = {}
         )
+    }
+}
+
+@Composable
+private fun TermsAndConditionsDialog(
+    role: UserRole,
+    onAccept: () -> Unit,
+    onReject: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = MaterialTheme.shapes.large,
+            tonalElevation = 6.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(Spacing.md)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(Spacing.lg)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(Spacing.md)
+            ) {
+                Text(
+                    text = "Términos y Privacidad (Ley 19.628)",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                
+                val scrollState = rememberScrollState()
+                Column(
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .heightIn(max = 280.dp)
+                        .verticalScroll(scrollState)
+                ) {
+                    Text(
+                        text = if (role == UserRole.WORKER) {
+                            "Términos y Condiciones para Trabajadores\n\nEn conformidad con la Ley Nº 19.628 sobre Protección de la Vida Privada en Chile, al presionar 'Aceptar', usted otorga su consentimiento expreso para que Catch-Go recolecte, almacene y trate sus datos personales (nombre, RUT, correo electrónico, teléfono y calificaciones).\n\nEstos datos se utilizarán para gestionar su perfil, recomendarle ofertas de turnos y coordinar la realización de los mismos. Sus datos profesionales y de contacto serán compartidos única y exclusivamente con las Empresas organizadoras de los turnos a los que usted postule formalmente.\n\nUsted puede revocar este consentimiento o ejercer sus derechos de acceso, rectificación, cancelación y oposición escribiendo a soporte@catchgo.cl.\n\nSi no acepta estos términos, su solicitud de registro será rechazada."
+                        } else {
+                            "Términos y Condiciones para Empresas\n\nEn conformidad con la Ley Nº 19.628 sobre Protección de la Vida Privada en Chile, al presionar 'Aceptar', la Empresa acepta las condiciones de tratamiento seguro y confidencial de datos de la plataforma Catch-Go.\n\nLa Empresa se compromete a resguardar con estricta reserva toda información personal o datos sensibles de los Trabajadores a los que acceda. Queda estrictamente prohibido utilizar estos datos para fines ajenos a la cobertura de los turnos solicitados a través de Catch-Go.\n\nAmbas partes asumen plena responsabilidad legal por el cumplimiento de la Ley 19.628 respecto a la privacidad de los datos personales tratados en la plataforma.\n\nSi no acepta estos términos, su solicitud de registro será rechazada."
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.sm, Alignment.End)
+                ) {
+                    OutlinedButton(onClick = onReject) {
+                        Text("Rechazar")
+                    }
+                    Button(onClick = onAccept) {
+                        Text("Aceptar")
+                    }
+                }
+            }
+        }
     }
 }

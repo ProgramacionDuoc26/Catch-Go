@@ -26,6 +26,7 @@ export default function RegisterPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [globalError, setGlobalError] = useState<string>('');
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
@@ -45,7 +46,7 @@ export default function RegisterPage() {
   };
   const validatePassword = (password: string) => /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     setGlobalError('');
     const newErrors: Record<string, string> = {};
@@ -68,6 +69,11 @@ export default function RegisterPage() {
       return;
     }
 
+    setShowTermsModal(true);
+  };
+
+  const proceedWithRegistration = async () => {
+    setShowTermsModal(false);
     setIsLoading(true);
     try {
       const { authApi } = await import('@/lib/api/auth');
@@ -97,6 +103,11 @@ export default function RegisterPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleDeclineTerms = () => {
+    setShowTermsModal(false);
+    setGlobalError('Solicitud rechazada: Debe aceptar los términos y condiciones de privacidad de datos (Ley 19.628) para registrarse.');
   };
 
   return (
@@ -311,6 +322,94 @@ export default function RegisterPage() {
           </p>
         </div>
       </motion.div>
+
+      <AnimatePresence>
+        {showTermsModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col max-h-[85vh]"
+            >
+              {/* Encabezado */}
+              <div className={`p-6 text-white flex items-center gap-3 ${accountType === 'trabajador' ? 'bg-primary' : 'bg-slate-900'}`}>
+                <ShieldCheck size={28} className="animate-pulse" />
+                <div>
+                  <h3 className="text-lg font-bold">Términos, Condiciones y Privacidad</h3>
+                  <p className="text-white/60 text-xs font-semibold uppercase tracking-wider">Chile - Ley N° 19.628</p>
+                </div>
+              </div>
+
+              {/* Contenido (Scrollable) */}
+              <div className="p-6 overflow-y-auto space-y-4 text-sm text-gray-600 leading-relaxed border-b border-gray-100">
+                {accountType === 'trabajador' ? (
+                  <>
+                    <h4 className="font-bold text-gray-900 text-base">Términos de Privacidad para Trabajadores</h4>
+                    <p>
+                      En conformidad con la <strong>Ley Nº 19.628 sobre Protección de la Vida Privada</strong> en Chile, Catch-Go requiere su consentimiento libre, previo e informado para tratar sus datos personales.
+                    </p>
+                    <p>
+                      Al presionar <strong>&quot;Aceptar y Registrarse&quot;</strong>, usted consiente explícitamente y acepta que:
+                    </p>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li><strong>Recopilación de Datos:</strong> Almacenaremos su nombre completo, RUT, correo, teléfono de contacto y las calificaciones de desempeño que reciba.</li>
+                      <li><strong>Uso de la Información:</strong> Estos datos se tratarán únicamente para gestionar su perfil, recomendarle ofertas de turnos personalizadas y coordinar la ejecución de los mismos.</li>
+                      <li><strong>Uso Compartido con Terceros:</strong> Para posibilitar la contratación de turnos, su perfil laboral, RUT, teléfono y calificaciones serán compartidos únicamente con las Empresas a cuyas ofertas de turnos usted postule voluntariamente.</li>
+                      <li><strong>Derechos ARCO:</strong> En cualquier momento podrá ejercer sus derechos de acceso, rectificación, cancelación y oposición escribiendo a <span className="font-semibold text-primary">soporte@catchgo.cl</span>.</li>
+                    </ul>
+                    <p className="text-xs text-gray-400 italic">
+                      Nota: Si decide no aceptar estos términos, su solicitud de creación de cuenta será cancelada y rechazada inmediatamente.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h4 className="font-bold text-gray-900 text-base">Términos de Privacidad para Empresas</h4>
+                    <p>
+                      En conformidad con la <strong>Ley Nº 19.628 sobre Protección de la Vida Privada</strong> en Chile, Catch-Go y la Empresa solicitante acuerdan los términos de tratamiento y seguridad de datos.
+                    </p>
+                    <p>
+                      Al presionar <strong>&quot;Aceptar y Registrarse&quot;</strong>, la Empresa declara, garantiza y acepta que:
+                    </p>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li><strong>Recopilación de Datos Corporativos:</strong> Catch-Go recopilará y tratará la Razón Social, RUT de la empresa, datos de contacto del representante y los detalles de las ofertas de turnos publicadas.</li>
+                      <li><strong>Uso de los Datos:</strong> Se utilizarán para verificar la vigencia legal de la entidad, gestionar cobros/facturación y presentar información corporativa de confianza a los postulantes.</li>
+                      <li><strong>Confidencialidad de los Trabajadores:</strong> La Empresa se obliga a mantener absoluta reserva y confidencialidad respecto a los datos personales, de contacto y RUT de los Trabajadores recibidos a través de la plataforma, prohibiéndose su exportación, divulgación o uso para cualquier fin ajeno al cumplimiento del turno.</li>
+                      <li><strong>Cumplimiento Normativo:</strong> Ambas partes declaran cumplir íntegramente con la legislación de protección de datos (Ley 19.628).</li>
+                    </ul>
+                    <p className="text-xs text-gray-400 italic">
+                      Nota: Si decide no aceptar estos términos, su solicitud de creación de cuenta será cancelada y rechazada inmediatamente.
+                    </p>
+                  </>
+                )}
+              </div>
+
+              {/* Botones de acción */}
+              <div className="p-6 bg-gray-50 flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  onClick={handleDeclineTerms}
+                  className="flex-1 py-3 px-4 bg-white hover:bg-gray-100 text-gray-700 font-bold border border-gray-200 rounded-xl transition-colors text-center text-sm"
+                >
+                  Rechazar Solicitud
+                </button>
+                <button
+                  type="button"
+                  onClick={proceedWithRegistration}
+                  className={`flex-1 py-3 px-4 text-white font-bold rounded-xl shadow-lg transition-all text-center text-sm ${
+                    accountType === 'trabajador' 
+                      ? 'bg-primary hover:bg-primary-dark shadow-primary/20' 
+                      : 'bg-slate-900 hover:bg-slate-800 shadow-slate-900/20'
+                  }`}
+                >
+                  Aceptar y Registrarse
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
