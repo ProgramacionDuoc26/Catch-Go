@@ -2,6 +2,7 @@ package com.catchandgo.notification.hub;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 
@@ -18,7 +19,7 @@ public class NotificationHandler {
 
     public void handleMessage(String message) {
         try {
-            Map<String, String> data = objectMapper.readValue(message, Map.class);
+            Map<String, String> data = objectMapper.readValue(message, new TypeReference<Map<String, String>>() {});
             String userId = data.get("userId");
             
             // Send to user-specific topic

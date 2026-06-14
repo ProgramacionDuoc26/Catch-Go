@@ -1,7 +1,6 @@
 package com.catchandgo.jobs.service;
 
 import com.catchandgo.jobs.dto.JobOfferDto;
-import com.catchandgo.jobs.dto.JobApplicationDto;
 import com.catchandgo.jobs.entity.JobOffer;
 import com.catchandgo.jobs.entity.JobApplication;
 import com.catchandgo.jobs.mapper.JobOfferMapper;
@@ -25,6 +24,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("null")
 public class JobOfferServiceTest {
 
     @Mock

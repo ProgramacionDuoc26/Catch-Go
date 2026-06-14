@@ -10,9 +10,8 @@ import com.catchandgo.common.jwt.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
+@SuppressWarnings("null")
 public class UserAccountService {
     private final UserAccountRepository repository;
     private final UserAccountMapper mapper;

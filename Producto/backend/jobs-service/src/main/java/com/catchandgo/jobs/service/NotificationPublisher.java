@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 
 @Service
+@SuppressWarnings("null")
 public class NotificationPublisher {
 
     private final StringRedisTemplate redisTemplate;

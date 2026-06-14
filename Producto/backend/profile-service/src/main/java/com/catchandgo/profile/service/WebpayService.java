@@ -8,12 +8,14 @@ import java.time.LocalDateTime;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 @Service
+@SuppressWarnings("null")
 public class WebpayService {
     private static final Logger log = LoggerFactory.getLogger(WebpayService.class);
     
@@ -62,10 +64,16 @@ public class WebpayService {
 
         try {
             // 3. Llamar a la API de Transbank
-            ResponseEntity<Map> response = restTemplate.exchange(WEBPAY_URL, HttpMethod.POST, entity, Map.class);
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                token = (String) response.getBody().get("token");
-                redirectUrl = (String) response.getBody().get("url");
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                WEBPAY_URL, 
+                HttpMethod.POST, 
+                entity, 
+                new ParameterizedTypeReference<Map<String, Object>>() {}
+            );
+            Map<String, Object> body = response.getBody();
+            if (response.getStatusCode() == HttpStatus.OK && body != null) {
+                token = (String) body.get("token");
+                redirectUrl = (String) body.get("url");
                 log.info("Transaccion inicializada en Webpay Sandbox con exito. Token: {}", token);
             }
         } catch (Exception e) {
@@ -135,9 +143,14 @@ public class WebpayService {
         } else {
             try {
                 // 2. Llamar a la API de confirmación de Transbank
-                ResponseEntity<Map> response = restTemplate.exchange(commitUrl, HttpMethod.PUT, entity, Map.class);
-                if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                    Map body = response.getBody();
+                ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    commitUrl, 
+                    HttpMethod.PUT, 
+                    entity, 
+                    new ParameterizedTypeReference<Map<String, Object>>() {}
+                );
+                Map<String, Object> body = response.getBody();
+                if (response.getStatusCode() == HttpStatus.OK && body != null) {
                     responseData.putAll(body);
                     
                     String status = (String) body.get("status");

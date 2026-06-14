@@ -9,6 +9,7 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import com.catchandgo.notification.hub.NotificationHandler;
 
 @Configuration
+@SuppressWarnings("null")
 public class RedisListenerConfig {
 
     @Bean

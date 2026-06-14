@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
+@SuppressWarnings("null")
 public class MatchSuggestionService {
     private final MatchSuggestionRepository repository;
     private final MatchSuggestionMapper mapper;
