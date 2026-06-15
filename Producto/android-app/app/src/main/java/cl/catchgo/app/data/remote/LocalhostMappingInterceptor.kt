@@ -15,13 +15,18 @@ class LocalhostMappingInterceptor @Inject constructor() : Interceptor {
             if (body != null) {
                 val contentType = body.contentType()
                 val bodyString = body.string()
-                val mappedBodyString = bodyString
-                    .replace("http://localhost", "http://${ApiConfig.HOST}")
-                    .replace("https://localhost", "https://${ApiConfig.HOST}")
-                    .replace("http://127.0.0.1", "http://${ApiConfig.HOST}")
-                    .replace("https://127.0.0.1", "https://${ApiConfig.HOST}")
-                    .replace("http://10.0.2.2", "http://${ApiConfig.HOST}")
-                    .replace("https://10.0.2.2", "https://${ApiConfig.HOST}")
+                val mappedBodyString = if (ApiConfig.HOST.contains("railway.app")) {
+                    // Si es producción (Railway), mapeamos cualquier llamada local (con o sin puerto) a la pasarela HTTPS segura
+                    bodyString.replace(Regex("https?://(localhost|127\\.0\\.0\\.1|10\\.0\\.2\\.2)(:\\d+)?"), "https://${ApiConfig.HOST}")
+                } else {
+                    bodyString
+                        .replace("http://localhost", "http://${ApiConfig.HOST}")
+                        .replace("https://localhost", "https://${ApiConfig.HOST}")
+                        .replace("http://127.0.0.1", "http://${ApiConfig.HOST}")
+                        .replace("https://127.0.0.1", "https://${ApiConfig.HOST}")
+                        .replace("http://10.0.2.2", "http://${ApiConfig.HOST}")
+                        .replace("https://10.0.2.2", "https://${ApiConfig.HOST}")
+                }
                 val newBody = mappedBodyString.toResponseBody(contentType)
                 return response.newBuilder().body(newBody).build()
             }
