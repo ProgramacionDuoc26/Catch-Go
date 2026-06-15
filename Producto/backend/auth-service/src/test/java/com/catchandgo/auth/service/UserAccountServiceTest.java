@@ -19,7 +19,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -82,7 +82,7 @@ public class UserAccountServiceTest {
         when(mapper.toEntity(dto)).thenReturn(userAccount);
         when(passwordEncoder.encode(dto.password())).thenReturn("encodedPassword");
         when(repository.save(userAccount)).thenReturn(userAccount);
-        when(jwtService.generateToken(anyString(), anyInt())).thenReturn("mocked-jwt-token");
+        when(jwtService.generateToken(anyString(), anyLong())).thenReturn("mocked-jwt-token");
         when(mapper.toUserDto(userAccount)).thenReturn(userDto);
 
         AuthResponseDto response = service.register(dto);
@@ -125,7 +125,7 @@ public class UserAccountServiceTest {
 
         when(repository.findByEmail(dto.email())).thenReturn(Optional.of(userAccount));
         when(passwordEncoder.matches(dto.password(), userAccount.getPassword())).thenReturn(true);
-        when(jwtService.generateToken(anyString(), anyInt())).thenReturn("mocked-jwt-token");
+        when(jwtService.generateToken(anyString(), anyLong())).thenReturn("mocked-jwt-token");
         when(mapper.toUserDto(userAccount)).thenReturn(userDto);
 
         AuthResponseDto response = service.login(dto);
