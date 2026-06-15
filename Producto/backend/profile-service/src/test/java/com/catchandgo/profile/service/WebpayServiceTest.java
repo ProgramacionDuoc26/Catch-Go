@@ -30,7 +30,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings({"null", "unchecked", "rawtypes"})
+@SuppressWarnings({"null", "unchecked"})
 public class WebpayServiceTest {
 
     @Mock
