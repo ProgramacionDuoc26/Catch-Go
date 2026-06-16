@@ -171,7 +171,8 @@ class RegisterViewModelTest {
 
         val state = viewModel.state.value
         assertFalse(state.isLoading)
-        assertEquals("Error de conexión", state.errorMessage) // ErrorMapper traduce IOException a 'Error de conexión' o similar
+        assertEquals("Sin conexión a internet", state.errorMessage) // ErrorMapper traduce IOException a 'Sin conexión a internet'
         coVerify(exactly = 1) { authRepository.register(input) }
+
     }
 }
