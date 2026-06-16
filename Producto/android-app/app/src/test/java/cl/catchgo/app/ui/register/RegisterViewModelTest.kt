@@ -73,7 +73,8 @@ class RegisterViewModelTest {
         viewModel.onRutChange("19123456-7")
         viewModel.onPhoneChange("+56912345678")
         viewModel.onPasswordChange("Password123") // 11 caracteres (mínimo 6)
-        viewModel.onRoleChange = viewModel.onRoleSelect(UserRole.WORKER)
+        viewModel.onRoleSelect(UserRole.WORKER)
+
 
         // Comprobar que el formulario es válido para envío
         val state = viewModel.state.value
@@ -118,8 +119,18 @@ class RegisterViewModelTest {
             role = UserRole.WORKER
         )
 
-        // Mockear respuesta exitosa del repositorio
-        coEvery { authRepository.register(input) } returns Result.success(true)
+        // Mockear respuesta exitosa del repositorio retornando un UserSession válido
+        val userSession = cl.catchgo.app.domain.model.UserSession(
+            token = "jwt-token",
+            user = cl.catchgo.app.domain.model.User(
+                id = "1",
+                email = "juan.perez@email.com",
+                role = UserRole.WORKER,
+                fullName = "Juan Pérez"
+            )
+        )
+        coEvery { authRepository.register(input) } returns Result.success(userSession)
+
 
         // Ejecutar envío
         viewModel.onSubmit()
