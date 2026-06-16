@@ -130,7 +130,7 @@ class CrearOfertaViewModelTest {
         // Simular sesión de empresa activa
         val userSession = UserSession(
             token = "token-empresa",
-            user = User(id = "123", email = "empresa@email.com", role = UserRole.EMPLOYER)
+            user = User(id = "123", email = "empresa@email.com", role = UserRole.EMPRESA, fullName = "Empresa Test")
         )
         coEvery { sessionStore.session } returns flowOf(userSession)
 
@@ -171,7 +171,7 @@ class CrearOfertaViewModelTest {
 
         val userSession = UserSession(
             token = "token-empresa",
-            user = User(id = "123", email = "empresa@email.com", role = UserRole.EMPLOYER)
+            user = User(id = "123", email = "empresa@email.com", role = UserRole.EMPRESA, fullName = "Empresa Test")
         )
         coEvery { sessionStore.session } returns flowOf(userSession)
 
