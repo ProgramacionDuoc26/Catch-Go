@@ -1,5 +1,6 @@
 package cl.catchgo.app.data.remote
 
+object ApiConfig {
     // Host de producción en Railway
     const val HOST = "api-gateway2-catch-go.up.railway.app"
 
@@ -23,3 +24,4 @@ package cl.catchgo.app.data.remote
     const val USE_MOCK_JOBS = false
     const val USE_MOCK_APPLICATIONS = false
 }
+
