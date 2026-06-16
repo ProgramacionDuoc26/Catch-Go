@@ -40,6 +40,9 @@ class LoginViewModelTest {
         Dispatchers.resetMain()
     }
 
+    /**
+     * CP-26 (Login): Verificar que el estado inicial de LoginUiState comience vacío y bloqueado.
+     */
     @Test
     fun initialState_isCorrect() {
         val state = viewModel.state.value
@@ -50,6 +53,9 @@ class LoginViewModelTest {
         assertFalse(state.canSubmit)
     }
 
+    /**
+     * CP-26 (Login): Verificar la actualización del campo de email en el estado.
+     */
     @Test
     fun onEmailChange_updatesState() {
         viewModel.onEmailChange("test@email.com")
@@ -58,6 +64,9 @@ class LoginViewModelTest {
         assertNull(state.errorMessage)
     }
 
+    /**
+     * CP-26 (Login): Verificar la actualización del campo de contraseña en el estado.
+     */
     @Test
     fun onPasswordChange_updatesState() {
         viewModel.onPasswordChange("password123")
@@ -66,6 +75,9 @@ class LoginViewModelTest {
         assertNull(state.errorMessage)
     }
 
+    /**
+     * CP-26 (Login): Verificar que canSubmit sea verdadero solo cuando ambos campos están completos.
+     */
     @Test
     fun canSubmit_isTrueWhenEmailAndPasswordAreNotBlank() {
         viewModel.onEmailChange("test@email.com")
@@ -75,6 +87,9 @@ class LoginViewModelTest {
         assertTrue(viewModel.state.value.canSubmit)
     }
 
+    /**
+     * CP-07: Verificar que si el formulario es inválido no se invoque la llamada al repositorio de autenticación.
+     */
     @Test
     fun onSubmit_whenCanSubmitIsFalse_doesNotCallLogin() {
         viewModel.onEmailChange("")
@@ -84,6 +99,9 @@ class LoginViewModelTest {
         coVerify(exactly = 0) { authRepository.login(any(), any()) }
     }
 
+    /**
+     * CP-05: Validar el inicio de sesión exitoso de un trabajador y la correcta propagación de estados.
+     */
     @Test
     fun onSubmit_onSuccess_updatesLoadingState() {
         viewModel.onEmailChange("test@email.com")
@@ -109,6 +127,9 @@ class LoginViewModelTest {
         coVerify(exactly = 1) { authRepository.login("test@email.com", "password123") }
     }
 
+    /**
+     * CP-07: Validar que el inicio de sesión falle con el mensaje de error correspondiente ante credenciales inválidas.
+     */
     @Test
     fun onSubmit_onFailure_updatesStateWithError() {
         viewModel.onEmailChange("test@email.com")
@@ -125,6 +146,9 @@ class LoginViewModelTest {
         coVerify(exactly = 1) { authRepository.login("test@email.com", "password123") }
     }
 
+    /**
+     * CP-05 (Google): Validar la autenticación exitosa mediante proveedor de terceros Google.
+     */
     @Test
     fun loginGoogle_onSuccess_updatesState() {
         val userSession = UserSession(
@@ -147,6 +171,9 @@ class LoginViewModelTest {
         coVerify(exactly = 1) { authRepository.loginGoogle("google@email.com", "Google User") }
     }
 
+    /**
+     * CP-07 (Google): Validar el manejo de errores de autenticación fallida con Google.
+     */
     @Test
     fun loginGoogle_onFailure_updatesStateWithError() {
         val exception = RuntimeException("Google Login Failed")
@@ -159,4 +186,5 @@ class LoginViewModelTest {
         assertEquals("Google Login Failed", state.errorMessage)
         coVerify(exactly = 1) { authRepository.loginGoogle("google@email.com", "Google User") }
     }
+
 }
