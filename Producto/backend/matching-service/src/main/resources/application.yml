@@ -41,3 +41,13 @@ management:
     web:
       exposure:
         include: health,info,metrics
+
+springdoc:
+  api-docs:
+    path: /matching/v3/api-docs
+  swagger-ui:
+    path: /matching/swagger-ui.html
+  servers:
+    - url: https://api-gateway2-catch-go.up.railway.app
+      description: API Gateway (Producción)
+
