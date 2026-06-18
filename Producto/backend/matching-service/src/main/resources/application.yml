@@ -41,3 +41,10 @@ management:
     web:
       exposure:
         include: health,info,metrics
+
+springdoc:
+  api-docs:
+    path: /matching/v3/api-docs
+  swagger-ui:
+    path: /matching/swagger-ui.html
+
