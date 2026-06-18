@@ -48,4 +48,8 @@ springdoc:
     path: /auth/v3/api-docs
   swagger-ui:
     path: /auth/swagger-ui.html
+  servers:
+    - url: https://api-gateway2-catch-go.up.railway.app
+      description: API Gateway (Producción)
+
 
