@@ -190,6 +190,7 @@ export default function EmpresaPerfilPage() {
       }
     };
     fetchProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {

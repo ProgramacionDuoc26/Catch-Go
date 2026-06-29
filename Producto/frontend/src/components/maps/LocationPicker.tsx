@@ -96,6 +96,7 @@ export default function LocationPicker({
     setMarkerPos({ lat: newLat, lng: newLng });
     onLocationChange(newLat, newLng);
     handleReverseGeocode(newLat, newLng);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onLocationChange, apiKey, onAddressChange]);
 
   const handleGetCurrentLocation = () => {
