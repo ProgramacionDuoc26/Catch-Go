@@ -19,12 +19,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Falta el appId de la postulación' }, { status: 400 });
     }
 
+    // Sanitizar appId para prevenir Directory Traversal
+    const safeAppId = String(appId).replace(/[^a-zA-Z0-9_-]/g, '');
+
     const disputeData = {
       reason,
       date: new Date().toISOString()
     };
 
-    const filePath = path.join(STORAGE_DIR, `dispute_${appId}.json`);
+    const filePath = path.join(STORAGE_DIR, `dispute_${safeAppId}.json`);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     fs.writeFileSync(filePath, JSON.stringify(disputeData, null, 2), 'utf-8');
 
     return NextResponse.json({ success: true, dispute: disputeData });
@@ -43,8 +47,13 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Falta el appId' }, { status: 400 });
     }
 
-    const filePath = path.join(STORAGE_DIR, `dispute_${appId}.json`);
+    // Sanitizar appId para prevenir Directory Traversal
+    const safeAppId = String(appId).replace(/[^a-zA-Z0-9_-]/g, '');
+
+    const filePath = path.join(STORAGE_DIR, `dispute_${safeAppId}.json`);
+    // eslint-disable-next-line security/detect-non-literal-fs-filename
     if (fs.existsSync(filePath)) {
+      // eslint-disable-next-line security/detect-non-literal-fs-filename
       const data = fs.readFileSync(filePath, 'utf-8');
       return NextResponse.json(JSON.parse(data));
     }

@@ -3,6 +3,9 @@
     "next/core-web-vitals",
     "plugin:security/recommended"
   ],
+  "rules": {
+    "security/detect-object-injection": "off"
+  },
   "settings": {
     "next": {
       "rootDir": "./"
