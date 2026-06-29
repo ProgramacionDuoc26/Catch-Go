@@ -6,6 +6,7 @@
 **/.next/
 **/out/
 *.tsbuildinfo
+**/coverage/
 
 # Environment Variables
 **/.env
