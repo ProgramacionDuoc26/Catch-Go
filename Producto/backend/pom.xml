@@ -10,18 +10,18 @@
     <name>catch-and-go-monorepo</name>
 
     <modules>
-        <module>common-security</module>
-        <module>common-jwt</module>
-        <module>common-web</module>
-        <module>common-exceptions</module>
-        <module>common-test</module>
-        <module>common-events</module>
-        <module>api-gateway</module>
-        <module>auth-service</module>
-        <module>profile-service</module>
-        <module>jobs-service</module>
-        <module>matching-service</module>
-        <module>notification-service</module>
+        <module>common/common-security</module>
+        <module>common/common-jwt</module>
+        <module>common/common-web</module>
+        <module>common/common-exceptions</module>
+        <module>common/common-test</module>
+        <module>common/common-events</module>
+        <module>services/api-gateway</module>
+        <module>services/auth-service</module>
+        <module>services/profile-service</module>
+        <module>services/jobs-service</module>
+        <module>services/matching-service</module>
+        <module>services/notification-service</module>
     </modules>
 
     <properties>
