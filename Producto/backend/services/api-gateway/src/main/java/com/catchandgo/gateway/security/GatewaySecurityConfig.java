@@ -14,12 +14,12 @@ public class GatewaySecurityConfig {
 
     @Bean
     SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
+        return http.csrf(csrf -> csrf.disable())
                 .cors(withDefaults())
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/actuator/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/auth/**").permitAll()
                         .anyExchange().permitAll())
-                .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
+                .httpBasic(httpBasic -> httpBasic.disable())
                 .build();
     }
 }

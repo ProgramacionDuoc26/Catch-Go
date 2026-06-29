@@ -23,7 +23,7 @@ public class CorsConfig {
         CorsConfiguration corsConfig = new CorsConfiguration();
         corsConfig.setAllowedOriginPatterns(
                 Arrays.stream(allowedOriginPatterns.split(","))
-                        .map(String::trim)
+                        .map(s -> s.trim())
                         .filter(value -> !value.isEmpty())
                         .toList()
         );
