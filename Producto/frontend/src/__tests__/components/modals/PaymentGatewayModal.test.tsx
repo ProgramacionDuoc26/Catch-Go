@@ -136,4 +136,69 @@ describe('PaymentGatewayModal Component', () => {
     const loadingBtn = screen.getByRole('button', { name: 'Conectando...' });
     expect(loadingBtn).toBeDisabled();
   });
+
+  // Escenario 7: Quitar el archivo seleccionado
+  it('permite quitar el archivo seleccionado al hacer clic en Quitar archivo', () => {
+    render(<PaymentGatewayModal {...defaultProps} />);
+    
+    const file = new File(['dummy-content'], 'comprobante.pdf', { type: 'application/pdf' });
+    const fileInput = screen.getByLabelText(/Haz clic para subir comprobante/i);
+    
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    expect(screen.getByText('comprobante.pdf')).toBeInTheDocument();
+    
+    const removeBtn = screen.getByRole('button', { name: 'Quitar archivo' });
+    fireEvent.click(removeBtn);
+    
+    expect(screen.queryByText('comprobante.pdf')).not.toBeInTheDocument();
+  });
+
+  // Escenario 8: Carga y compresión de imagen
+  it('ejecuta la lógica de compresión al subir un comprobante tipo imagen', async () => {
+    const fileReaderSpy = vi.spyOn(FileReader.prototype, 'readAsDataURL').mockImplementation(function(this: any) {
+      Object.defineProperty(this, 'result', {
+        value: 'data:image/png;base64,dummy',
+        configurable: true
+      });
+      if (this.onloadend) {
+        this.onloadend();
+      }
+    });
+
+    // Mockear el constructor de Image para forzar el onload
+    const originalImage = global.Image;
+    global.Image = class {
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      src: string = '';
+      width: number = 800;
+      height: number = 600;
+      constructor() {
+        setTimeout(() => {
+          if (this.onload) this.onload();
+        }, 10);
+      }
+    } as any;
+
+    vi.useFakeTimers();
+    render(<PaymentGatewayModal {...defaultProps} />);
+
+    const file = new File(['image-content'], 'comprobante.png', { type: 'image/png' });
+    const fileInput = screen.getByLabelText(/Haz clic para subir comprobante/i);
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    expect(screen.getByText('comprobante.png')).toBeInTheDocument();
+
+    const confirmBtn = screen.getByRole('button', { name: 'Confirmar Pago' });
+    fireEvent.click(confirmBtn);
+
+    await vi.advanceTimersByTimeAsync(20); // Gatillar Image.onload
+    await vi.advanceTimersByTimeAsync(1600); // Gatillar setTimeout en submit
+
+    expect(defaultProps.onSubmit).toHaveBeenCalledTimes(1);
+
+    vi.useRealTimers();
+    fileReaderSpy.mockRestore();
+    global.Image = originalImage;
+  });
 });
