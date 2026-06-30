@@ -1,0 +1,101 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > HabilidadesApi</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.data.remote</a>
+</div>
+
+<h1>Coverage Summary for Class: HabilidadesApi (cl.catchgo.app.data.remote)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">HabilidadesApi</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.data.remote
+&nbsp;
+&nbsp;import cl.catchgo.app.data.remote.dto.AsignarHabilidadRequest
+&nbsp;import cl.catchgo.app.data.remote.dto.CategoriaConHabilidadesDto
+&nbsp;import cl.catchgo.app.data.remote.dto.CrearHabilidadRequest
+&nbsp;import cl.catchgo.app.data.remote.dto.HabilidadItemDto
+&nbsp;import cl.catchgo.app.data.remote.dto.HabilidadUsuarioDto
+&nbsp;import cl.catchgo.app.data.remote.dto.RadarDataDto
+&nbsp;import retrofit2.http.Body
+&nbsp;import retrofit2.http.GET
+&nbsp;import retrofit2.http.POST
+&nbsp;import retrofit2.http.Path
+&nbsp;
+&nbsp;interface HabilidadesApi {
+&nbsp;
+&nbsp;    @GET(&quot;auth/habilidades/categorias&quot;)
+&nbsp;    suspend fun getCategorias(): List&lt;CategoriaConHabilidadesDto&gt;
+&nbsp;
+&nbsp;    @POST(&quot;auth/habilidades&quot;)
+&nbsp;    suspend fun crearHabilidad(@Body request: CrearHabilidadRequest): HabilidadItemDto
+&nbsp;
+&nbsp;    @GET(&quot;auth/user/{id}/habilidades&quot;)
+&nbsp;    suspend fun getHabilidadesUsuario(@Path(&quot;id&quot;) id: Long): List&lt;HabilidadUsuarioDto&gt;
+&nbsp;
+&nbsp;    @POST(&quot;auth/user/{id}/habilidades&quot;)
+&nbsp;    suspend fun asignarHabilidad(
+&nbsp;        @Path(&quot;id&quot;) id: Long,
+&nbsp;        @Body request: AsignarHabilidadRequest
+&nbsp;    ): HabilidadUsuarioDto
+&nbsp;
+&nbsp;    @GET(&quot;auth/user/{id}/radar&quot;)
+&nbsp;    suspend fun getRadar(@Path(&quot;id&quot;) id: Long): RadarDataDto
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

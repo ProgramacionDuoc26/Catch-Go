@@ -1,0 +1,928 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > HomeSection</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.ui.home</a>
+</div>
+
+<h1>Coverage Summary for Class: HomeSection (cl.catchgo.app.ui.home)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">HomeSection</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.ui.home
+&nbsp;
+&nbsp;import androidx.activity.compose.BackHandler
+&nbsp;import androidx.compose.foundation.Image
+&nbsp;import androidx.compose.ui.res.painterResource
+&nbsp;import androidx.compose.ui.layout.ContentScale
+&nbsp;import androidx.compose.animation.AnimatedVisibility
+&nbsp;import androidx.compose.animation.fadeIn
+&nbsp;import androidx.compose.animation.fadeOut
+&nbsp;import androidx.compose.foundation.BorderStroke
+&nbsp;import androidx.compose.foundation.background
+&nbsp;import androidx.compose.foundation.clickable
+&nbsp;import androidx.compose.foundation.layout.Arrangement
+&nbsp;import androidx.compose.foundation.layout.Box
+&nbsp;import androidx.compose.foundation.layout.Column
+&nbsp;import androidx.compose.foundation.layout.PaddingValues
+&nbsp;import androidx.compose.foundation.layout.Row
+&nbsp;import androidx.compose.foundation.layout.Spacer
+&nbsp;import androidx.compose.foundation.layout.fillMaxSize
+&nbsp;import androidx.compose.foundation.layout.fillMaxWidth
+&nbsp;import androidx.compose.foundation.layout.height
+&nbsp;import androidx.compose.foundation.layout.padding
+&nbsp;import androidx.compose.foundation.layout.size
+&nbsp;import androidx.compose.foundation.layout.width
+&nbsp;import androidx.compose.foundation.rememberScrollState
+&nbsp;import androidx.compose.foundation.shape.CircleShape
+&nbsp;import androidx.compose.foundation.shape.RoundedCornerShape
+&nbsp;import androidx.compose.foundation.text.KeyboardOptions
+&nbsp;import androidx.compose.foundation.verticalScroll
+&nbsp;import androidx.compose.material.icons.Icons
+&nbsp;import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+&nbsp;import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+&nbsp;import androidx.compose.material.icons.filled.CheckCircle
+&nbsp;import androidx.compose.material.icons.outlined.Assignment
+&nbsp;import androidx.compose.material.icons.outlined.Email
+&nbsp;import androidx.compose.material.icons.outlined.Groups
+&nbsp;import androidx.compose.material.icons.outlined.Lock
+&nbsp;import androidx.compose.material.icons.outlined.Scale
+&nbsp;import androidx.compose.material.icons.outlined.Shield
+&nbsp;import androidx.compose.material3.Button
+&nbsp;import androidx.compose.material3.ButtonDefaults
+&nbsp;import androidx.compose.material3.Card
+&nbsp;import androidx.compose.material3.CardDefaults
+&nbsp;import androidx.compose.material3.CircularProgressIndicator
+&nbsp;import androidx.compose.material3.Icon
+&nbsp;import androidx.compose.material3.IconButton
+&nbsp;import androidx.compose.material3.MaterialTheme
+&nbsp;import androidx.compose.material3.OutlinedTextField
+&nbsp;import androidx.compose.material3.OutlinedTextFieldDefaults
+&nbsp;import androidx.compose.material3.Surface
+&nbsp;import androidx.compose.material3.Text
+&nbsp;import androidx.compose.runtime.Composable
+&nbsp;import androidx.compose.runtime.getValue
+&nbsp;import androidx.compose.runtime.mutableStateOf
+&nbsp;import androidx.compose.runtime.remember
+&nbsp;import androidx.compose.runtime.setValue
+&nbsp;import androidx.compose.ui.Alignment
+&nbsp;import androidx.compose.ui.Modifier
+&nbsp;import androidx.compose.ui.draw.clip
+&nbsp;import androidx.compose.ui.graphics.Brush
+&nbsp;import androidx.compose.ui.graphics.Color
+&nbsp;import androidx.compose.ui.graphics.vector.ImageVector
+&nbsp;import androidx.compose.ui.text.font.FontWeight
+&nbsp;import androidx.compose.ui.text.input.ImeAction
+&nbsp;import androidx.compose.ui.text.input.KeyboardType
+&nbsp;import androidx.compose.ui.text.style.TextAlign
+&nbsp;import androidx.compose.ui.unit.dp
+&nbsp;import androidx.compose.ui.unit.sp
+&nbsp;import cl.catchgo.app.ui.theme.BrandBlue50
+&nbsp;import cl.catchgo.app.ui.theme.BrandBlue600
+&nbsp;import cl.catchgo.app.ui.theme.BrandBlue700
+&nbsp;import cl.catchgo.app.ui.theme.Gray100
+&nbsp;import cl.catchgo.app.ui.theme.Gray200
+&nbsp;import cl.catchgo.app.ui.theme.Gray500
+&nbsp;import cl.catchgo.app.ui.theme.Gray700
+&nbsp;import cl.catchgo.app.ui.theme.Spacing
+&nbsp;import cl.catchgo.app.ui.theme.Teal500
+&nbsp;import cl.catchgo.app.ui.theme.White
+&nbsp;
+&nbsp;enum class HomeSection {
+<b class="nc">&nbsp;    INICIO, QUIENES_SOMOS, CONTACTO, TERMINOS</b>
+&nbsp;}
+&nbsp;
+&nbsp;@Composable
+&nbsp;fun HomeScreen(
+&nbsp;    modifier: Modifier = Modifier
+&nbsp;) {
+&nbsp;    var activeSection by remember { mutableStateOf(HomeSection.INICIO) }
+&nbsp;
+&nbsp;    // Intercept back press when inside a sub-section
+&nbsp;    BackHandler(enabled = activeSection != HomeSection.INICIO) {
+&nbsp;        activeSection = HomeSection.INICIO
+&nbsp;    }
+&nbsp;
+&nbsp;    Box(
+&nbsp;        modifier = modifier
+&nbsp;            .fillMaxSize()
+&nbsp;            .background(MaterialTheme.colorScheme.background)
+&nbsp;    ) {
+&nbsp;        when (activeSection) {
+&nbsp;            HomeSection.INICIO -&gt; SectionInicio(onNavigate = { activeSection = it })
+&nbsp;            HomeSection.QUIENES_SOMOS -&gt; SectionQuienesSomos(onBack = { activeSection = HomeSection.INICIO })
+&nbsp;            HomeSection.CONTACTO -&gt; SectionContacto(onBack = { activeSection = HomeSection.INICIO })
+&nbsp;            HomeSection.TERMINOS -&gt; SectionTerminos(onBack = { activeSection = HomeSection.INICIO })
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;// 1. WELCOME SECTION (INICIO)
+&nbsp;@Composable
+&nbsp;private fun SectionInicio(
+&nbsp;    onNavigate: (HomeSection) -&gt; Unit
+&nbsp;) {
+&nbsp;    val scrollState = rememberScrollState()
+&nbsp;
+&nbsp;    Column(
+&nbsp;        modifier = Modifier
+&nbsp;            .fillMaxSize()
+&nbsp;            .verticalScroll(scrollState)
+&nbsp;    ) {
+&nbsp;        // Hero Section with Gradient
+&nbsp;        Box(
+&nbsp;            modifier = Modifier
+&nbsp;                .fillMaxWidth()
+&nbsp;                .background(
+&nbsp;                    Brush.verticalGradient(
+&nbsp;                        colors = listOf(BrandBlue700, BrandBlue600)
+&nbsp;                    )
+&nbsp;                )
+&nbsp;                .padding(horizontal = Spacing.lg, vertical = 32.dp)
+&nbsp;        ) {
+&nbsp;            Column(
+&nbsp;                horizontalAlignment = Alignment.CenterHorizontally,
+&nbsp;                modifier = Modifier.fillMaxWidth()
+&nbsp;            ) {
+&nbsp;                Surface(
+&nbsp;                    modifier = Modifier
+&nbsp;                        .size(160.dp, 70.dp)
+&nbsp;                        .padding(bottom = Spacing.md),
+&nbsp;                    shape = RoundedCornerShape(12.dp),
+&nbsp;                    color = White,
+&nbsp;                    shadowElevation = 2.dp
+&nbsp;                ) {
+&nbsp;                    Box(
+&nbsp;                        modifier = Modifier.fillMaxSize().padding(8.dp),
+&nbsp;                        contentAlignment = Alignment.Center
+&nbsp;                    ) {
+&nbsp;                        Image(
+&nbsp;                            painter = painterResource(id = cl.catchgo.app.R.drawable.logo),
+&nbsp;                            contentDescription = &quot;Catch &amp; Go Logo&quot;,
+&nbsp;                            modifier = Modifier.fillMaxSize(),
+&nbsp;                            contentScale = ContentScale.Fit
+&nbsp;                        )
+&nbsp;                    }
+&nbsp;                }
+&nbsp;
+&nbsp;                Text(
+&nbsp;                    text = &quot;Conexiones laborales instantáneas al alcance de tu mano&quot;,
+&nbsp;                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold),
+&nbsp;                    color = White,
+&nbsp;                    textAlign = TextAlign.Center,
+&nbsp;                    lineHeight = 32.sp
+&nbsp;                )
+&nbsp;
+&nbsp;                Spacer(modifier = Modifier.height(Spacing.sm))
+&nbsp;
+&nbsp;                Text(
+&nbsp;                    text = &quot;Conectamos empresas que necesitan cubrir turnos urgentes con los mejores trabajadores disponibles.&quot;,
+&nbsp;                    style = MaterialTheme.typography.bodyMedium,
+&nbsp;                    color = White.copy(alpha = 0.85f),
+&nbsp;                    textAlign = TextAlign.Center
+&nbsp;                )
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        // Value Propositions
+&nbsp;        Column(
+&nbsp;            modifier = Modifier.padding(Spacing.lg),
+&nbsp;            verticalArrangement = Arrangement.spacedBy(Spacing.md)
+&nbsp;        ) {
+&nbsp;            Text(
+&nbsp;                text = &quot;Nuestros Pilares&quot;,
+&nbsp;                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+&nbsp;                color = BrandBlue700,
+&nbsp;                modifier = Modifier.padding(bottom = Spacing.xs)
+&nbsp;            )
+&nbsp;
+&nbsp;            Row(
+&nbsp;                modifier = Modifier.fillMaxWidth(),
+&nbsp;                horizontalArrangement = Arrangement.spacedBy(Spacing.md)
+&nbsp;            ) {
+&nbsp;                PilarCard(
+&nbsp;                    title = &quot;Agilidad&quot;,
+&nbsp;                    desc = &quot;Encuentra y toma turnos de forma inmediata con un par de clics.&quot;,
+&nbsp;                    icon = Icons.Outlined.Shield,
+&nbsp;                    tint = Teal500,
+&nbsp;                    modifier = Modifier.weight(1f)
+&nbsp;                )
+&nbsp;                PilarCard(
+&nbsp;                    title = &quot;Confianza&quot;,
+&nbsp;                    desc = &quot;Perfiles 100% verificados y pagos en línea rápidos y seguros.&quot;,
+&nbsp;                    icon = Icons.Outlined.Lock,
+&nbsp;                    tint = BrandBlue600,
+&nbsp;                    modifier = Modifier.weight(1f)
+&nbsp;                )
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+&nbsp;        // Navigation Options (List)
+&nbsp;        Column(
+&nbsp;            modifier = Modifier
+&nbsp;                .padding(horizontal = Spacing.lg)
+&nbsp;                .padding(bottom = 32.dp),
+&nbsp;            verticalArrangement = Arrangement.spacedBy(Spacing.sm)
+&nbsp;        ) {
+&nbsp;            Text(
+&nbsp;                text = &quot;Información General&quot;,
+&nbsp;                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+&nbsp;                color = BrandBlue700,
+&nbsp;                modifier = Modifier.padding(bottom = Spacing.xs)
+&nbsp;            )
+&nbsp;
+&nbsp;            MenuNavigationRow(
+&nbsp;                title = &quot;¿Quiénes Somos?&quot;,
+&nbsp;                subtitle = &quot;Conoce nuestro propósito y visión 2027&quot;,
+&nbsp;                icon = Icons.Outlined.Groups,
+&nbsp;                onClick = { onNavigate(HomeSection.QUIENES_SOMOS) }
+&nbsp;            )
+&nbsp;
+&nbsp;            MenuNavigationRow(
+&nbsp;                title = &quot;Contacto &amp; Soporte&quot;,
+&nbsp;                subtitle = &quot;¿Tienes dudas? Escríbenos directamente&quot;,
+&nbsp;                icon = Icons.Outlined.Email,
+&nbsp;                onClick = { onNavigate(HomeSection.CONTACTO) }
+&nbsp;            )
+&nbsp;
+&nbsp;            MenuNavigationRow(
+&nbsp;                title = &quot;Términos y Condiciones&quot;,
+&nbsp;                subtitle = &quot;Reglas, derechos y responsabilidades de uso&quot;,
+&nbsp;                icon = Icons.Outlined.Scale,
+&nbsp;                onClick = { onNavigate(HomeSection.TERMINOS) }
+&nbsp;            )
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;// 2. QUIENES SOMOS SECTION
+&nbsp;@Composable
+&nbsp;private fun SectionQuienesSomos(onBack: () -&gt; Unit) {
+&nbsp;    val scrollState = rememberScrollState()
+&nbsp;
+&nbsp;    Column(
+&nbsp;        modifier = Modifier
+&nbsp;            .fillMaxSize()
+&nbsp;            .verticalScroll(scrollState)
+&nbsp;    ) {
+&nbsp;        SubHeaderRow(title = &quot;¿Quiénes Somos?&quot;, onBack = onBack)
+&nbsp;
+&nbsp;        Column(
+&nbsp;            modifier = Modifier.padding(Spacing.lg),
+&nbsp;            verticalArrangement = Arrangement.spacedBy(Spacing.md)
+&nbsp;        ) {
+&nbsp;            Card(
+&nbsp;                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+&nbsp;                border = BorderStroke(1.dp, Gray200),
+&nbsp;                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+&nbsp;                shape = RoundedCornerShape(16.dp),
+&nbsp;                modifier = Modifier.fillMaxWidth()
+&nbsp;            ) {
+&nbsp;                Column(modifier = Modifier.padding(Spacing.lg)) {
+&nbsp;                    Text(
+&nbsp;                        text = &quot;En Catch&amp;Go, entendemos que el mundo laboral es dinámico. Nuestra misión es conectar de manera rápida, segura y transparente a empresas que necesitan cubrir urgencias operativas con trabajadores dispuestos a tomar turnos ocasionales.&quot;,
+&nbsp;                        style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 24.sp),
+&nbsp;                        color = Gray700
+&nbsp;                    )
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            Text(
+&nbsp;                text = &quot;Nuestra Visión&quot;,
+&nbsp;                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+&nbsp;                color = BrandBlue700,
+&nbsp;                modifier = Modifier.padding(top = Spacing.sm)
+&nbsp;            )
+&nbsp;
+&nbsp;            Card(
+&nbsp;                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+&nbsp;                border = BorderStroke(1.dp, Gray200),
+&nbsp;                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+&nbsp;                shape = RoundedCornerShape(16.dp),
+&nbsp;                modifier = Modifier.fillMaxWidth()
+&nbsp;            ) {
+&nbsp;                Column(modifier = Modifier.padding(Spacing.lg)) {
+&nbsp;                    Text(
+&nbsp;                        text = &quot;Ser la principal plataforma de matching laboral para trabajos temporales en Chile, reduciendo la fricción al mínimo para que la contratación ocasional sea tan sencilla como un clic.&quot;,
+&nbsp;                        style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 24.sp),
+&nbsp;                        color = Gray700
+&nbsp;                    )
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            Text(
+&nbsp;                text = &quot;Nuestros Valores&quot;,
+&nbsp;                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+&nbsp;                color = BrandBlue700,
+&nbsp;                modifier = Modifier.padding(top = Spacing.sm)
+&nbsp;            )
+&nbsp;
+&nbsp;            Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+&nbsp;                ValorItem(title = &quot;Transparencia&quot;, desc = &quot;Ofertas y remuneraciones claras desde el primer momento.&quot;)
+&nbsp;                ValorItem(title = &quot;Agilidad&quot;, desc = &quot;Respuestas en minutos para resolver urgencias operativas.&quot;)
+&nbsp;                ValorItem(title = &quot;Confianza&quot;, desc = &quot;Validación rigurosa de antecedentes y perfiles de usuarios.&quot;)
+&nbsp;                ValorItem(title = &quot;Accesibilidad&quot;, desc = &quot;Una interfaz simple e intuitiva para todas las edades.&quot;)
+&nbsp;            }
+&nbsp;
+&nbsp;            Spacer(modifier = Modifier.height(24.dp))
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;// 3. CONTACTO SECTION
+&nbsp;@Composable
+&nbsp;private fun SectionContacto(onBack: () -&gt; Unit) {
+&nbsp;    val scrollState = rememberScrollState()
+&nbsp;
+&nbsp;    var name by remember { mutableStateOf(&quot;&quot;) }
+&nbsp;    var email by remember { mutableStateOf(&quot;&quot;) }
+&nbsp;    var message by remember { mutableStateOf(&quot;&quot;) }
+&nbsp;
+&nbsp;    var nameError by remember { mutableStateOf&lt;String?&gt;(null) }
+&nbsp;    var emailError by remember { mutableStateOf&lt;String?&gt;(null) }
+&nbsp;    var messageError by remember { mutableStateOf&lt;String?&gt;(null) }
+&nbsp;
+&nbsp;    var isSubmitting by remember { mutableStateOf(false) }
+&nbsp;    var submitted by remember { mutableStateOf(false) }
+&nbsp;
+&nbsp;    Column(
+&nbsp;        modifier = Modifier
+&nbsp;            .fillMaxSize()
+&nbsp;            .verticalScroll(scrollState)
+&nbsp;    ) {
+&nbsp;        SubHeaderRow(title = &quot;Contacto &amp; Soporte&quot;, onBack = onBack)
+&nbsp;
+&nbsp;        Column(
+&nbsp;            modifier = Modifier.padding(Spacing.lg),
+&nbsp;            verticalArrangement = Arrangement.spacedBy(Spacing.md)
+&nbsp;        ) {
+&nbsp;            if (submitted) {
+&nbsp;                Card(
+&nbsp;                    colors = CardDefaults.cardColors(containerColor = Color(0xFFECFDF5)),
+&nbsp;                    border = BorderStroke(1.dp, Color(0xFFA7F3D0)),
+&nbsp;                    shape = RoundedCornerShape(16.dp),
+&nbsp;                    modifier = Modifier.fillMaxWidth()
+&nbsp;                ) {
+&nbsp;                    Row(
+&nbsp;                        modifier = Modifier.padding(Spacing.lg),
+&nbsp;                        verticalAlignment = Alignment.CenterVertically,
+&nbsp;                        horizontalArrangement = Arrangement.spacedBy(Spacing.md)
+&nbsp;                    ) {
+&nbsp;                        Icon(
+&nbsp;                            imageVector = Icons.Filled.CheckCircle,
+&nbsp;                            contentDescription = null,
+&nbsp;                            tint = Teal500,
+&nbsp;                            modifier = Modifier.size(32.dp)
+&nbsp;                        )
+&nbsp;                        Column {
+&nbsp;                            Text(
+&nbsp;                                text = &quot;¡Mensaje Enviado!&quot;,
+&nbsp;                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+&nbsp;                                color = Color(0xFF047857)
+&nbsp;                            )
+&nbsp;                            Text(
+&nbsp;                                text = &quot;Hemos recibido tu consulta. Nos pondremos en contacto contigo en breve.&quot;,
+&nbsp;                                style = MaterialTheme.typography.bodyMedium,
+&nbsp;                                color = Color(0xFF065F46)
+&nbsp;                            )
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            Text(
+&nbsp;                text = &quot;Formulario de Consultas&quot;,
+&nbsp;                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+&nbsp;                color = BrandBlue700
+&nbsp;            )
+&nbsp;
+&nbsp;            Card(
+&nbsp;                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+&nbsp;                border = BorderStroke(1.dp, Gray200),
+&nbsp;                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+&nbsp;                shape = RoundedCornerShape(16.dp),
+&nbsp;                modifier = Modifier.fillMaxWidth()
+&nbsp;            ) {
+&nbsp;                Column(
+&nbsp;                    modifier = Modifier.padding(Spacing.lg),
+&nbsp;                    verticalArrangement = Arrangement.spacedBy(Spacing.md)
+&nbsp;                ) {
+&nbsp;                    // Name Field
+&nbsp;                    Column {
+&nbsp;                        Text(
+&nbsp;                            text = &quot;NOMBRE COMPLETO&quot;,
+&nbsp;                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+&nbsp;                            color = Gray500,
+&nbsp;                            modifier = Modifier.padding(bottom = Spacing.xs)
+&nbsp;                        )
+&nbsp;                        OutlinedTextField(
+&nbsp;                            value = name,
+&nbsp;                            onValueChange = {
+&nbsp;                                name = it
+&nbsp;                                nameError = null
+&nbsp;                            },
+&nbsp;                            placeholder = { Text(&quot;Ej. Juan Pérez&quot;) },
+&nbsp;                            isError = nameError != null,
+&nbsp;                            singleLine = true,
+&nbsp;                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+&nbsp;                            colors = OutlinedTextFieldDefaults.colors(
+&nbsp;                                focusedBorderColor = BrandBlue600,
+&nbsp;                                unfocusedBorderColor = Gray200
+&nbsp;                            ),
+&nbsp;                            modifier = Modifier.fillMaxWidth()
+&nbsp;                        )
+&nbsp;                        if (nameError != null) {
+&nbsp;                            Text(
+&nbsp;                                text = nameError.orEmpty(),
+&nbsp;                                style = MaterialTheme.typography.bodySmall,
+&nbsp;                                color = MaterialTheme.colorScheme.error,
+&nbsp;                                modifier = Modifier.padding(top = Spacing.xs)
+&nbsp;                            )
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;
+&nbsp;                    // Email Field
+&nbsp;                    Column {
+&nbsp;                        Text(
+&nbsp;                            text = &quot;CORREO ELECTRÓNICO&quot;,
+&nbsp;                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+&nbsp;                            color = Gray500,
+&nbsp;                            modifier = Modifier.padding(bottom = Spacing.xs)
+&nbsp;                        )
+&nbsp;                        OutlinedTextField(
+&nbsp;                            value = email,
+&nbsp;                            onValueChange = {
+&nbsp;                                email = it
+&nbsp;                                emailError = null
+&nbsp;                            },
+&nbsp;                            placeholder = { Text(&quot;tucorreo@ejemplo.com&quot;) },
+&nbsp;                            isError = emailError != null,
+&nbsp;                            singleLine = true,
+&nbsp;                            keyboardOptions = KeyboardOptions(
+&nbsp;                                keyboardType = KeyboardType.Email,
+&nbsp;                                imeAction = ImeAction.Next
+&nbsp;                            ),
+&nbsp;                            colors = OutlinedTextFieldDefaults.colors(
+&nbsp;                                focusedBorderColor = BrandBlue600,
+&nbsp;                                unfocusedBorderColor = Gray200
+&nbsp;                            ),
+&nbsp;                            modifier = Modifier.fillMaxWidth()
+&nbsp;                        )
+&nbsp;                        if (emailError != null) {
+&nbsp;                            Text(
+&nbsp;                                text = emailError.orEmpty(),
+&nbsp;                                style = MaterialTheme.typography.bodySmall,
+&nbsp;                                color = MaterialTheme.colorScheme.error,
+&nbsp;                                modifier = Modifier.padding(top = Spacing.xs)
+&nbsp;                            )
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;
+&nbsp;                    // Message Field
+&nbsp;                    Column {
+&nbsp;                        Text(
+&nbsp;                            text = &quot;MENSAJE&quot;,
+&nbsp;                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+&nbsp;                            color = Gray500,
+&nbsp;                            modifier = Modifier.padding(bottom = Spacing.xs)
+&nbsp;                        )
+&nbsp;                        OutlinedTextField(
+&nbsp;                            value = message,
+&nbsp;                            onValueChange = {
+&nbsp;                                message = it
+&nbsp;                                messageError = null
+&nbsp;                            },
+&nbsp;                            placeholder = { Text(&quot;¿En qué podemos ayudarte?&quot;) },
+&nbsp;                            isError = messageError != null,
+&nbsp;                            minLines = 4,
+&nbsp;                            colors = OutlinedTextFieldDefaults.colors(
+&nbsp;                                focusedBorderColor = BrandBlue600,
+&nbsp;                                unfocusedBorderColor = Gray200
+&nbsp;                            ),
+&nbsp;                            modifier = Modifier.fillMaxWidth()
+&nbsp;                        )
+&nbsp;                        if (messageError != null) {
+&nbsp;                            Text(
+&nbsp;                                text = messageError.orEmpty(),
+&nbsp;                                style = MaterialTheme.typography.bodySmall,
+&nbsp;                                color = MaterialTheme.colorScheme.error,
+&nbsp;                                modifier = Modifier.padding(top = Spacing.xs)
+&nbsp;                            )
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;
+&nbsp;                    Spacer(modifier = Modifier.height(Spacing.xs))
+&nbsp;
+&nbsp;                    // Submit Button
+&nbsp;                    Button(
+&nbsp;                        onClick = {
+&nbsp;                            var hasError = false
+&nbsp;                            if (name.isBlank()) {
+&nbsp;                                nameError = &quot;El nombre es obligatorio&quot;
+&nbsp;                                hasError = true
+&nbsp;                            }
+&nbsp;                            if (email.isBlank()) {
+&nbsp;                                emailError = &quot;El correo es obligatorio&quot;
+&nbsp;                                hasError = true
+&nbsp;                            } else if (!email.contains(&quot;@&quot;)) {
+&nbsp;                                emailError = &quot;Formato de correo inválido&quot;
+&nbsp;                                hasError = true
+&nbsp;                            }
+&nbsp;                            if (message.isBlank()) {
+&nbsp;                                messageError = &quot;El mensaje es obligatorio&quot;
+&nbsp;                                hasError = true
+&nbsp;                            }
+&nbsp;
+&nbsp;                            if (!hasError) {
+&nbsp;                                isSubmitting = true
+&nbsp;                                // Simulate network delay
+&nbsp;                                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+&nbsp;                                    isSubmitting = false
+&nbsp;                                    submitted = true
+&nbsp;                                    name = &quot;&quot;
+&nbsp;                                    email = &quot;&quot;
+&nbsp;                                    message = &quot;&quot;
+&nbsp;                                }, 1500)
+&nbsp;                            }
+&nbsp;                        },
+&nbsp;                        colors = ButtonDefaults.buttonColors(containerColor = BrandBlue600),
+&nbsp;                        shape = RoundedCornerShape(12.dp),
+&nbsp;                        enabled = !isSubmitting,
+&nbsp;                        modifier = Modifier
+&nbsp;                            .fillMaxWidth()
+&nbsp;                            .height(52.dp)
+&nbsp;                    ) {
+&nbsp;                        if (isSubmitting) {
+&nbsp;                            CircularProgressIndicator(color = White, modifier = Modifier.size(24.dp))
+&nbsp;                        } else {
+&nbsp;                            Text(
+&nbsp;                                text = &quot;Enviar Mensaje&quot;,
+&nbsp;                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+&nbsp;                                color = White
+&nbsp;                            )
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;
+&nbsp;            Spacer(modifier = Modifier.height(24.dp))
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;// 4. TERMINOS Y CONDICIONES SECTION
+&nbsp;@Composable
+&nbsp;private fun SectionTerminos(onBack: () -&gt; Unit) {
+&nbsp;    val scrollState = rememberScrollState()
+&nbsp;
+&nbsp;    Column(
+&nbsp;        modifier = Modifier
+&nbsp;            .fillMaxSize()
+&nbsp;            .verticalScroll(scrollState)
+&nbsp;    ) {
+&nbsp;        SubHeaderRow(title = &quot;Términos y Condiciones&quot;, onBack = onBack)
+&nbsp;
+&nbsp;        Column(
+&nbsp;            modifier = Modifier.padding(Spacing.lg),
+&nbsp;            verticalArrangement = Arrangement.spacedBy(Spacing.md)
+&nbsp;        ) {
+&nbsp;            Text(
+&nbsp;                text = &quot;Última actualización: 10 de Mayo, 2026&quot;,
+&nbsp;                style = MaterialTheme.typography.bodySmall,
+&nbsp;                color = Gray500
+&nbsp;            )
+&nbsp;
+&nbsp;            TerminosCard(
+&nbsp;                num = &quot;1&quot;,
+&nbsp;                title = &quot;Aceptación de los Términos&quot;,
+&nbsp;                desc = &quot;Al acceder y utilizar la plataforma Catch-Go, usted acepta estar sujeto a estos Términos y Condiciones de Uso. Catch-Go actúa como un intermediario tecnológico para facilitar la conexión rápida y directa entre empresas y trabajadores.&quot;
+&nbsp;            )
+&nbsp;
+&nbsp;            TerminosCard(
+&nbsp;                num = &quot;2&quot;,
+&nbsp;                title = &quot;Responsabilidades del Usuario&quot;,
+&nbsp;                desc = &quot;Tanto trabajadores como empresas se comprometen a proporcionar información verídica y actualizada.\n\n• Trabajadores: Son responsables de cumplir puntualmente con los turnos aceptados.\n• Empresas: Son responsables de garantizar condiciones laborales seguras y cumplir con los pagos acordados.&quot;
+&nbsp;            )
+&nbsp;
+&nbsp;            TerminosCard(
+&nbsp;                num = &quot;3&quot;,
+&nbsp;                title = &quot;Privacidad y Datos&quot;,
+&nbsp;                desc = &quot;La seguridad de sus datos es nuestra prioridad. Catch-Go utiliza servicios de bases de datos y autenticación seguros. No compartiremos su información personal con terceros fuera del matching laboral sin su consentimiento.&quot;
+&nbsp;            )
+&nbsp;
+&nbsp;            TerminosCard(
+&nbsp;                num = &quot;4&quot;,
+&nbsp;                title = &quot;Limitación de Responsabilidad&quot;,
+&nbsp;                desc = &quot;Catch-Go no es empleador directo de los trabajadores. La relación comercial/laboral se establece de forma directa entre la empresa y el trabajador ocasional.&quot;
+&nbsp;            )
+&nbsp;
+&nbsp;            Spacer(modifier = Modifier.height(24.dp))
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;// REUSABLE HELPER UI WIDGETS
+&nbsp;@Composable
+&nbsp;private fun PilarCard(
+&nbsp;    title: String,
+&nbsp;    desc: String,
+&nbsp;    icon: ImageVector,
+&nbsp;    tint: Color,
+&nbsp;    modifier: Modifier = Modifier
+&nbsp;) {
+&nbsp;    Card(
+&nbsp;        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+&nbsp;        border = BorderStroke(1.dp, Gray200),
+&nbsp;        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+&nbsp;        shape = RoundedCornerShape(16.dp),
+&nbsp;        modifier = modifier
+&nbsp;    ) {
+&nbsp;        Column(
+&nbsp;            modifier = Modifier.padding(Spacing.md),
+&nbsp;            verticalArrangement = Arrangement.spacedBy(Spacing.xs)
+&nbsp;        ) {
+&nbsp;            Box(
+&nbsp;                contentAlignment = Alignment.Center,
+&nbsp;                modifier = Modifier
+&nbsp;                    .size(40.dp)
+&nbsp;                    .background(tint.copy(alpha = 0.1f), CircleShape)
+&nbsp;            ) {
+&nbsp;                Icon(
+&nbsp;                    imageVector = icon,
+&nbsp;                    contentDescription = null,
+&nbsp;                    tint = tint,
+&nbsp;                    modifier = Modifier.size(20.dp)
+&nbsp;                )
+&nbsp;            }
+&nbsp;            Text(
+&nbsp;                text = title,
+&nbsp;                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+&nbsp;            )
+&nbsp;            Text(
+&nbsp;                text = desc,
+&nbsp;                style = MaterialTheme.typography.bodySmall,
+&nbsp;                color = Gray500
+&nbsp;            )
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;@Composable
+&nbsp;private fun MenuNavigationRow(
+&nbsp;    title: String,
+&nbsp;    subtitle: String,
+&nbsp;    icon: ImageVector,
+&nbsp;    onClick: () -&gt; Unit
+&nbsp;) {
+&nbsp;    Surface(
+&nbsp;        onClick = onClick,
+&nbsp;        color = MaterialTheme.colorScheme.surface,
+&nbsp;        border = BorderStroke(1.dp, Gray200),
+&nbsp;        shape = RoundedCornerShape(16.dp),
+&nbsp;        modifier = Modifier.fillMaxWidth()
+&nbsp;    ) {
+&nbsp;        Row(
+&nbsp;            modifier = Modifier.padding(Spacing.md),
+&nbsp;            verticalAlignment = Alignment.CenterVertically,
+&nbsp;            horizontalArrangement = Arrangement.spacedBy(Spacing.md)
+&nbsp;        ) {
+&nbsp;            Box(
+&nbsp;                contentAlignment = Alignment.Center,
+&nbsp;                modifier = Modifier
+&nbsp;                    .size(44.dp)
+&nbsp;                    .background(BrandBlue50, CircleShape)
+&nbsp;            ) {
+&nbsp;                Icon(
+&nbsp;                    imageVector = icon,
+&nbsp;                    contentDescription = null,
+&nbsp;                    tint = BrandBlue600,
+&nbsp;                    modifier = Modifier.size(24.dp)
+&nbsp;                )
+&nbsp;            }
+&nbsp;
+&nbsp;            Column(modifier = Modifier.weight(1f)) {
+&nbsp;                Text(
+&nbsp;                    text = title,
+&nbsp;                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
+&nbsp;                )
+&nbsp;                Text(
+&nbsp;                    text = subtitle,
+&nbsp;                    style = MaterialTheme.typography.bodySmall,
+&nbsp;                    color = Gray500
+&nbsp;                )
+&nbsp;            }
+&nbsp;
+&nbsp;            Icon(
+&nbsp;                imageVector = Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+&nbsp;                contentDescription = null,
+&nbsp;                tint = Gray500
+&nbsp;            )
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;@Composable
+&nbsp;private fun SubHeaderRow(
+&nbsp;    title: String,
+&nbsp;    onBack: () -&gt; Unit
+&nbsp;) {
+&nbsp;    Column(modifier = Modifier.fillMaxWidth()) {
+&nbsp;        Surface(
+&nbsp;            color = MaterialTheme.colorScheme.surface,
+&nbsp;            modifier = Modifier.fillMaxWidth()
+&nbsp;        ) {
+&nbsp;            Row(
+&nbsp;                modifier = Modifier
+&nbsp;                    .fillMaxWidth()
+&nbsp;                    .padding(horizontal = Spacing.sm, vertical = Spacing.xs),
+&nbsp;                verticalAlignment = Alignment.CenterVertically
+&nbsp;            ) {
+&nbsp;                IconButton(onClick = onBack) {
+&nbsp;                    Icon(
+&nbsp;                        imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+&nbsp;                        contentDescription = &quot;Volver&quot;,
+&nbsp;                        tint = BrandBlue700
+&nbsp;                    )
+&nbsp;                }
+&nbsp;
+&nbsp;                Text(
+&nbsp;                    text = title,
+&nbsp;                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+&nbsp;                    color = BrandBlue700,
+&nbsp;                    modifier = Modifier.padding(start = Spacing.xs)
+&nbsp;                )
+&nbsp;            }
+&nbsp;        }
+&nbsp;        androidx.compose.material3.HorizontalDivider(color = Gray200)
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;@Composable
+&nbsp;private fun ValorItem(title: String, desc: String) {
+&nbsp;    Row(
+&nbsp;        modifier = Modifier
+&nbsp;            .fillMaxWidth()
+&nbsp;            .padding(vertical = Spacing.xs),
+&nbsp;        verticalAlignment = Alignment.Top,
+&nbsp;        horizontalArrangement = Arrangement.spacedBy(Spacing.sm)
+&nbsp;    ) {
+&nbsp;        Box(
+&nbsp;            modifier = Modifier
+&nbsp;                .padding(top = 4.dp)
+&nbsp;                .size(8.dp)
+&nbsp;                .background(Teal500, CircleShape)
+&nbsp;        )
+&nbsp;        Column {
+&nbsp;            Text(
+&nbsp;                text = title,
+&nbsp;                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+&nbsp;                color = BrandBlue700
+&nbsp;            )
+&nbsp;            Text(
+&nbsp;                text = desc,
+&nbsp;                style = MaterialTheme.typography.bodyMedium,
+&nbsp;                color = Gray700
+&nbsp;            )
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;@Composable
+&nbsp;private fun TerminosCard(
+&nbsp;    num: String,
+&nbsp;    title: String,
+&nbsp;    desc: String
+&nbsp;) {
+&nbsp;    Card(
+&nbsp;        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+&nbsp;        border = BorderStroke(1.dp, Gray200),
+&nbsp;        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+&nbsp;        shape = RoundedCornerShape(16.dp),
+&nbsp;        modifier = Modifier.fillMaxWidth()
+&nbsp;    ) {
+&nbsp;        Column(modifier = Modifier.fillMaxWidth()) {
+&nbsp;            Box(
+&nbsp;                modifier = Modifier
+&nbsp;                    .fillMaxWidth()
+&nbsp;                    .background(BrandBlue600)
+&nbsp;                    .padding(horizontal = Spacing.md, vertical = Spacing.sm)
+&nbsp;            ) {
+&nbsp;                Row(
+&nbsp;                    verticalAlignment = Alignment.CenterVertically,
+&nbsp;                    horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
+&nbsp;                ) {
+&nbsp;                    Icon(
+&nbsp;                        imageVector = Icons.Outlined.Assignment,
+&nbsp;                        contentDescription = null,
+&nbsp;                        tint = White,
+&nbsp;                        modifier = Modifier.size(18.dp)
+&nbsp;                    )
+&nbsp;                    Text(
+&nbsp;                        text = &quot;$num. $title&quot;,
+&nbsp;                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+&nbsp;                        color = White
+&nbsp;                    )
+&nbsp;                }
+&nbsp;            }
+&nbsp;            Text(
+&nbsp;                text = desc,
+&nbsp;                style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 22.sp),
+&nbsp;                color = Gray700,
+&nbsp;                modifier = Modifier.padding(Spacing.lg)
+&nbsp;            )
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

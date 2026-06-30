@@ -1,0 +1,93 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AuthApi</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.data.remote</a>
+</div>
+
+<h1>Coverage Summary for Class: AuthApi (cl.catchgo.app.data.remote)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">AuthApi</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.data.remote
+&nbsp;
+&nbsp;import cl.catchgo.app.data.remote.dto.LoginRequest
+&nbsp;import cl.catchgo.app.data.remote.dto.LoginResponse
+&nbsp;import cl.catchgo.app.data.remote.dto.RegisterRequest
+&nbsp;import cl.catchgo.app.data.remote.dto.VerifyPasswordRequest
+&nbsp;import retrofit2.Response
+&nbsp;import retrofit2.http.Body
+&nbsp;import retrofit2.http.DELETE
+&nbsp;import retrofit2.http.POST
+&nbsp;import retrofit2.http.Path
+&nbsp;
+&nbsp;interface AuthApi {
+&nbsp;    @POST(&quot;auth/login&quot;)
+&nbsp;    suspend fun login(@Body request: LoginRequest): LoginResponse
+&nbsp;
+&nbsp;    @POST(&quot;auth/register&quot;)
+&nbsp;    suspend fun register(@Body request: RegisterRequest): LoginResponse
+&nbsp;
+&nbsp;    @POST(&quot;auth/verify-password&quot;)
+&nbsp;    suspend fun verifyPassword(@Body request: VerifyPasswordRequest): Response&lt;Boolean&gt;
+&nbsp;
+&nbsp;    @DELETE(&quot;auth/users/{userId}&quot;)
+&nbsp;    suspend fun deleteAccount(@Path(&quot;userId&quot;) userId: String): Response&lt;Unit&gt;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

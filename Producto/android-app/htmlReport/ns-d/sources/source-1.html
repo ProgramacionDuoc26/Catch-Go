@@ -1,0 +1,182 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > AuthNavGraphKt</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.ui.auth</a>
+</div>
+
+<h1>Coverage Summary for Class: AuthNavGraphKt (cl.catchgo.app.ui.auth)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">AuthNavGraphKt</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">AuthNavGraphKt$AuthNavGraph$1$1$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">AuthNavGraphKt$AuthNavGraph$1$1$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.ui.auth
+&nbsp;
+&nbsp;import androidx.compose.runtime.Composable
+&nbsp;import androidx.compose.ui.Modifier
+&nbsp;import androidx.navigation.compose.NavHost
+&nbsp;import androidx.navigation.compose.composable
+&nbsp;import androidx.navigation.compose.rememberNavController
+&nbsp;import cl.catchgo.app.ui.login.LoginScreen
+&nbsp;import cl.catchgo.app.ui.register.RegisterScreen
+&nbsp;
+&nbsp;private const val ROUTE_LOGIN = &quot;login&quot;
+&nbsp;private const val ROUTE_REGISTER = &quot;register&quot;
+&nbsp;
+&nbsp;@Composable
+<b class="nc">&nbsp;fun AuthNavGraph(modifier: Modifier = Modifier) {</b>
+<b class="nc">&nbsp;    val navController = rememberNavController()</b>
+<b class="nc">&nbsp;    NavHost(</b>
+<b class="nc">&nbsp;        navController = navController,</b>
+<b class="nc">&nbsp;        startDestination = ROUTE_LOGIN,</b>
+<b class="nc">&nbsp;        modifier = modifier</b>
+<b class="nc">&nbsp;    ) {</b>
+<b class="nc">&nbsp;        composable(ROUTE_LOGIN) {</b>
+<b class="nc">&nbsp;            LoginScreen(</b>
+<b class="nc">&nbsp;                onRegisterClick = { navController.navigate(ROUTE_REGISTER) }</b>
+&nbsp;            )
+&nbsp;        }
+<b class="nc">&nbsp;        composable(ROUTE_REGISTER) {</b>
+<b class="nc">&nbsp;            RegisterScreen(</b>
+<b class="nc">&nbsp;                onLoginClick = { navController.popBackStack() }</b>
+&nbsp;            )
+&nbsp;        }
+&nbsp;    }
+<b class="nc">&nbsp;}</b>
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

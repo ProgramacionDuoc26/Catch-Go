@@ -1,0 +1,305 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > MockJobs</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.data.repository</a>
+</div>
+
+<h1>Coverage Summary for Class: MockJobs (cl.catchgo.app.data.repository)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MockJobs</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/181)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.data.repository
+&nbsp;
+&nbsp;import cl.catchgo.app.domain.model.JobCategory
+&nbsp;import cl.catchgo.app.domain.model.JobOffer
+&nbsp;
+&nbsp;internal object MockJobs {
+<b class="nc">&nbsp;    val all: List&lt;JobOffer&gt; = listOf(</b>
+<b class="nc">&nbsp;        JobOffer(</b>
+<b class="nc">&nbsp;            id = &quot;j-001&quot;,</b>
+<b class="nc">&nbsp;            title = &quot;Reponedor nocturno&quot;,</b>
+<b class="nc">&nbsp;            company = &quot;Walmart Chile&quot;,</b>
+<b class="nc">&nbsp;            category = JobCategory.OTRO,</b>
+<b class="nc">&nbsp;            region = &quot;Metropolitana&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;Las Condes&quot;,</b>
+<b class="nc">&nbsp;            jornada = &quot;Turno noche&quot;,</b>
+<b class="nc">&nbsp;            scheduleText = &quot;22:00 - 06:00&quot;,</b>
+<b class="nc">&nbsp;            salaryClp = 18000,</b>
+<b class="nc">&nbsp;            salaryUnit = &quot;turno&quot;,</b>
+<b class="nc">&nbsp;            description = &quot;Reposición de góndolas y armado de pedidos online en supermercado de alto flujo.&quot;,</b>
+<b class="nc">&nbsp;            requirements = listOf(&quot;Mayor de 18&quot;, &quot;Disponibilidad inmediata&quot;),</b>
+<b class="nc">&nbsp;            score = 92,</b>
+<b class="nc">&nbsp;            photoUrl = &quot;https://images.unsplash.com/photo-1542838132-92c53300491e?w=120&amp;auto=format&amp;fit=crop&amp;q=60&quot;</b>
+&nbsp;        ),
+<b class="nc">&nbsp;        JobOffer(</b>
+<b class="nc">&nbsp;            id = &quot;j-002&quot;,</b>
+<b class="nc">&nbsp;            title = &quot;Reponedor fin de semana&quot;,</b>
+<b class="nc">&nbsp;            company = &quot;Líder Maipú&quot;,</b>
+<b class="nc">&nbsp;            category = JobCategory.OTRO,</b>
+<b class="nc">&nbsp;            region = &quot;Metropolitana&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;Maipú&quot;,</b>
+<b class="nc">&nbsp;            jornada = &quot;Fin de semana&quot;,</b>
+<b class="nc">&nbsp;            scheduleText = &quot;Sáb-Dom 09:00 - 18:00&quot;,</b>
+<b class="nc">&nbsp;            salaryClp = 35000,</b>
+<b class="nc">&nbsp;            salaryUnit = &quot;día&quot;,</b>
+<b class="nc">&nbsp;            description = &quot;Reposición y ordenamiento en sala. Capacitación incluida.&quot;,</b>
+<b class="nc">&nbsp;            requirements = listOf(&quot;Mayor de 18&quot;),</b>
+<b class="nc">&nbsp;            score = 88,</b>
+<b class="nc">&nbsp;            photoUrl = &quot;https://images.unsplash.com/photo-1607344645866-009c320c5ab8?w=120&amp;auto=format&amp;fit=crop&amp;q=60&quot;</b>
+&nbsp;        ),
+<b class="nc">&nbsp;        JobOffer(</b>
+<b class="nc">&nbsp;            id = &quot;j-003&quot;,</b>
+<b class="nc">&nbsp;            title = &quot;Conserje turno noche&quot;,</b>
+<b class="nc">&nbsp;            company = &quot;Hotel Sheraton&quot;,</b>
+<b class="nc">&nbsp;            category = JobCategory.CONSERJE,</b>
+<b class="nc">&nbsp;            region = &quot;Metropolitana&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;Las Condes&quot;,</b>
+<b class="nc">&nbsp;            jornada = &quot;Turno noche&quot;,</b>
+<b class="nc">&nbsp;            scheduleText = &quot;23:00 - 07:00&quot;,</b>
+<b class="nc">&nbsp;            salaryClp = 28000,</b>
+<b class="nc">&nbsp;            salaryUnit = &quot;turno&quot;,</b>
+<b class="nc">&nbsp;            description = &quot;Atención de huéspedes y registro de novedades. Hotel 5 estrellas.&quot;,</b>
+<b class="nc">&nbsp;            requirements = listOf(&quot;Inglés básico&quot;, &quot;Presentación impecable&quot;),</b>
+<b class="nc">&nbsp;            score = 85,</b>
+<b class="nc">&nbsp;            photoUrl = &quot;https://images.unsplash.com/photo-1566073771259-6a8506099945?w=120&amp;auto=format&amp;fit=crop&amp;q=60&quot;</b>
+&nbsp;        ),
+<b class="nc">&nbsp;        JobOffer(</b>
+<b class="nc">&nbsp;            id = &quot;j-004&quot;,</b>
+<b class="nc">&nbsp;            title = &quot;Conserje turno día&quot;,</b>
+<b class="nc">&nbsp;            company = &quot;Edificio Cordillera&quot;,</b>
+<b class="nc">&nbsp;            category = JobCategory.CONSERJE,</b>
+<b class="nc">&nbsp;            region = &quot;Metropolitana&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;La Reina&quot;,</b>
+<b class="nc">&nbsp;            jornada = &quot;Turno día&quot;,</b>
+<b class="nc">&nbsp;            scheduleText = &quot;08:00 - 20:00&quot;,</b>
+<b class="nc">&nbsp;            salaryClp = 25000,</b>
+<b class="nc">&nbsp;            salaryUnit = &quot;turno&quot;,</b>
+<b class="nc">&nbsp;            description = &quot;Conserje de edificio residencial. Recepción de correspondencia y control de visitas.&quot;,</b>
+<b class="nc">&nbsp;            requirements = listOf(&quot;Mayor de 18&quot;, &quot;Experiencia previa deseable&quot;),</b>
+<b class="nc">&nbsp;            score = 82,</b>
+<b class="nc">&nbsp;            photoUrl = &quot;https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=120&amp;auto=format&amp;fit=crop&amp;q=60&quot;</b>
+&nbsp;        ),
+<b class="nc">&nbsp;        JobOffer(</b>
+<b class="nc">&nbsp;            id = &quot;j-005&quot;,</b>
+<b class="nc">&nbsp;            title = &quot;Guardia con OS10 - turno tarde&quot;,</b>
+<b class="nc">&nbsp;            company = &quot;Securitas Chile&quot;,</b>
+<b class="nc">&nbsp;            category = JobCategory.GUARDIA,</b>
+<b class="nc">&nbsp;            region = &quot;Metropolitana&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;Recoleta&quot;,</b>
+<b class="nc">&nbsp;            jornada = &quot;Turno tarde&quot;,</b>
+<b class="nc">&nbsp;            scheduleText = &quot;14:00 - 22:00&quot;,</b>
+<b class="nc">&nbsp;            salaryClp = 30000,</b>
+<b class="nc">&nbsp;            salaryUnit = &quot;turno&quot;,</b>
+<b class="nc">&nbsp;            description = &quot;Vigilancia perimetral en bodega industrial.&quot;,</b>
+<b class="nc">&nbsp;            requirements = listOf(&quot;OS10 vigente&quot;, &quot;Mayor de 21&quot;),</b>
+<b class="nc">&nbsp;            score = 78,</b>
+<b class="nc">&nbsp;            photoUrl = &quot;https://images.unsplash.com/photo-1582139329536-e7284fece509?w=120&amp;auto=format&amp;fit=crop&amp;q=60&quot;</b>
+&nbsp;        ),
+<b class="nc">&nbsp;        JobOffer(</b>
+<b class="nc">&nbsp;            id = &quot;j-006&quot;,</b>
+<b class="nc">&nbsp;            title = &quot;Guardia con OS10 - fin de semana&quot;,</b>
+<b class="nc">&nbsp;            company = &quot;G4S Chile&quot;,</b>
+<b class="nc">&nbsp;            category = JobCategory.GUARDIA,</b>
+<b class="nc">&nbsp;            region = &quot;Metropolitana&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;Providencia&quot;,</b>
+<b class="nc">&nbsp;            jornada = &quot;Fin de semana&quot;,</b>
+<b class="nc">&nbsp;            scheduleText = &quot;Sáb-Dom 12 horas&quot;,</b>
+<b class="nc">&nbsp;            salaryClp = 35000,</b>
+<b class="nc">&nbsp;            salaryUnit = &quot;día&quot;,</b>
+<b class="nc">&nbsp;            description = &quot;Control de acceso en complejo de oficinas.&quot;,</b>
+<b class="nc">&nbsp;            requirements = listOf(&quot;OS10 vigente&quot;),</b>
+<b class="nc">&nbsp;            score = 75,</b>
+<b class="nc">&nbsp;            photoUrl = &quot;https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=120&amp;auto=format&amp;fit=crop&amp;q=60&quot;</b>
+&nbsp;        ),
+<b class="nc">&nbsp;        JobOffer(</b>
+<b class="nc">&nbsp;            id = &quot;j-007&quot;,</b>
+<b class="nc">&nbsp;            title = &quot;Temporero vendimia&quot;,</b>
+<b class="nc">&nbsp;            company = &quot;Concha y Toro&quot;,</b>
+<b class="nc">&nbsp;            category = JobCategory.TEMPORERO,</b>
+<b class="nc">&nbsp;            region = &quot;Metropolitana&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;Pirque&quot;,</b>
+<b class="nc">&nbsp;            jornada = &quot;Tiempo completo&quot;,</b>
+<b class="nc">&nbsp;            scheduleText = &quot;Lunes a sábado 07:00 - 17:00&quot;,</b>
+<b class="nc">&nbsp;            salaryClp = 25000,</b>
+<b class="nc">&nbsp;            salaryUnit = &quot;día&quot;,</b>
+<b class="nc">&nbsp;            description = &quot;Cosecha de uva. Movilización proporcionada desde puntos de encuentro.&quot;,</b>
+<b class="nc">&nbsp;            requirements = listOf(&quot;Mayor de 18&quot;, &quot;Disponibilidad por 4 semanas&quot;),</b>
+<b class="nc">&nbsp;            score = 90,</b>
+<b class="nc">&nbsp;            photoUrl = &quot;https://images.unsplash.com/photo-1506306813292-23c241a3fa40?w=120&amp;auto=format&amp;fit=crop&amp;q=60&quot;</b>
+&nbsp;        ),
+<b class="nc">&nbsp;        JobOffer(</b>
+<b class="nc">&nbsp;            id = &quot;j-008&quot;,</b>
+<b class="nc">&nbsp;            title = &quot;Temporero cosecha cítricos&quot;,</b>
+<b class="nc">&nbsp;            company = &quot;Frutera La Calera&quot;,</b>
+<b class="nc">&nbsp;            category = JobCategory.TEMPORERO,</b>
+<b class="nc">&nbsp;            region = &quot;Valparaíso&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;La Calera&quot;,</b>
+<b class="nc">&nbsp;            jornada = &quot;Tiempo completo&quot;,</b>
+<b class="nc">&nbsp;            scheduleText = &quot;Lunes a sábado 06:30 - 16:00&quot;,</b>
+<b class="nc">&nbsp;            salaryClp = 22000,</b>
+<b class="nc">&nbsp;            salaryUnit = &quot;día&quot;,</b>
+<b class="nc">&nbsp;            description = &quot;Cosecha de naranjas y mandarinas. Pago semanal.&quot;,</b>
+<b class="nc">&nbsp;            requirements = listOf(&quot;Mayor de 18&quot;),</b>
+<b class="nc">&nbsp;            score = 71,</b>
+<b class="nc">&nbsp;            photoUrl = &quot;https://images.unsplash.com/photo-1610348725531-843dff563e2c?w=120&amp;auto=format&amp;fit=crop&amp;q=60&quot;</b>
+&nbsp;        ),
+<b class="nc">&nbsp;        JobOffer(</b>
+<b class="nc">&nbsp;            id = &quot;j-009&quot;,</b>
+<b class="nc">&nbsp;            title = &quot;Niñera media jornada&quot;,</b>
+<b class="nc">&nbsp;            company = &quot;Familia particular&quot;,</b>
+<b class="nc">&nbsp;            category = JobCategory.NINERA,</b>
+<b class="nc">&nbsp;            region = &quot;Metropolitana&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;Vitacura&quot;,</b>
+<b class="nc">&nbsp;            jornada = &quot;Media jornada&quot;,</b>
+<b class="nc">&nbsp;            scheduleText = &quot;Lun-Vie 14:00 - 19:00&quot;,</b>
+<b class="nc">&nbsp;            salaryClp = 12000,</b>
+<b class="nc">&nbsp;            salaryUnit = &quot;día&quot;,</b>
+<b class="nc">&nbsp;            description = &quot;Cuidado de dos niños (4 y 7 años). Apoyo en tareas escolares.&quot;,</b>
+<b class="nc">&nbsp;            requirements = listOf(&quot;Experiencia comprobable&quot;, &quot;Referencias&quot;),</b>
+<b class="nc">&nbsp;            score = 95,</b>
+<b class="nc">&nbsp;            photoUrl = &quot;https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=120&amp;auto=format&amp;fit=crop&amp;q=60&quot;</b>
+&nbsp;        ),
+<b class="nc">&nbsp;        JobOffer(</b>
+<b class="nc">&nbsp;            id = &quot;j-010&quot;,</b>
+<b class="nc">&nbsp;            title = &quot;Acomodador de eventos&quot;,</b>
+<b class="nc">&nbsp;            company = &quot;Estadio Nacional&quot;,</b>
+<b class="nc">&nbsp;            category = JobCategory.OTRO,</b>
+<b class="nc">&nbsp;            region = &quot;Metropolitana&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;Ñuñoa&quot;,</b>
+<b class="nc">&nbsp;            jornada = &quot;Por evento&quot;,</b>
+<b class="nc">&nbsp;            scheduleText = &quot;Días con evento, 6 horas&quot;,</b>
+<b class="nc">&nbsp;            salaryClp = 20000,</b>
+<b class="nc">&nbsp;            salaryUnit = &quot;turno&quot;,</b>
+<b class="nc">&nbsp;            description = &quot;Apoyo en ingreso de público y guía a butacas en partidos de fútbol y conciertos.&quot;,</b>
+<b class="nc">&nbsp;            requirements = listOf(&quot;Mayor de 18&quot;, &quot;Disponibilidad fin de semana&quot;),</b>
+<b class="nc">&nbsp;            score = 68,</b>
+<b class="nc">&nbsp;            photoUrl = &quot;https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=120&amp;auto=format&amp;fit=crop&amp;q=60&quot;</b>
+&nbsp;        ),
+<b class="nc">&nbsp;        JobOffer(</b>
+<b class="nc">&nbsp;            id = &quot;j-011&quot;,</b>
+<b class="nc">&nbsp;            title = &quot;Aseo industrial nocturno&quot;,</b>
+<b class="nc">&nbsp;            company = &quot;Aseo Total Sur&quot;,</b>
+<b class="nc">&nbsp;            category = JobCategory.ASEO,</b>
+<b class="nc">&nbsp;            region = &quot;Metropolitana&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;Las Condes&quot;,</b>
+<b class="nc">&nbsp;            jornada = &quot;Turno noche&quot;,</b>
+<b class="nc">&nbsp;            scheduleText = &quot;20:00 - 04:00&quot;,</b>
+<b class="nc">&nbsp;            salaryClp = 22000,</b>
+<b class="nc">&nbsp;            salaryUnit = &quot;turno&quot;,</b>
+<b class="nc">&nbsp;            description = &quot;Limpieza profunda de oficinas corporativas.&quot;,</b>
+<b class="nc">&nbsp;            requirements = listOf(&quot;Mayor de 18&quot;),</b>
+<b class="nc">&nbsp;            score = 80,</b>
+<b class="nc">&nbsp;            photoUrl = &quot;https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=120&amp;auto=format&amp;fit=crop&amp;q=60&quot;</b>
+&nbsp;        ),
+<b class="nc">&nbsp;        JobOffer(</b>
+<b class="nc">&nbsp;            id = &quot;j-012&quot;,</b>
+<b class="nc">&nbsp;            title = &quot;Carga y descarga&quot;,</b>
+<b class="nc">&nbsp;            company = &quot;Cencosud Logística&quot;,</b>
+<b class="nc">&nbsp;            category = JobCategory.CARGA,</b>
+<b class="nc">&nbsp;            region = &quot;Metropolitana&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;Quilicura&quot;,</b>
+<b class="nc">&nbsp;            jornada = &quot;Tiempo completo&quot;,</b>
+<b class="nc">&nbsp;            scheduleText = &quot;06:00 - 14:00&quot;,</b>
+<b class="nc">&nbsp;            salaryClp = 25000,</b>
+<b class="nc">&nbsp;            salaryUnit = &quot;día&quot;,</b>
+<b class="nc">&nbsp;            description = &quot;Carga y descarga de camiones en centro de distribución. Trabajo físico exigente.&quot;,</b>
+<b class="nc">&nbsp;            requirements = listOf(&quot;Mayor de 18&quot;, &quot;Buena condición física&quot;),</b>
+<b class="nc">&nbsp;            score = 73,</b>
+<b class="nc">&nbsp;            photoUrl = &quot;https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=120&amp;auto=format&amp;fit=crop&amp;q=60&quot;</b>
+&nbsp;        )
+&nbsp;    )
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

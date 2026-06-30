@@ -1,0 +1,390 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CandidatoItem</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.ui.empresa</a>
+</div>
+
+<h1>Coverage Summary for Class: CandidatoItem (cl.catchgo.app.ui.empresa)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CandidatoItem</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/13)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.ui.empresa
+&nbsp;
+&nbsp;import androidx.lifecycle.ViewModel
+&nbsp;import androidx.lifecycle.viewModelScope
+&nbsp;import cl.catchgo.app.data.local.SessionStore
+&nbsp;import cl.catchgo.app.data.remote.JobsApi
+&nbsp;import cl.catchgo.app.data.remote.ProfileApi
+&nbsp;import cl.catchgo.app.data.remote.dto.JobOfferDto
+&nbsp;import cl.catchgo.app.data.remote.dto.MatchOfertaDto
+&nbsp;import cl.catchgo.app.data.remote.dto.MatchSolicitudDto
+&nbsp;import cl.catchgo.app.data.remote.dto.MatchTrabajadorDto
+&nbsp;import cl.catchgo.app.data.remote.dto.ProfileRemoteDto
+&nbsp;import cl.catchgo.app.data.remote.dto.UpdateStatusRequest
+&nbsp;import cl.catchgo.app.domain.repository.MatchingRepository
+&nbsp;import cl.catchgo.app.util.MatchEngine
+&nbsp;import dagger.hilt.android.lifecycle.HiltViewModel
+&nbsp;import kotlinx.coroutines.async
+&nbsp;import kotlinx.coroutines.awaitAll
+&nbsp;import kotlinx.coroutines.flow.MutableStateFlow
+&nbsp;import kotlinx.coroutines.flow.StateFlow
+&nbsp;import kotlinx.coroutines.flow.first
+&nbsp;import kotlinx.coroutines.flow.update
+&nbsp;import kotlinx.coroutines.launch
+&nbsp;import org.json.JSONArray
+&nbsp;import org.json.JSONObject
+&nbsp;import javax.inject.Inject
+&nbsp;
+<b class="nc">&nbsp;data class CandidatoItem(</b>
+<b class="nc">&nbsp;    val applicationId: Long,</b>
+<b class="nc">&nbsp;    val jobId: Long,</b>
+<b class="nc">&nbsp;    val userId: String,</b>
+<b class="nc">&nbsp;    val nombre: String,</b>
+<b class="nc">&nbsp;    val jobTitle: String,</b>
+<b class="nc">&nbsp;    val remuneracion: Int,</b>
+<b class="nc">&nbsp;    val descripcion: String,</b>
+<b class="nc">&nbsp;    val matchScore: Int,</b>
+<b class="nc">&nbsp;    val puntajeDistancia: Int,</b>
+<b class="nc">&nbsp;    val puntajeHabilidades: Int,</b>
+<b class="nc">&nbsp;    val estado: String,</b>
+<b class="nc">&nbsp;    val workerProfile: ProfileRemoteDto?</b>
+&nbsp;)
+&nbsp;
+&nbsp;data class CandidatosUiState(
+&nbsp;    val isLoading: Boolean = true,
+&nbsp;    val candidatos: List&lt;CandidatoItem&gt; = emptyList(),
+&nbsp;    val empresaProfile: ProfileRemoteDto? = null,
+&nbsp;    val error: String? = null,
+&nbsp;    val successMessage: String? = null
+&nbsp;)
+&nbsp;
+&nbsp;@HiltViewModel
+&nbsp;class CandidatosViewModel @Inject constructor(
+&nbsp;    private val jobsApi: JobsApi,
+&nbsp;    private val profileApi: ProfileApi,
+&nbsp;    private val matchingRepository: MatchingRepository,
+&nbsp;    private val sessionStore: SessionStore
+&nbsp;) : ViewModel() {
+&nbsp;
+&nbsp;    val state: StateFlow&lt;CandidatosUiState&gt; get() = _state
+&nbsp;    private val _state = MutableStateFlow(CandidatosUiState())
+&nbsp;
+&nbsp;    init {
+&nbsp;        load()
+&nbsp;    }
+&nbsp;
+&nbsp;    fun load() {
+&nbsp;        viewModelScope.launch {
+&nbsp;            _state.update { it.copy(isLoading = true, error = null) }
+&nbsp;            try {
+&nbsp;                val session = sessionStore.session.first() ?: return@launch
+&nbsp;                val empresaId = session.user.id
+&nbsp;
+&nbsp;                val empProfileResponse = profileApi.getProfile(empresaId)
+&nbsp;                val empresaProfile = if (empProfileResponse.isSuccessful) empProfileResponse.body() else null
+&nbsp;                val empresaSkills = parseJson(empresaProfile?.skills)
+&nbsp;
+&nbsp;                val applications = jobsApi.listByEmployer(empresaId)
+&nbsp;
+&nbsp;                // Fetch worker profiles + jobs in parallel
+&nbsp;                data class AppData(
+&nbsp;                    val applicationId: Long,
+&nbsp;                    val jobId: Long,
+&nbsp;                    val userId: String,
+&nbsp;                    val estado: String,
+&nbsp;                    val job: JobOfferDto?,
+&nbsp;                    val workerProfile: ProfileRemoteDto?
+&nbsp;                )
+&nbsp;
+&nbsp;                val appData = applications.map { app -&gt;
+&nbsp;                    async {
+&nbsp;                        var job: JobOfferDto? = null
+&nbsp;                        var workerProfile: ProfileRemoteDto? = null
+&nbsp;                        runCatching {
+&nbsp;                            job = jobsApi.get(app.jobId.toString())
+&nbsp;                            val profResp = profileApi.getProfile(app.userId ?: &quot;&quot;)
+&nbsp;                            workerProfile = if (profResp.isSuccessful) profResp.body() else null
+&nbsp;                        }
+&nbsp;                        AppData(app.id, app.jobId, app.userId ?: &quot;&quot;, app.estado ?: &quot;PENDIENTE&quot;, job, workerProfile)
+&nbsp;                    }
+&nbsp;                }.awaitAll()
+&nbsp;
+&nbsp;                // Group by jobId to call matching once per offer
+&nbsp;                val byJob = appData.groupBy { it.jobId }
+&nbsp;
+&nbsp;                // For each job group, run matching and collect scores per workerId
+&nbsp;                val scoreMap = mutableMapOf&lt;String, Triple&lt;Int, Int, Int&gt;&gt;() // userId -&gt; (total, habilidades, distancia)
+&nbsp;                byJob.forEach { (jobId, group) -&gt;
+&nbsp;                    val job = group.firstOrNull()?.job ?: return@forEach
+&nbsp;                    val workers = group.mapNotNull { it.workerProfile }
+&nbsp;                    if (workers.isEmpty()) return@forEach
+&nbsp;
+&nbsp;                    val solicitud = buildSolicitud(
+&nbsp;                        job = job,
+&nbsp;                        empresaId = empresaId,
+&nbsp;                        empresaProfile = empresaProfile,
+&nbsp;                        empresaSkills = empresaSkills,
+&nbsp;                        workers = workers
+&nbsp;                    )
+&nbsp;                    
+&nbsp;                    val remoteScores = matchingRepository.ejecutarMatching(solicitud).getOrNull()
+&nbsp;                    if (remoteScores != null &amp;&amp; remoteScores.isNotEmpty()) {
+&nbsp;                        remoteScores.forEach { sug -&gt;
+&nbsp;                            val uid = sug.trabajadorPerfilId.toString()
+&nbsp;                            scoreMap[uid] = Triple(
+&nbsp;                                sug.puntajeTotal.toInt(),
+&nbsp;                                sug.puntajeHabilidades.toInt(),
+&nbsp;                                sug.puntajeDistancia.toInt()
+&nbsp;                            )
+&nbsp;                        }
+&nbsp;                    } else {
+&nbsp;                        // Fallback local: Si el microservicio remoto falla, calculamos localmente.
+&nbsp;                        val jobDomain = job.toDomain()
+&nbsp;                        workers.forEach { worker -&gt;
+&nbsp;                            val workerId = worker.id ?: return@forEach
+&nbsp;                            val score = MatchEngine.calculate(
+&nbsp;                                worker = worker,
+&nbsp;                                company = empresaProfile,
+&nbsp;                                offer = jobDomain,
+&nbsp;                                plan = empresaProfile?.plan ?: &quot;FREE&quot;
+&nbsp;                            )
+&nbsp;                            scoreMap[workerId.toString()] = Triple(score, 0, 0)
+&nbsp;                        }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;
+&nbsp;                val items = appData.map { app -&gt;
+&nbsp;                    val scores = scoreMap[app.workerProfile?.id?.toString()]
+&nbsp;                    CandidatoItem(
+&nbsp;                        applicationId = app.applicationId,
+&nbsp;                        jobId = app.jobId,
+&nbsp;                        userId = app.userId,
+&nbsp;                        nombre = app.workerProfile?.name ?: &quot;Trabajador #${app.userId.take(5)}&quot;,
+&nbsp;                        jobTitle = app.job?.titulo ?: &quot;Turno #${app.jobId}&quot;,
+&nbsp;                        remuneracion = app.job?.remuneracion ?: 0,
+&nbsp;                        descripcion = app.workerProfile?.description ?: &quot;&quot;,
+&nbsp;                        matchScore = scores?.first ?: 0,
+&nbsp;                        puntajeHabilidades = scores?.second ?: 0,
+&nbsp;                        puntajeDistancia = scores?.third ?: 0,
+&nbsp;                        estado = app.estado,
+&nbsp;                        workerProfile = app.workerProfile
+&nbsp;                    )
+&nbsp;                }.sortedByDescending { it.matchScore }
+&nbsp;
+&nbsp;                _state.update { it.copy(isLoading = false, candidatos = items, empresaProfile = empresaProfile) }
+&nbsp;            } catch (e: Exception) {
+&nbsp;                _state.update { it.copy(isLoading = false, error = e.message) }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun updateStatus(applicationId: Long, newStatus: String) {
+&nbsp;        viewModelScope.launch {
+&nbsp;            val result = runCatching {
+&nbsp;                val response = jobsApi.updateApplicationStatus(applicationId, UpdateStatusRequest(newStatus))
+&nbsp;                if (!response.isSuccessful) {
+&nbsp;                    throw IllegalStateException(&quot;Error al actualizar estado: ${response.code()}&quot;)
+&nbsp;                }
+&nbsp;            }
+&nbsp;            result.onSuccess {
+&nbsp;                val msg = when (newStatus) {
+&nbsp;                    &quot;ACEPTADO&quot; -&gt; &quot;Postulación aceptada con éxito&quot;
+&nbsp;                    &quot;RECHAZADO&quot; -&gt; &quot;Postulación rechazada&quot;
+&nbsp;                    &quot;PAGO_ENVIADO&quot; -&gt; &quot;Pago enviado con éxito&quot;
+&nbsp;                    &quot;PAGO_CONFIRMADO&quot; -&gt; &quot;Pago confirmado con éxito&quot;
+&nbsp;                    else -&gt; &quot;Estado actualizado con éxito&quot;
+&nbsp;                }
+&nbsp;                _state.update { s -&gt;
+&nbsp;                    s.copy(
+&nbsp;                        successMessage = msg,
+&nbsp;                        candidatos = s.candidatos.map {
+&nbsp;                            if (it.applicationId == applicationId) it.copy(estado = newStatus) else it
+&nbsp;                        }
+&nbsp;                    )
+&nbsp;                }
+&nbsp;            }.onFailure { e -&gt;
+&nbsp;                _state.update { it.copy(error = &quot;Error al actualizar estado: ${e.localizedMessage}&quot;) }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun submitRating(candidato: CandidatoItem, stars: Int) {
+&nbsp;        viewModelScope.launch {
+&nbsp;            val result = runCatching {
+&nbsp;                val profile = candidato.workerProfile
+&nbsp;                if (profile != null) {
+&nbsp;                    val count = profile.ratingCount ?: 0
+&nbsp;                    val current = profile.rating ?: 0.0
+&nbsp;                    val newCount = count + 1
+&nbsp;                    val newRating = (current * count + stars) / newCount
+&nbsp;                    val updated = profile.copy(rating = newRating, ratingCount = newCount)
+&nbsp;                    profileApi.saveProfile(updated)
+&nbsp;                }
+&nbsp;                
+&nbsp;                val targetStatus = if (candidato.estado == &quot;CALIFICADO_TRABAJADOR&quot;) &quot;FINALIZADA&quot; else &quot;CALIFICADO_EMPRESA&quot;
+&nbsp;                val response = jobsApi.updateApplicationStatus(candidato.applicationId, UpdateStatusRequest(targetStatus))
+&nbsp;                if (!response.isSuccessful) {
+&nbsp;                    throw IllegalStateException(&quot;Error al actualizar estado: ${response.code()}&quot;)
+&nbsp;                }
+&nbsp;                targetStatus
+&nbsp;            }
+&nbsp;            result.onSuccess { targetStatus -&gt;
+&nbsp;                _state.update { s -&gt;
+&nbsp;                    s.copy(
+&nbsp;                        successMessage = &quot;Calificación enviada con éxito&quot;,
+&nbsp;                        candidatos = s.candidatos.map {
+&nbsp;                            if (it.applicationId == candidato.applicationId) it.copy(estado = targetStatus) else it
+&nbsp;                        }
+&nbsp;                    )
+&nbsp;                }
+&nbsp;            }.onFailure { e -&gt;
+&nbsp;                _state.update { it.copy(error = &quot;Error al calificar: ${e.localizedMessage}&quot;) }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun clearError() {
+&nbsp;        _state.update { it.copy(error = null) }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun clearMessage() {
+&nbsp;        _state.update { it.copy(successMessage = null) }
+&nbsp;    }
+&nbsp;
+&nbsp;    private fun buildSolicitud(
+&nbsp;        job: JobOfferDto,
+&nbsp;        empresaId: String,
+&nbsp;        empresaProfile: ProfileRemoteDto?,
+&nbsp;        empresaSkills: JSONObject,
+&nbsp;        workers: List&lt;ProfileRemoteDto&gt;
+&nbsp;    ): MatchSolicitudDto {
+&nbsp;        val habilidadValorada = empresaSkills.optString(&quot;habilidadValorada&quot;, &quot;&quot;)
+&nbsp;        val habilidadesRequeridas = if (habilidadValorada.isNotBlank()) listOf(habilidadValorada) else emptyList()
+&nbsp;
+&nbsp;        val oferta = MatchOfertaDto(
+&nbsp;            id = job.id,
+&nbsp;            titulo = job.titulo,
+&nbsp;            empresaId = empresaId.toLongOrNull(),
+&nbsp;            habilidadesRequeridas = habilidadesRequeridas,
+&nbsp;            latitud = job.latitude ?: empresaProfile?.latitude,
+&nbsp;            longitud = job.longitude ?: empresaProfile?.longitude
+&nbsp;        )
+&nbsp;
+&nbsp;        val trabajadores = workers.mapNotNull { w -&gt;
+&nbsp;            val wId = w.id ?: return@mapNotNull null
+&nbsp;            val wSkills = parseJson(w.skills)
+&nbsp;            MatchTrabajadorDto(
+&nbsp;                id = wId,
+&nbsp;                nombre = w.name,
+&nbsp;                habilidades = parseHabilidades(wSkills),
+&nbsp;                latitud = w.latitude,
+&nbsp;                longitud = w.longitude
+&nbsp;            )
+&nbsp;        }
+&nbsp;
+&nbsp;        return MatchSolicitudDto(ofertaTrabajo = oferta, trabajadores = trabajadores)
+&nbsp;    }
+&nbsp;
+&nbsp;    private fun parseJson(json: String?): JSONObject =
+&nbsp;        if (json.isNullOrBlank()) JSONObject()
+&nbsp;        else runCatching { JSONObject(json) }.getOrDefault(JSONObject())
+&nbsp;
+&nbsp;    private fun parseHabilidades(skills: JSONObject): List&lt;String&gt; {
+&nbsp;        val arr: JSONArray = skills.optJSONArray(&quot;habilidades&quot;) ?: return emptyList()
+&nbsp;        return (0 until arr.length()).mapNotNull { arr.optString(it).takeIf { s -&gt; s.isNotBlank() } }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

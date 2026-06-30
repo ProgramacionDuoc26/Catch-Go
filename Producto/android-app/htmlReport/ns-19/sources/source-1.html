@@ -1,0 +1,421 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DesignSystemShowcaseKt</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.ui.showcase</a>
+</div>
+
+<h1>Coverage Summary for Class: DesignSystemShowcaseKt (cl.catchgo.app.ui.showcase)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">DesignSystemShowcaseKt</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/174)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.ui.showcase
+&nbsp;
+&nbsp;import androidx.compose.foundation.background
+&nbsp;import androidx.compose.foundation.layout.Arrangement
+&nbsp;import androidx.compose.foundation.layout.Box
+&nbsp;import androidx.compose.foundation.layout.Column
+&nbsp;import androidx.compose.foundation.layout.PaddingValues
+&nbsp;import androidx.compose.foundation.layout.Row
+&nbsp;import androidx.compose.foundation.layout.Spacer
+&nbsp;import androidx.compose.foundation.layout.fillMaxSize
+&nbsp;import androidx.compose.foundation.layout.fillMaxWidth
+&nbsp;import androidx.compose.foundation.layout.height
+&nbsp;import androidx.compose.foundation.layout.size
+&nbsp;import androidx.compose.foundation.lazy.LazyColumn
+&nbsp;import androidx.compose.foundation.shape.CircleShape
+&nbsp;import androidx.compose.material3.HorizontalDivider
+&nbsp;import androidx.compose.material3.MaterialTheme
+&nbsp;import androidx.compose.material3.Surface
+&nbsp;import androidx.compose.material3.Text
+&nbsp;import androidx.compose.runtime.Composable
+&nbsp;import androidx.compose.runtime.getValue
+&nbsp;import androidx.compose.runtime.mutableStateOf
+&nbsp;import androidx.compose.runtime.remember
+&nbsp;import androidx.compose.runtime.setValue
+&nbsp;import androidx.compose.ui.Alignment
+&nbsp;import androidx.compose.ui.Modifier
+&nbsp;import androidx.compose.ui.draw.clip
+&nbsp;import androidx.compose.ui.graphics.Color
+&nbsp;import androidx.compose.ui.tooling.preview.Preview
+&nbsp;import androidx.compose.ui.unit.dp
+&nbsp;import cl.catchgo.app.ui.components.CatchTextField
+&nbsp;import cl.catchgo.app.ui.components.EmptyState
+&nbsp;import cl.catchgo.app.ui.components.OfferCard
+&nbsp;import cl.catchgo.app.ui.components.PrimaryButton
+&nbsp;import cl.catchgo.app.ui.components.SecondaryButton
+&nbsp;import cl.catchgo.app.ui.components.SkeletonBox
+&nbsp;import cl.catchgo.app.ui.components.StatusBadge
+&nbsp;import cl.catchgo.app.ui.components.StatusType
+&nbsp;import cl.catchgo.app.ui.theme.BrandBlue50
+&nbsp;import cl.catchgo.app.ui.theme.BrandBlue700
+&nbsp;import cl.catchgo.app.ui.theme.CatchGoTheme
+&nbsp;import cl.catchgo.app.ui.theme.Error50
+&nbsp;import cl.catchgo.app.ui.theme.Error600
+&nbsp;import cl.catchgo.app.ui.theme.Gray100
+&nbsp;import cl.catchgo.app.ui.theme.Gray200
+&nbsp;import cl.catchgo.app.ui.theme.Gray50
+&nbsp;import cl.catchgo.app.ui.theme.Gray500
+&nbsp;import cl.catchgo.app.ui.theme.Gray700
+&nbsp;import cl.catchgo.app.ui.theme.Gray900
+&nbsp;import cl.catchgo.app.ui.theme.Spacing
+&nbsp;import cl.catchgo.app.ui.theme.Success50
+&nbsp;import cl.catchgo.app.ui.theme.Success600
+&nbsp;import cl.catchgo.app.ui.theme.Warning50
+&nbsp;import cl.catchgo.app.ui.theme.Warning600
+&nbsp;
+&nbsp;@Composable
+<b class="nc">&nbsp;fun DesignSystemShowcase(modifier: Modifier = Modifier) {</b>
+<b class="nc">&nbsp;    Surface(</b>
+<b class="nc">&nbsp;        modifier = modifier.fillMaxSize(),</b>
+<b class="nc">&nbsp;        color = MaterialTheme.colorScheme.background</b>
+&nbsp;    ) {
+&nbsp;        LazyColumn(
+&nbsp;            contentPadding = PaddingValues(
+&nbsp;                start = Spacing.md,
+&nbsp;                end = Spacing.md,
+&nbsp;                top = Spacing.md,
+&nbsp;                bottom = Spacing.xl
+&nbsp;            ),
+&nbsp;            verticalArrangement = Arrangement.spacedBy(Spacing.xl)
+&nbsp;        ) {
+&nbsp;            item { Header() }
+&nbsp;            item { Section(&quot;Colores&quot;) { ColorSwatches() } }
+&nbsp;            item { Section(&quot;Tipografía&quot;) { TypographySamples() } }
+&nbsp;            item { Section(&quot;Botones&quot;) { ButtonsSamples() } }
+&nbsp;            item { Section(&quot;Inputs&quot;) { InputSamples() } }
+&nbsp;            item { Section(&quot;Status badges&quot;) { StatusBadgeSamples() } }
+&nbsp;            item { Section(&quot;Offer cards&quot;) { OfferCardSamples() } }
+&nbsp;            item { Section(&quot;Skeletons&quot;) { SkeletonSamples() } }
+&nbsp;            item { Section(&quot;Empty state&quot;) { EmptyStateSample() } }
+&nbsp;        }
+&nbsp;    }
+<b class="nc">&nbsp;}</b>
+&nbsp;
+&nbsp;@Composable
+<b class="nc">&nbsp;private fun Header() {</b>
+<b class="nc">&nbsp;    Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {</b>
+<b class="nc">&nbsp;        Text(</b>
+<b class="nc">&nbsp;            text = &quot;Catch-Go&quot;,</b>
+<b class="nc">&nbsp;            style = MaterialTheme.typography.headlineLarge</b>
+&nbsp;        )
+<b class="nc">&nbsp;        Text(</b>
+<b class="nc">&nbsp;            text = &quot;Design System · F1&quot;,</b>
+<b class="nc">&nbsp;            style = MaterialTheme.typography.bodyMedium,</b>
+<b class="nc">&nbsp;            color = MaterialTheme.colorScheme.onSurfaceVariant</b>
+&nbsp;        )
+<b class="nc">&nbsp;    }</b>
+<b class="nc">&nbsp;}</b>
+&nbsp;
+&nbsp;@Composable
+<b class="nc">&nbsp;private fun Section(title: String, content: @Composable () -&gt; Unit) {</b>
+<b class="nc">&nbsp;    Column(verticalArrangement = Arrangement.spacedBy(Spacing.md)) {</b>
+<b class="nc">&nbsp;        Text(</b>
+<b class="nc">&nbsp;            text = title.uppercase(),</b>
+<b class="nc">&nbsp;            style = MaterialTheme.typography.labelMedium,</b>
+<b class="nc">&nbsp;            color = MaterialTheme.colorScheme.onSurfaceVariant</b>
+&nbsp;        )
+<b class="nc">&nbsp;        HorizontalDivider(color = MaterialTheme.colorScheme.outline)</b>
+<b class="nc">&nbsp;        content()</b>
+<b class="nc">&nbsp;    }</b>
+<b class="nc">&nbsp;}</b>
+&nbsp;
+&nbsp;@Composable
+<b class="nc">&nbsp;private fun ColorSwatches() {</b>
+<b class="nc">&nbsp;    val swatches = listOf(</b>
+<b class="nc">&nbsp;        &quot;Brand 700&quot; to BrandBlue700,</b>
+<b class="nc">&nbsp;        &quot;Brand 50&quot; to BrandBlue50,</b>
+<b class="nc">&nbsp;        &quot;Success 600&quot; to Success600,</b>
+<b class="nc">&nbsp;        &quot;Success 50&quot; to Success50,</b>
+<b class="nc">&nbsp;        &quot;Warning 600&quot; to Warning600,</b>
+<b class="nc">&nbsp;        &quot;Warning 50&quot; to Warning50,</b>
+<b class="nc">&nbsp;        &quot;Error 600&quot; to Error600,</b>
+<b class="nc">&nbsp;        &quot;Error 50&quot; to Error50,</b>
+<b class="nc">&nbsp;        &quot;Gray 900&quot; to Gray900,</b>
+<b class="nc">&nbsp;        &quot;Gray 700&quot; to Gray700,</b>
+<b class="nc">&nbsp;        &quot;Gray 500&quot; to Gray500,</b>
+<b class="nc">&nbsp;        &quot;Gray 200&quot; to Gray200,</b>
+<b class="nc">&nbsp;        &quot;Gray 100&quot; to Gray100,</b>
+<b class="nc">&nbsp;        &quot;Gray 50&quot; to Gray50</b>
+&nbsp;    )
+<b class="nc">&nbsp;    Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {</b>
+<b class="nc">&nbsp;        swatches.chunked(2).forEach { row -&gt;</b>
+<b class="nc">&nbsp;            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {</b>
+<b class="nc">&nbsp;                row.forEach { (label, color) -&gt;</b>
+<b class="nc">&nbsp;                    Swatch(label = label, color = color, modifier = Modifier.weight(1f))</b>
+<b class="nc">&nbsp;                }</b>
+<b class="nc">&nbsp;                if (row.size == 1) Spacer(Modifier.weight(1f))</b>
+<b class="nc">&nbsp;            }</b>
+<b class="nc">&nbsp;        }</b>
+<b class="nc">&nbsp;    }</b>
+<b class="nc">&nbsp;}</b>
+&nbsp;
+&nbsp;@Composable
+<b class="nc">&nbsp;private fun Swatch(label: String, color: Color, modifier: Modifier = Modifier) {</b>
+<b class="nc">&nbsp;    Row(</b>
+<b class="nc">&nbsp;        verticalAlignment = Alignment.CenterVertically,</b>
+<b class="nc">&nbsp;        horizontalArrangement = Arrangement.spacedBy(Spacing.sm),</b>
+&nbsp;        modifier = modifier
+&nbsp;    ) {
+<b class="nc">&nbsp;        Box(</b>
+<b class="nc">&nbsp;            modifier = Modifier</b>
+<b class="nc">&nbsp;                .size(32.dp)</b>
+<b class="nc">&nbsp;                .clip(MaterialTheme.shapes.small)</b>
+<b class="nc">&nbsp;                .background(color)</b>
+&nbsp;        )
+<b class="nc">&nbsp;        Text(text = label, style = MaterialTheme.typography.bodySmall)</b>
+<b class="nc">&nbsp;    }</b>
+<b class="nc">&nbsp;}</b>
+&nbsp;
+&nbsp;@Composable
+<b class="nc">&nbsp;private fun TypographySamples() {</b>
+<b class="nc">&nbsp;    Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {</b>
+<b class="nc">&nbsp;        Text(&quot;Headline L&quot;, style = MaterialTheme.typography.headlineLarge)</b>
+<b class="nc">&nbsp;        Text(&quot;Headline M&quot;, style = MaterialTheme.typography.headlineMedium)</b>
+<b class="nc">&nbsp;        Text(&quot;Title L&quot;, style = MaterialTheme.typography.titleLarge)</b>
+<b class="nc">&nbsp;        Text(&quot;Title M&quot;, style = MaterialTheme.typography.titleMedium)</b>
+<b class="nc">&nbsp;        Text(&quot;Body L · Postula a turnos en un toque.&quot;, style = MaterialTheme.typography.bodyLarge)</b>
+<b class="nc">&nbsp;        Text(&quot;Body M · Postula a turnos en un toque.&quot;, style = MaterialTheme.typography.bodyMedium)</b>
+<b class="nc">&nbsp;        Text(&quot;Body S · Postula a turnos en un toque.&quot;, style = MaterialTheme.typography.bodySmall)</b>
+<b class="nc">&nbsp;        Text(&quot;Label L · ENTRAR&quot;, style = MaterialTheme.typography.labelLarge)</b>
+<b class="nc">&nbsp;        Text(&quot;Label M · ENTRAR&quot;, style = MaterialTheme.typography.labelMedium)</b>
+<b class="nc">&nbsp;    }</b>
+<b class="nc">&nbsp;}</b>
+&nbsp;
+&nbsp;@Composable
+<b class="nc">&nbsp;private fun ButtonsSamples() {</b>
+<b class="nc">&nbsp;    var loading by remember { mutableStateOf(false) }</b>
+<b class="nc">&nbsp;    Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {</b>
+<b class="nc">&nbsp;        PrimaryButton(text = &quot;Postular ahora&quot;, onClick = { loading = !loading }, loading = loading)</b>
+<b class="nc">&nbsp;        SecondaryButton(text = &quot;Ver detalle&quot;, onClick = {})</b>
+<b class="nc">&nbsp;        PrimaryButton(text = &quot;Deshabilitado&quot;, onClick = {}, enabled = false)</b>
+<b class="nc">&nbsp;        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {</b>
+<b class="nc">&nbsp;            PrimaryButton(text = &quot;Sí&quot;, onClick = {}, fullWidth = false, modifier = Modifier.weight(1f))</b>
+<b class="nc">&nbsp;            SecondaryButton(text = &quot;No&quot;, onClick = {}, fullWidth = false, modifier = Modifier.weight(1f))</b>
+<b class="nc">&nbsp;        }</b>
+<b class="nc">&nbsp;    }</b>
+<b class="nc">&nbsp;}</b>
+&nbsp;
+&nbsp;@Composable
+<b class="nc">&nbsp;private fun InputSamples() {</b>
+<b class="nc">&nbsp;    var email by remember { mutableStateOf(&quot;&quot;) }</b>
+<b class="nc">&nbsp;    var password by remember { mutableStateOf(&quot;&quot;) }</b>
+<b class="nc">&nbsp;    var nombre by remember { mutableStateOf(&quot;Marco&quot;) }</b>
+<b class="nc">&nbsp;    Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {</b>
+<b class="nc">&nbsp;        CatchTextField(</b>
+<b class="nc">&nbsp;            value = nombre,</b>
+<b class="nc">&nbsp;            onValueChange = { nombre = it },</b>
+<b class="nc">&nbsp;            label = &quot;Nombre completo&quot;</b>
+&nbsp;        )
+<b class="nc">&nbsp;        CatchTextField(</b>
+<b class="nc">&nbsp;            value = email,</b>
+<b class="nc">&nbsp;            onValueChange = { email = it },</b>
+<b class="nc">&nbsp;            label = &quot;Email&quot;,</b>
+<b class="nc">&nbsp;            placeholder = &quot;tu@empresa.cl&quot;,</b>
+<b class="nc">&nbsp;            supportingText = if (email.isNotBlank() &amp;&amp; !email.contains(&quot;@&quot;)) &quot;Email inválido&quot; else null,</b>
+<b class="nc">&nbsp;            isError = email.isNotBlank() &amp;&amp; !email.contains(&quot;@&quot;)</b>
+&nbsp;        )
+<b class="nc">&nbsp;        CatchTextField(</b>
+<b class="nc">&nbsp;            value = password,</b>
+<b class="nc">&nbsp;            onValueChange = { password = it },</b>
+<b class="nc">&nbsp;            label = &quot;Contraseña&quot;,</b>
+<b class="nc">&nbsp;            isPassword = true</b>
+&nbsp;        )
+<b class="nc">&nbsp;    }</b>
+<b class="nc">&nbsp;}</b>
+&nbsp;
+&nbsp;@Composable
+<b class="nc">&nbsp;private fun StatusBadgeSamples() {</b>
+<b class="nc">&nbsp;    Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {</b>
+<b class="nc">&nbsp;        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {</b>
+<b class="nc">&nbsp;            StatusBadge(text = &quot;Pendiente&quot;, type = StatusType.Pending)</b>
+<b class="nc">&nbsp;            StatusBadge(text = &quot;Aceptado&quot;, type = StatusType.Success)</b>
+<b class="nc">&nbsp;            StatusBadge(text = &quot;Rechazado&quot;, type = StatusType.Error)</b>
+<b class="nc">&nbsp;        }</b>
+<b class="nc">&nbsp;        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {</b>
+<b class="nc">&nbsp;            StatusBadge(text = &quot;85% match&quot;, type = StatusType.Success)</b>
+<b class="nc">&nbsp;            StatusBadge(text = &quot;Ñuñoa&quot;, type = StatusType.Neutral)</b>
+<b class="nc">&nbsp;            StatusBadge(text = &quot;Info&quot;, type = StatusType.Info)</b>
+<b class="nc">&nbsp;        }</b>
+<b class="nc">&nbsp;    }</b>
+<b class="nc">&nbsp;}</b>
+&nbsp;
+&nbsp;@Composable
+<b class="nc">&nbsp;private fun OfferCardSamples() {</b>
+<b class="nc">&nbsp;    Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {</b>
+<b class="nc">&nbsp;        OfferCard(</b>
+<b class="nc">&nbsp;            titulo = &quot;Guardia turno noche&quot;,</b>
+<b class="nc">&nbsp;            empresa = &quot;Seguridad Andes Ltda.&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;Las Condes&quot;,</b>
+<b class="nc">&nbsp;            jornada = &quot;Full time&quot;,</b>
+<b class="nc">&nbsp;            score = 87,</b>
+<b class="nc">&nbsp;            onClick = {}</b>
+&nbsp;        )
+<b class="nc">&nbsp;        OfferCard(</b>
+<b class="nc">&nbsp;            titulo = &quot;Temporero packing&quot;,</b>
+<b class="nc">&nbsp;            empresa = &quot;Frutícola del Maipo&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;Buin&quot;,</b>
+<b class="nc">&nbsp;            jornada = &quot;Por hora&quot;,</b>
+<b class="nc">&nbsp;            score = 64,</b>
+<b class="nc">&nbsp;            onClick = {}</b>
+&nbsp;        )
+<b class="nc">&nbsp;        OfferCard(</b>
+<b class="nc">&nbsp;            titulo = &quot;Aseo industrial&quot;,</b>
+<b class="nc">&nbsp;            empresa = &quot;Limpia+&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;Santiago Centro&quot;,</b>
+<b class="nc">&nbsp;            jornada = &quot;Parcial&quot;,</b>
+<b class="nc">&nbsp;            onClick = {}</b>
+&nbsp;        )
+<b class="nc">&nbsp;    }</b>
+<b class="nc">&nbsp;}</b>
+&nbsp;
+&nbsp;@Composable
+<b class="nc">&nbsp;private fun SkeletonSamples() {</b>
+<b class="nc">&nbsp;    Column(verticalArrangement = Arrangement.spacedBy(Spacing.sm)) {</b>
+<b class="nc">&nbsp;        SkeletonBox(modifier = Modifier.fillMaxWidth().height(20.dp))</b>
+<b class="nc">&nbsp;        SkeletonBox(modifier = Modifier.fillMaxWidth(0.7f).height(16.dp))</b>
+<b class="nc">&nbsp;        SkeletonBox(</b>
+<b class="nc">&nbsp;            modifier = Modifier.fillMaxWidth().height(80.dp),</b>
+<b class="nc">&nbsp;            shape = MaterialTheme.shapes.medium</b>
+&nbsp;        )
+<b class="nc">&nbsp;    }</b>
+<b class="nc">&nbsp;}</b>
+&nbsp;
+&nbsp;@Composable
+<b class="nc">&nbsp;private fun EmptyStateSample() {</b>
+<b class="nc">&nbsp;    Box(</b>
+<b class="nc">&nbsp;        modifier = Modifier</b>
+<b class="nc">&nbsp;            .fillMaxWidth()</b>
+<b class="nc">&nbsp;            .clip(MaterialTheme.shapes.medium)</b>
+<b class="nc">&nbsp;            .background(MaterialTheme.colorScheme.surfaceVariant)</b>
+&nbsp;    ) {
+<b class="nc">&nbsp;        EmptyState(</b>
+<b class="nc">&nbsp;            title = &quot;Aún no hay ofertas para ti&quot;,</b>
+<b class="nc">&nbsp;            description = &quot;Te avisaremos cuando aparezcan ofertas que calcen con tu perfil.&quot;,</b>
+&nbsp;            icon = {
+&nbsp;                Box(
+&nbsp;                    modifier = Modifier
+&nbsp;                        .size(48.dp)
+&nbsp;                        .clip(CircleShape)
+&nbsp;                        .background(BrandBlue50)
+&nbsp;                )
+&nbsp;            },
+&nbsp;            action = {
+&nbsp;                PrimaryButton(text = &quot;Actualizar&quot;, onClick = {}, fullWidth = false)
+&nbsp;            }
+&nbsp;        )
+<b class="nc">&nbsp;    }</b>
+<b class="nc">&nbsp;}</b>
+&nbsp;
+&nbsp;@Preview(showBackground = true, widthDp = 360, heightDp = 800)
+&nbsp;@Composable
+<b class="nc">&nbsp;private fun DesignSystemShowcasePreview() {</b>
+<b class="nc">&nbsp;    CatchGoTheme {</b>
+&nbsp;        DesignSystemShowcase()
+&nbsp;    }
+<b class="nc">&nbsp;}</b>
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

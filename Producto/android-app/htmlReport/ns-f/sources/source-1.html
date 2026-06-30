@@ -1,0 +1,255 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > DetailEvent</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.ui.detail</a>
+</div>
+
+<h1>Coverage Summary for Class: DetailEvent (cl.catchgo.app.ui.detail)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+  <tr>
+    <td class="name">DetailEvent$ApplicationSucceeded</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">DetailEvent$StatusUpdated</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (2/2)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.ui.detail
+&nbsp;
+&nbsp;import androidx.lifecycle.SavedStateHandle
+&nbsp;import androidx.lifecycle.ViewModel
+&nbsp;import androidx.lifecycle.viewModelScope
+&nbsp;import cl.catchgo.app.core.error.ErrorMapper
+&nbsp;import cl.catchgo.app.domain.repository.ApplicationsRepository
+&nbsp;import cl.catchgo.app.domain.repository.JobsRepository
+&nbsp;import dagger.hilt.android.lifecycle.HiltViewModel
+&nbsp;import kotlinx.coroutines.channels.Channel
+&nbsp;import kotlinx.coroutines.flow.MutableStateFlow
+&nbsp;import kotlinx.coroutines.flow.SharingStarted
+&nbsp;import kotlinx.coroutines.flow.StateFlow
+&nbsp;import kotlinx.coroutines.flow.combine
+&nbsp;import kotlinx.coroutines.flow.receiveAsFlow
+&nbsp;import kotlinx.coroutines.flow.stateIn
+&nbsp;import kotlinx.coroutines.flow.update
+&nbsp;import kotlinx.coroutines.launch
+&nbsp;import javax.inject.Inject
+&nbsp;
+&nbsp;@HiltViewModel
+&nbsp;class OfferDetailViewModel @Inject constructor(
+&nbsp;    private val jobsRepository: JobsRepository,
+&nbsp;    private val applicationsRepository: ApplicationsRepository,
+&nbsp;    savedStateHandle: SavedStateHandle
+&nbsp;) : ViewModel() {
+&nbsp;
+&nbsp;    private val offerId: String = checkNotNull(savedStateHandle[&quot;id&quot;]) {
+&nbsp;        &quot;OfferDetailViewModel requires &#39;id&#39; nav argument&quot;
+&nbsp;    }
+&nbsp;
+&nbsp;    private val internalState = MutableStateFlow(OfferDetailUiState())
+&nbsp;
+&nbsp;    val state: StateFlow&lt;OfferDetailUiState&gt; = combine(
+&nbsp;        internalState,
+&nbsp;        applicationsRepository.observeMyApplications()
+&nbsp;    ) { ui, apps -&gt;
+&nbsp;        val activeApp = apps.find { it.offerId == offerId }
+&nbsp;        ui.copy(
+&nbsp;            isApplied = activeApp != null,
+&nbsp;            activeApplication = activeApp
+&nbsp;        )
+&nbsp;    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), OfferDetailUiState())
+&nbsp;
+&nbsp;    private val _events = Channel&lt;DetailEvent&gt;(Channel.BUFFERED)
+&nbsp;    val events = _events.receiveAsFlow()
+&nbsp;
+&nbsp;    init {
+&nbsp;        load()
+&nbsp;    }
+&nbsp;
+&nbsp;    fun retry() = load()
+&nbsp;
+&nbsp;    fun submitApplication(message: String?) {
+&nbsp;        viewModelScope.launch {
+&nbsp;            internalState.update { it.copy(isApplying = true, applyError = null) }
+&nbsp;            applicationsRepository.apply(offerId, message)
+&nbsp;                .onSuccess {
+&nbsp;                    internalState.update { it.copy(isApplying = false) }
+&nbsp;                    _events.send(DetailEvent.ApplicationSucceeded)
+&nbsp;                }
+&nbsp;                .onFailure { e -&gt;
+&nbsp;                    internalState.update {
+&nbsp;                        it.copy(isApplying = false, applyError = ErrorMapper.map(e).message)
+&nbsp;                    }
+&nbsp;                }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun cancelPostulation(applicationId: Long) {
+&nbsp;        viewModelScope.launch {
+&nbsp;            internalState.update { it.copy(isActionLoading = true, actionError = null) }
+&nbsp;            applicationsRepository.cancelApplication(applicationId)
+&nbsp;                .onSuccess {
+&nbsp;                    internalState.update { it.copy(isActionLoading = false) }
+&nbsp;                    _events.send(DetailEvent.StatusUpdated(&quot;Postulación cancelada con éxito&quot;))
+&nbsp;                }
+&nbsp;                .onFailure { e -&gt;
+&nbsp;                    internalState.update {
+&nbsp;                        it.copy(isActionLoading = false, actionError = ErrorMapper.map(e).message)
+&nbsp;                    }
+&nbsp;                }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun updateApplicationStatus(applicationId: Long, newStatus: String) {
+&nbsp;        viewModelScope.launch {
+&nbsp;            internalState.update { it.copy(isActionLoading = true, actionError = null) }
+&nbsp;            applicationsRepository.updateStatus(applicationId, newStatus)
+&nbsp;                .onSuccess {
+&nbsp;                    internalState.update { it.copy(isActionLoading = false) }
+&nbsp;                    _events.send(DetailEvent.StatusUpdated(&quot;Estado actualizado a $newStatus&quot;))
+&nbsp;                }
+&nbsp;                .onFailure { e -&gt;
+&nbsp;                    internalState.update {
+&nbsp;                        it.copy(isActionLoading = false, actionError = ErrorMapper.map(e).message)
+&nbsp;                    }
+&nbsp;                }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun clearApplyError() {
+&nbsp;        internalState.update { it.copy(applyError = null) }
+&nbsp;    }
+&nbsp;
+&nbsp;    private fun load() {
+&nbsp;        viewModelScope.launch {
+&nbsp;            internalState.update { it.copy(isLoading = true, errorMessage = null) }
+&nbsp;            jobsRepository.getOffer(offerId)
+&nbsp;                .onSuccess { offer -&gt;
+&nbsp;                    internalState.update { it.copy(isLoading = false, offer = offer) }
+&nbsp;                }
+&nbsp;                .onFailure { e -&gt;
+&nbsp;                    internalState.update {
+&nbsp;                        it.copy(isLoading = false, errorMessage = ErrorMapper.map(e).message)
+&nbsp;                    }
+&nbsp;                }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;sealed interface DetailEvent {
+<b class="fc">&nbsp;    data object ApplicationSucceeded : DetailEvent</b>
+<b class="fc">&nbsp;    data class StatusUpdated(val message: String) : DetailEvent</b>
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

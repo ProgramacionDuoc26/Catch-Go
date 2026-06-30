@@ -1,0 +1,327 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CrearOfertaViewModel</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.ui.empresa</a>
+</div>
+
+<h1>Coverage Summary for Class: CrearOfertaViewModel (cl.catchgo.app.ui.empresa)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CrearOfertaViewModel</td>
+<td class="coverageStat">
+  <span class="percent">
+    84.6%
+  </span>
+  <span class="absValue">
+    (11/13)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (5/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    81%
+  </span>
+  <span class="absValue">
+    (17/21)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">CrearOfertaViewModel$reverseGeocode$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">CrearOfertaViewModel$searchAddress$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/11)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">CrearOfertaViewModel$submit$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (3/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (16/16)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    75%
+  </span>
+  <span class="absValue">
+    (12/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    22.2%
+  </span>
+  <span class="absValue">
+    (8/36)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    56.9%
+  </span>
+  <span class="absValue">
+    (33/58)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.ui.empresa
+&nbsp;
+&nbsp;import androidx.lifecycle.ViewModel
+&nbsp;import androidx.lifecycle.viewModelScope
+&nbsp;import cl.catchgo.app.data.local.SessionStore
+&nbsp;import cl.catchgo.app.data.remote.JobsApi
+&nbsp;import cl.catchgo.app.data.remote.dto.CreateJobOfferRequest
+&nbsp;import dagger.hilt.android.lifecycle.HiltViewModel
+&nbsp;import kotlinx.coroutines.flow.MutableStateFlow
+&nbsp;import kotlinx.coroutines.flow.StateFlow
+&nbsp;import kotlinx.coroutines.flow.first
+&nbsp;import kotlinx.coroutines.flow.update
+&nbsp;import kotlinx.coroutines.launch
+&nbsp;import javax.inject.Inject
+&nbsp;
+&nbsp;data class CrearOfertaUiState(
+&nbsp;    val titulo: String = &quot;&quot;,
+&nbsp;    val descripcion: String = &quot;&quot;,
+&nbsp;    val ubicacion: String = &quot;Santiago, RM&quot;,
+&nbsp;    val categoria: String = &quot;Guardia&quot;,
+&nbsp;    val remuneracion: String = &quot;&quot;,
+&nbsp;    val fechaInicio: String = &quot;&quot;,
+&nbsp;    val fechaFin: String = &quot;&quot;,
+&nbsp;    val isLoading: Boolean = false,
+&nbsp;    val success: Boolean = false,
+&nbsp;    val error: String? = null,
+&nbsp;    val latitude: Double? = null,
+&nbsp;    val longitude: Double? = null
+&nbsp;)
+&nbsp;
+&nbsp;@HiltViewModel
+&nbsp;class CrearOfertaViewModel @Inject constructor(
+<b class="fc">&nbsp;    private val jobsApi: JobsApi,</b>
+<b class="fc">&nbsp;    private val sessionStore: SessionStore</b>
+<b class="fc">&nbsp;) : ViewModel() {</b>
+&nbsp;
+<b class="fc">&nbsp;    val state: StateFlow&lt;CrearOfertaUiState&gt; get() = _state</b>
+<b class="fc">&nbsp;    private val _state = MutableStateFlow(CrearOfertaUiState())</b>
+&nbsp;
+<b class="fc">&nbsp;    fun onTituloChange(v: String) = _state.update { it.copy(titulo = v) }</b>
+<b class="fc">&nbsp;    fun onDescripcionChange(v: String) = _state.update { it.copy(descripcion = v) }</b>
+<b class="fc">&nbsp;    fun onUbicacionChange(v: String) = _state.update { it.copy(ubicacion = v) }</b>
+<b class="fc">&nbsp;    fun onCategoriaChange(v: String) = _state.update { it.copy(categoria = v) }</b>
+<b class="fc">&nbsp;    fun onRemuneracionChange(v: String) = _state.update { it.copy(remuneracion = v) }</b>
+<b class="fc">&nbsp;    fun onFechaInicioChange(v: String) = _state.update { it.copy(fechaInicio = v) }</b>
+<b class="fc">&nbsp;    fun onFechaFinChange(v: String) = _state.update { it.copy(fechaFin = v) }</b>
+<b class="fc">&nbsp;    fun onLocationChange(lat: Double, lon: Double) = _state.update { it.copy(latitude = lat, longitude = lon) }</b>
+&nbsp;
+&nbsp;    fun searchAddress(context: android.content.Context, addressQuery: String) {
+<b class="nc">&nbsp;        if (addressQuery.isBlank()) return</b>
+<b class="nc">&nbsp;        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {</b>
+<b class="nc">&nbsp;            runCatching {</b>
+<b class="nc">&nbsp;                val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())</b>
+<b class="nc">&nbsp;                @Suppress(&quot;DEPRECATION&quot;)</b>
+<b class="nc">&nbsp;                val addresses = geocoder.getFromLocationName(addressQuery, 1)</b>
+<b class="nc">&nbsp;                if (!addresses.isNullOrEmpty()) {</b>
+<b class="nc">&nbsp;                    val addr = addresses[0]</b>
+<b class="nc">&nbsp;                    _state.update { it.copy(latitude = addr.latitude, longitude = addr.longitude, error = null) }</b>
+&nbsp;                } else {
+<b class="nc">&nbsp;                    _state.update { it.copy(error = &quot;No se pudo encontrar la dirección&quot;) }</b>
+&nbsp;                }
+<b class="nc">&nbsp;            }.onFailure { e -&gt;</b>
+<b class="nc">&nbsp;                _state.update { it.copy(error = &quot;Error al buscar dirección: ${e.localizedMessage}&quot;) }</b>
+<b class="nc">&nbsp;            }</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun reverseGeocode(context: android.content.Context, lat: Double, lon: Double) {
+<b class="nc">&nbsp;        _state.update { it.copy(latitude = lat, longitude = lon) }</b>
+<b class="nc">&nbsp;        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {</b>
+<b class="nc">&nbsp;            runCatching {</b>
+<b class="nc">&nbsp;                val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())</b>
+<b class="nc">&nbsp;                @Suppress(&quot;DEPRECATION&quot;)</b>
+<b class="nc">&nbsp;                val addresses = geocoder.getFromLocation(lat, lon, 1)</b>
+<b class="nc">&nbsp;                if (!addresses.isNullOrEmpty()) {</b>
+<b class="nc">&nbsp;                    val addr = addresses[0]</b>
+<b class="nc">&nbsp;                    val fullAddress = addr.getAddressLine(0) ?: &quot;${addr.thoroughfare ?: &quot;&quot;} ${addr.subThoroughfare ?: &quot;&quot;}, ${addr.locality ?: &quot;&quot;}&quot;.trim()</b>
+<b class="nc">&nbsp;                    if (fullAddress.isNotBlank()) {</b>
+<b class="nc">&nbsp;                        _state.update { it.copy(ubicacion = fullAddress) }</b>
+&nbsp;                    }
+&nbsp;                }
+<b class="nc">&nbsp;            }</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun submit() {
+<b class="fc">&nbsp;        val s = _state.value</b>
+<b class="pc">&nbsp;        if (s.titulo.isBlank() || s.descripcion.isBlank() || s.remuneracion.isBlank() || s.fechaInicio.isBlank()) {</b>
+<b class="fc">&nbsp;            _state.update { it.copy(error = &quot;Completa todos los campos obligatorios&quot;) }</b>
+&nbsp;            return
+&nbsp;        }
+<b class="fc">&nbsp;        viewModelScope.launch {</b>
+<b class="fc">&nbsp;            _state.update { it.copy(isLoading = true, error = null) }</b>
+&nbsp;            try {
+<b class="pc">&nbsp;                val session = sessionStore.session.first() ?: return@launch</b>
+<b class="fc">&nbsp;                val request = CreateJobOfferRequest(</b>
+<b class="fc">&nbsp;                    titulo = s.titulo,</b>
+<b class="fc">&nbsp;                    descripcion = s.descripcion,</b>
+<b class="fc">&nbsp;                    ubicacion = s.ubicacion,</b>
+<b class="fc">&nbsp;                    categoria = s.categoria,</b>
+<b class="pc">&nbsp;                    remuneracion = s.remuneracion.toIntOrNull() ?: 0,</b>
+<b class="fc">&nbsp;                    fechaInicio = s.fechaInicio,</b>
+<b class="pc">&nbsp;                    fechaFin = s.fechaFin.ifBlank { null },</b>
+<b class="fc">&nbsp;                    empresaId = session.user.id,</b>
+<b class="fc">&nbsp;                    latitude = s.latitude,</b>
+<b class="fc">&nbsp;                    longitude = s.longitude</b>
+&nbsp;                )
+<b class="fc">&nbsp;                jobsApi.create(request)</b>
+<b class="fc">&nbsp;                _state.update { it.copy(isLoading = false, success = true) }</b>
+&nbsp;            } catch (e: Exception) {
+<b class="fc">&nbsp;                _state.update { it.copy(isLoading = false, error = e.message) }</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

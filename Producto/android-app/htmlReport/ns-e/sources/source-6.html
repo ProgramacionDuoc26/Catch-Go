@@ -1,0 +1,348 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > OfferCardKt</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.ui.components</a>
+</div>
+
+<h1>Coverage Summary for Class: OfferCardKt (cl.catchgo.app.ui.components)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">OfferCardKt</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/40)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">OfferCardKt$OfferCard$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/70)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/110)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.ui.components
+&nbsp;
+&nbsp;import androidx.compose.foundation.BorderStroke
+&nbsp;import androidx.compose.foundation.background
+&nbsp;import androidx.compose.foundation.clickable
+&nbsp;import androidx.compose.foundation.layout.Arrangement
+&nbsp;import androidx.compose.foundation.layout.Box
+&nbsp;import androidx.compose.foundation.layout.Column
+&nbsp;import androidx.compose.foundation.layout.Row
+&nbsp;import androidx.compose.foundation.layout.Spacer
+&nbsp;import androidx.compose.foundation.layout.fillMaxSize
+&nbsp;import androidx.compose.foundation.layout.fillMaxWidth
+&nbsp;import androidx.compose.foundation.layout.height
+&nbsp;import androidx.compose.foundation.layout.padding
+&nbsp;import androidx.compose.foundation.layout.size
+&nbsp;import androidx.compose.foundation.shape.CircleShape
+&nbsp;import androidx.compose.material.icons.Icons
+&nbsp;import androidx.compose.material.icons.outlined.LocationOn
+&nbsp;import androidx.compose.material3.Card
+&nbsp;import androidx.compose.material3.CardDefaults
+&nbsp;import androidx.compose.material3.Icon
+&nbsp;import androidx.compose.material3.MaterialTheme
+&nbsp;import androidx.compose.material3.Text
+&nbsp;import androidx.compose.runtime.Composable
+&nbsp;import androidx.compose.ui.Alignment
+&nbsp;import androidx.compose.ui.Modifier
+&nbsp;import androidx.compose.ui.draw.clip
+&nbsp;import androidx.compose.ui.graphics.Color
+&nbsp;import androidx.compose.ui.text.font.FontWeight
+&nbsp;import androidx.compose.ui.unit.dp
+&nbsp;import androidx.compose.ui.unit.sp
+&nbsp;import cl.catchgo.app.ui.theme.BrandBlue50
+&nbsp;import cl.catchgo.app.ui.theme.BrandBlue700
+&nbsp;import cl.catchgo.app.ui.theme.Gray200
+&nbsp;import cl.catchgo.app.ui.theme.Gray500
+&nbsp;import cl.catchgo.app.ui.theme.Spacing
+&nbsp;import cl.catchgo.app.ui.theme.Teal500
+&nbsp;import cl.catchgo.app.ui.theme.Teal50
+&nbsp;import coil.compose.AsyncImage
+&nbsp;import androidx.compose.ui.layout.ContentScale
+&nbsp;
+<b class="nc">&nbsp;private val avatarColors = listOf(</b>
+<b class="nc">&nbsp;    Color(0xFF0E7490) to Color(0xFFECFEFF),</b>
+<b class="nc">&nbsp;    Color(0xFF1D4ED8) to Color(0xFFEFF6FF),</b>
+<b class="nc">&nbsp;    Color(0xFF7C3AED) to Color(0xFFF5F3FF),</b>
+<b class="nc">&nbsp;    Color(0xFF0F766E) to Color(0xFFF0FDFA),</b>
+<b class="nc">&nbsp;    Color(0xFFB45309) to Color(0xFFFFFBEB),</b>
+<b class="nc">&nbsp;    Color(0xFF9D174D) to Color(0xFFFFF1F2),</b>
+&nbsp;)
+&nbsp;
+&nbsp;@Composable
+&nbsp;fun OfferCard(
+&nbsp;    titulo: String,
+&nbsp;    empresa: String,
+&nbsp;    comuna: String,
+&nbsp;    jornada: String,
+&nbsp;    onClick: () -&gt; Unit,
+<b class="nc">&nbsp;    modifier: Modifier = Modifier,</b>
+<b class="nc">&nbsp;    score: Int? = null,</b>
+<b class="nc">&nbsp;    salaryText: String? = null,</b>
+<b class="nc">&nbsp;    distanceKm: Double? = null,</b>
+<b class="nc">&nbsp;    photoUrl: String? = null</b>
+<b class="nc">&nbsp;) {</b>
+<b class="nc">&nbsp;    val colorPair = avatarColors[empresa.hashCode().and(0x7FFFFFFF) % avatarColors.size]</b>
+&nbsp;
+<b class="nc">&nbsp;    Card(</b>
+<b class="nc">&nbsp;        modifier = modifier</b>
+<b class="nc">&nbsp;            .fillMaxWidth()</b>
+<b class="nc">&nbsp;            .clickable(onClick = onClick),</b>
+<b class="nc">&nbsp;        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),</b>
+<b class="nc">&nbsp;        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),</b>
+<b class="nc">&nbsp;        border = BorderStroke(1.dp, Gray200),</b>
+<b class="nc">&nbsp;        shape = MaterialTheme.shapes.large</b>
+<b class="nc">&nbsp;    ) {</b>
+<b class="nc">&nbsp;        Column(modifier = Modifier.padding(Spacing.md)) {</b>
+<b class="nc">&nbsp;            Row(</b>
+<b class="nc">&nbsp;                horizontalArrangement = Arrangement.spacedBy(Spacing.sm),</b>
+<b class="nc">&nbsp;                verticalAlignment = Alignment.Top,</b>
+<b class="nc">&nbsp;                modifier = Modifier.fillMaxWidth()</b>
+&nbsp;            ) {
+<b class="nc">&nbsp;                Box(</b>
+<b class="nc">&nbsp;                    modifier = Modifier</b>
+<b class="nc">&nbsp;                        .size(44.dp)</b>
+<b class="nc">&nbsp;                        .clip(CircleShape)</b>
+<b class="nc">&nbsp;                        .background(colorPair.second),</b>
+<b class="nc">&nbsp;                    contentAlignment = Alignment.Center</b>
+&nbsp;                ) {
+<b class="nc">&nbsp;                    if (!photoUrl.isNullOrBlank()) {</b>
+<b class="nc">&nbsp;                        val mappedUrl = photoUrl</b>
+<b class="nc">&nbsp;                            .replace(&quot;localhost&quot;, cl.catchgo.app.data.remote.ApiConfig.HOST)</b>
+<b class="nc">&nbsp;                            .replace(&quot;127.0.0.1&quot;, cl.catchgo.app.data.remote.ApiConfig.HOST)</b>
+<b class="nc">&nbsp;                        AsyncImage(</b>
+<b class="nc">&nbsp;                            model = mappedUrl,</b>
+<b class="nc">&nbsp;                            contentDescription = null,</b>
+<b class="nc">&nbsp;                            modifier = Modifier.fillMaxSize(),</b>
+<b class="nc">&nbsp;                            contentScale = ContentScale.Crop</b>
+&nbsp;                        )
+<b class="nc">&nbsp;                    } else {</b>
+<b class="nc">&nbsp;                        Text(</b>
+<b class="nc">&nbsp;                            text = empresa.firstOrNull()?.uppercase() ?: &quot;?&quot;,</b>
+<b class="nc">&nbsp;                            fontSize = 18.sp,</b>
+<b class="nc">&nbsp;                            fontWeight = FontWeight.Bold,</b>
+<b class="nc">&nbsp;                            color = colorPair.first</b>
+&nbsp;                        )
+&nbsp;                    }
+<b class="nc">&nbsp;                }</b>
+&nbsp;
+<b class="nc">&nbsp;                Column(modifier = Modifier.weight(1f)) {</b>
+<b class="nc">&nbsp;                    Text(</b>
+<b class="nc">&nbsp;                        text = titulo,</b>
+<b class="nc">&nbsp;                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),</b>
+<b class="nc">&nbsp;                        color = MaterialTheme.colorScheme.onSurface</b>
+&nbsp;                    )
+<b class="nc">&nbsp;                    Text(</b>
+<b class="nc">&nbsp;                        text = empresa,</b>
+<b class="nc">&nbsp;                        style = MaterialTheme.typography.bodySmall,</b>
+<b class="nc">&nbsp;                        color = Gray500</b>
+&nbsp;                    )
+<b class="nc">&nbsp;                }</b>
+&nbsp;
+<b class="nc">&nbsp;                if (score != null) {</b>
+<b class="nc">&nbsp;                    ScoreIndicator(score)</b>
+&nbsp;                }
+<b class="nc">&nbsp;            }</b>
+&nbsp;
+<b class="nc">&nbsp;            Spacer(Modifier.height(Spacing.sm))</b>
+&nbsp;
+&nbsp;            // Fila 1: Dirección con truncado para evitar overflow
+<b class="nc">&nbsp;            Row(</b>
+<b class="nc">&nbsp;                modifier = Modifier.fillMaxWidth(),</b>
+<b class="nc">&nbsp;                horizontalArrangement = Arrangement.spacedBy(Spacing.xs),</b>
+<b class="nc">&nbsp;                verticalAlignment = Alignment.CenterVertically</b>
+&nbsp;            ) {
+<b class="nc">&nbsp;                Icon(</b>
+<b class="nc">&nbsp;                    imageVector = Icons.Outlined.LocationOn,</b>
+<b class="nc">&nbsp;                    contentDescription = null,</b>
+<b class="nc">&nbsp;                    tint = Gray500,</b>
+<b class="nc">&nbsp;                    modifier = Modifier.size(14.dp)</b>
+&nbsp;                )
+<b class="nc">&nbsp;                Text(</b>
+<b class="nc">&nbsp;                    text = &quot;$comuna · $jornada&quot;,</b>
+<b class="nc">&nbsp;                    style = MaterialTheme.typography.bodySmall,</b>
+<b class="nc">&nbsp;                    color = Gray500,</b>
+<b class="nc">&nbsp;                    maxLines = 1,</b>
+<b class="nc">&nbsp;                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,</b>
+<b class="nc">&nbsp;                    modifier = Modifier.weight(1f)</b>
+&nbsp;                )
+<b class="nc">&nbsp;                if (distanceKm != null) {</b>
+<b class="nc">&nbsp;                    Text(</b>
+<b class="nc">&nbsp;                        text = &quot;📍 ${&quot;%.1f&quot;.format(distanceKm)} km&quot;,</b>
+<b class="nc">&nbsp;                        style = MaterialTheme.typography.labelSmall,</b>
+<b class="nc">&nbsp;                        color = Gray500</b>
+&nbsp;                    )
+&nbsp;                }
+<b class="nc">&nbsp;            }</b>
+&nbsp;
+&nbsp;            // Fila 2: Salario (siempre en su propia línea)
+<b class="nc">&nbsp;            if (salaryText != null) {</b>
+<b class="nc">&nbsp;                Spacer(Modifier.height(2.dp))</b>
+<b class="nc">&nbsp;                Text(</b>
+<b class="nc">&nbsp;                    text = salaryText,</b>
+<b class="nc">&nbsp;                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),</b>
+<b class="nc">&nbsp;                    color = Teal500</b>
+&nbsp;                )
+&nbsp;            }
+<b class="nc">&nbsp;        }</b>
+&nbsp;    }
+<b class="nc">&nbsp;}</b>
+&nbsp;
+&nbsp;@Composable
+<b class="nc">&nbsp;private fun ScoreIndicator(score: Int) {</b>
+<b class="nc">&nbsp;    val (bg, fg) = when {</b>
+<b class="nc">&nbsp;        score &gt;= 80 -&gt; Color(0xFFDCFCE7) to Color(0xFF15803D)</b>
+<b class="nc">&nbsp;        score &gt;= 60 -&gt; Teal50 to Teal500</b>
+<b class="nc">&nbsp;        else -&gt; BrandBlue50 to BrandBlue700</b>
+&nbsp;    }
+<b class="nc">&nbsp;    Box(</b>
+<b class="nc">&nbsp;        modifier = Modifier</b>
+<b class="nc">&nbsp;            .clip(MaterialTheme.shapes.small)</b>
+<b class="nc">&nbsp;            .background(bg)</b>
+<b class="nc">&nbsp;            .padding(horizontal = 8.dp, vertical = 4.dp)</b>
+&nbsp;    ) {
+<b class="nc">&nbsp;        Text(</b>
+<b class="nc">&nbsp;            text = &quot;$score%&quot;,</b>
+<b class="nc">&nbsp;            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),</b>
+<b class="nc">&nbsp;            color = fg</b>
+&nbsp;        )
+<b class="nc">&nbsp;    }</b>
+<b class="nc">&nbsp;}</b>
+&nbsp;
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

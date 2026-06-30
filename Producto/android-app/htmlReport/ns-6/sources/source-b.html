@@ -1,0 +1,95 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ApiConfig</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.data.remote</a>
+</div>
+
+<h1>Coverage Summary for Class: ApiConfig (cl.catchgo.app.data.remote)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">ApiConfig</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.data.remote
+&nbsp;
+&nbsp;object ApiConfig {
+&nbsp;    // Host de producción en Railway
+&nbsp;    const val HOST = &quot;api-gateway2-catch-go.up.railway.app&quot;
+&nbsp;
+&nbsp;    // --- OPCIÓN A: Conexión Integrada vía API Gateway (Activa para Railway) ---
+&nbsp;    private const val GATEWAY_URL = &quot;https://$HOST/&quot;
+&nbsp;    const val AUTH_URL = GATEWAY_URL
+&nbsp;    const val JOBS_URL = GATEWAY_URL
+&nbsp;    const val PROFILE_URL = GATEWAY_URL
+&nbsp;    const val MATCHING_URL = GATEWAY_URL
+&nbsp;
+&nbsp;    // --- OPCIÓN B: Conexión Directa a cada Microservicio (Inactiva) ---
+&nbsp;    /*
+&nbsp;    const val AUTH_URL = &quot;http://$HOST:8081/&quot;
+&nbsp;    const val JOBS_URL = &quot;http://$HOST:8083/&quot;
+&nbsp;    const val PROFILE_URL = &quot;http://$HOST:8082/&quot;
+&nbsp;    const val MATCHING_URL = &quot;http://$HOST:8084/&quot;
+&nbsp;    */
+&nbsp;    const val NOTIFICATIONS_WS_URL = &quot;wss://$HOST/ws-notifications/websocket&quot;
+&nbsp;
+&nbsp;    const val USE_MOCK_AUTH = false
+&nbsp;    const val USE_MOCK_JOBS = false
+&nbsp;    const val USE_MOCK_APPLICATIONS = false
+&nbsp;}
+&nbsp;
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

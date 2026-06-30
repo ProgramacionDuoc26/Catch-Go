@@ -1,0 +1,415 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > FeedViewModel</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.ui.feed</a>
+</div>
+
+<h1>Coverage Summary for Class: FeedViewModel (cl.catchgo.app.ui.feed)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FeedViewModel</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (9/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (10/20)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    95.1%
+  </span>
+  <span class="absValue">
+    (77/81)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">FeedViewModel$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">FeedViewModel$loadProfileCompletion$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (5/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (5/5)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">FeedViewModel$onRefresh$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">FeedViewModel$refresh$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (1/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">FeedViewModel$special$$inlined$combine$1</td>
+  </tr>
+  <tr>
+    <td class="name">FeedViewModel$special$$inlined$combine$1$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">FeedViewModel$special$$inlined$combine$1$3</td>
+  </tr>
+  <tr>
+    <td class="name">FeedViewModel$special$$inlined$flatMapLatest$1</td>
+  </tr>
+  <tr>
+    <td class="name">FeedViewModel$state$lambda$12$$inlined$sortedByDescending$1</td>
+  </tr>
+  <tr>
+    <td class="name">FeedViewModel$WhenMappings</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (14/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (16/32)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    95.7%
+  </span>
+  <span class="absValue">
+    (89/93)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.ui.feed
+&nbsp;
+&nbsp;import androidx.lifecycle.ViewModel
+&nbsp;import androidx.lifecycle.viewModelScope
+&nbsp;import cl.catchgo.app.domain.model.JobCategory
+&nbsp;import cl.catchgo.app.domain.model.JobFilter
+&nbsp;import cl.catchgo.app.data.local.SessionStore
+&nbsp;import cl.catchgo.app.domain.repository.JobsRepository
+&nbsp;import cl.catchgo.app.domain.repository.ProfileRepository
+&nbsp;import cl.catchgo.app.domain.repository.ApplicationsRepository
+&nbsp;import cl.catchgo.app.util.MatchEngine
+&nbsp;import dagger.hilt.android.lifecycle.HiltViewModel
+&nbsp;import kotlinx.coroutines.flow.first
+&nbsp;import kotlinx.coroutines.ExperimentalCoroutinesApi
+&nbsp;import kotlinx.coroutines.flow.MutableStateFlow
+&nbsp;import kotlinx.coroutines.flow.SharingStarted
+&nbsp;import kotlinx.coroutines.flow.StateFlow
+&nbsp;import kotlinx.coroutines.flow.combine
+&nbsp;import kotlinx.coroutines.flow.flatMapLatest
+&nbsp;import kotlinx.coroutines.flow.stateIn
+&nbsp;import kotlinx.coroutines.launch
+&nbsp;import javax.inject.Inject
+&nbsp;
+&nbsp;@HiltViewModel
+&nbsp;class FeedViewModel @Inject constructor(
+<b class="fc">&nbsp;    private val jobsRepository: JobsRepository,</b>
+<b class="fc">&nbsp;    private val sessionStore: SessionStore,</b>
+<b class="fc">&nbsp;    private val profileRepository: ProfileRepository,</b>
+<b class="fc">&nbsp;    private val applicationsRepository: ApplicationsRepository</b>
+<b class="fc">&nbsp;) : ViewModel() {</b>
+&nbsp;
+<b class="fc">&nbsp;    private val selectedCategory = MutableStateFlow&lt;JobCategory?&gt;(null)</b>
+<b class="fc">&nbsp;    private val refreshing = MutableStateFlow(false)</b>
+<b class="fc">&nbsp;    private val searchQuery = MutableStateFlow(&quot;&quot;)</b>
+<b class="fc">&nbsp;    private val profileCompletion = MutableStateFlow(0)</b>
+<b class="fc">&nbsp;    private val activeTab = MutableStateFlow(FeedTab.EXPLORAR)</b>
+&nbsp;
+&nbsp;    @OptIn(ExperimentalCoroutinesApi::class)
+<b class="fc">&nbsp;    private val offersFlow = selectedCategory.flatMapLatest { category -&gt;</b>
+<b class="fc">&nbsp;        jobsRepository.observeOffers(JobFilter(category = category))</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    val state: StateFlow&lt;FeedUiState&gt; = combine(</b>
+<b class="fc">&nbsp;        offersFlow,</b>
+<b class="fc">&nbsp;        selectedCategory,</b>
+<b class="fc">&nbsp;        refreshing,</b>
+<b class="fc">&nbsp;        searchQuery,</b>
+<b class="fc">&nbsp;        profileCompletion,</b>
+<b class="fc">&nbsp;        applicationsRepository.observeMyApplications(),</b>
+<b class="fc">&nbsp;        activeTab</b>
+&nbsp;    ) { array -&gt;
+<b class="fc">&nbsp;        @Suppress(&quot;UNCHECKED_CAST&quot;)</b>
+<b class="fc">&nbsp;        val offers = array[0] as List&lt;cl.catchgo.app.domain.model.JobOffer&gt;</b>
+<b class="fc">&nbsp;        val category = array[1] as cl.catchgo.app.domain.model.JobCategory?</b>
+<b class="fc">&nbsp;        val isRefreshing = array[2] as Boolean</b>
+<b class="fc">&nbsp;        val query = array[3] as String</b>
+<b class="fc">&nbsp;        val completion = array[4] as Int</b>
+<b class="fc">&nbsp;        @Suppress(&quot;UNCHECKED_CAST&quot;)</b>
+<b class="fc">&nbsp;        val apps = array[5] as List&lt;cl.catchgo.app.domain.model.JobApplication&gt;</b>
+<b class="fc">&nbsp;        val currentTab = array[6] as FeedTab</b>
+&nbsp;
+&nbsp;        // Calculate counts based on backend rawStatus string
+<b class="fc">&nbsp;        val postCount = apps.count { it.rawStatus in listOf(&quot;PENDIENTE&quot;, &quot;ACEPTADO&quot;, &quot;TRABAJO_FINALIZADO&quot;) }</b>
+<b class="fc">&nbsp;        val pagCount = apps.count { it.rawStatus in listOf(&quot;PAGO_ENVIADO&quot;, &quot;PAGO_DISPUTADO&quot;) }</b>
+<b class="fc">&nbsp;        val califCount = apps.count { it.rawStatus in listOf(&quot;PAGO_CONFIRMADO&quot;, &quot;CALIFICADO_EMPRESA&quot;) }</b>
+<b class="fc">&nbsp;        val compCount = apps.count { it.rawStatus in listOf(&quot;CALIFICADO_TRABAJADOR&quot;, &quot;FINALIZADA&quot;, &quot;RECHAZADO&quot;, &quot;ARCHIVADA&quot;) }</b>
+&nbsp;
+&nbsp;        // Filter offers matching category and search query
+<b class="fc">&nbsp;        val filteredOffers = if (query.isBlank()) offers</b>
+<b class="fc">&nbsp;        else offers.filter {</b>
+<b class="fc">&nbsp;            it.title.contains(query, ignoreCase = true) ||</b>
+<b class="pc">&nbsp;                it.company.contains(query, ignoreCase = true) ||</b>
+<b class="fc">&nbsp;                it.comuna.contains(query, ignoreCase = true)</b>
+&nbsp;        }
+<b class="pc">&nbsp;        val sortedOffers = filteredOffers.sortedByDescending { it.id.toLongOrNull() ?: 0L }</b>
+&nbsp;
+&nbsp;        // Filter applications based on selected tab and search query
+<b class="pc">&nbsp;        val filteredApps = when (currentTab) {</b>
+<b class="fc">&nbsp;            FeedTab.POSTULACIONES -&gt; apps.filter { it.rawStatus in listOf(&quot;PENDIENTE&quot;, &quot;ACEPTADO&quot;, &quot;TRABAJO_FINALIZADO&quot;) }</b>
+<b class="fc">&nbsp;            FeedTab.PAGOS -&gt; apps.filter { it.rawStatus in listOf(&quot;PAGO_ENVIADO&quot;, &quot;PAGO_DISPUTADO&quot;) }</b>
+<b class="nc">&nbsp;            FeedTab.POR_CALIFICAR -&gt; apps.filter { it.rawStatus in listOf(&quot;PAGO_CONFIRMADO&quot;, &quot;CALIFICADO_EMPRESA&quot;) }</b>
+<b class="nc">&nbsp;            FeedTab.COMPLETADAS -&gt; apps.filter { it.rawStatus in listOf(&quot;CALIFICADO_TRABAJADOR&quot;, &quot;FINALIZADA&quot;, &quot;RECHAZADO&quot;, &quot;ARCHIVADA&quot;) }</b>
+<b class="fc">&nbsp;            else -&gt; emptyList()</b>
+<b class="fc">&nbsp;        }.filter {</b>
+<b class="pc">&nbsp;            query.isBlank() ||</b>
+<b class="nc">&nbsp;                it.offerTitle.contains(query, ignoreCase = true) ||</b>
+<b class="nc">&nbsp;                it.company.contains(query, ignoreCase = true) ||</b>
+<b class="fc">&nbsp;                it.comuna.contains(query, ignoreCase = true)</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        FeedUiState(</b>
+<b class="fc">&nbsp;            isLoading = false,</b>
+<b class="fc">&nbsp;            isRefreshing = isRefreshing,</b>
+<b class="fc">&nbsp;            offers = sortedOffers,</b>
+<b class="fc">&nbsp;            selectedCategory = category,</b>
+<b class="fc">&nbsp;            searchQuery = query,</b>
+<b class="fc">&nbsp;            profileCompletion = completion,</b>
+<b class="fc">&nbsp;            activeTab = currentTab,</b>
+<b class="fc">&nbsp;            applications = apps,</b>
+<b class="fc">&nbsp;            filteredApplications = filteredApps,</b>
+<b class="fc">&nbsp;            postulacionesCount = postCount,</b>
+<b class="fc">&nbsp;            pagosCount = pagCount,</b>
+<b class="fc">&nbsp;            porCalificarCount = califCount,</b>
+<b class="fc">&nbsp;            completadasCount = compCount</b>
+<b class="fc">&nbsp;        )</b>
+<b class="fc">&nbsp;    }.stateIn(</b>
+<b class="fc">&nbsp;        viewModelScope,</b>
+<b class="fc">&nbsp;        SharingStarted.WhileSubscribed(5_000),</b>
+<b class="fc">&nbsp;        FeedUiState(isLoading = true)</b>
+&nbsp;    )
+&nbsp;
+<b class="fc">&nbsp;    init {</b>
+<b class="fc">&nbsp;        refresh()</b>
+<b class="fc">&nbsp;        loadProfileCompletion()</b>
+<b class="fc">&nbsp;        viewModelScope.launch {</b>
+<b class="fc">&nbsp;            applicationsRepository.refreshFromBackend()</b>
+&nbsp;        }
+<b class="fc">&nbsp;    }</b>
+&nbsp;
+&nbsp;    private fun loadProfileCompletion() {
+<b class="fc">&nbsp;        viewModelScope.launch {</b>
+<b class="pc">&nbsp;            val userId = sessionStore.session.first()?.user?.id ?: return@launch</b>
+<b class="pc">&nbsp;            profileRepository.getProfile(userId).onSuccess { profile -&gt;</b>
+<b class="pc">&nbsp;                if (profile != null) {</b>
+<b class="fc">&nbsp;                    profileCompletion.value = MatchEngine.calculateProfileCompletion(profile)</b>
+&nbsp;                }
+<b class="fc">&nbsp;            }</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun onCategorySelect(category: JobCategory?) {
+<b class="fc">&nbsp;        selectedCategory.value = category</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    fun onSearchChange(query: String) {
+<b class="fc">&nbsp;        searchQuery.value = query</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    fun onRefresh() {
+<b class="fc">&nbsp;        refresh()</b>
+<b class="fc">&nbsp;        viewModelScope.launch {</b>
+<b class="fc">&nbsp;            applicationsRepository.refreshFromBackend()</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun onTabSelect(tab: FeedTab) {
+<b class="fc">&nbsp;        activeTab.value = tab</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private fun refresh() {
+<b class="fc">&nbsp;        viewModelScope.launch {</b>
+<b class="fc">&nbsp;            refreshing.value = true</b>
+<b class="fc">&nbsp;            jobsRepository.refresh()</b>
+<b class="pc">&nbsp;                .onFailure { }</b>
+<b class="fc">&nbsp;            refreshing.value = false</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

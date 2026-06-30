@@ -1,0 +1,99 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ApplicationsApi</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.data.remote</a>
+</div>
+
+<h1>Coverage Summary for Class: ApplicationsApi (cl.catchgo.app.data.remote)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">ApplicationsApi</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.data.remote
+&nbsp;
+&nbsp;import cl.catchgo.app.data.remote.dto.ApplicationDto
+&nbsp;import cl.catchgo.app.data.remote.dto.UpdateStatusRequest
+&nbsp;import retrofit2.http.Body
+&nbsp;import retrofit2.http.DELETE
+&nbsp;import retrofit2.http.GET
+&nbsp;import retrofit2.http.POST
+&nbsp;import retrofit2.http.PUT
+&nbsp;import retrofit2.http.Path
+&nbsp;import retrofit2.http.Query
+&nbsp;
+&nbsp;interface ApplicationsApi {
+&nbsp;    @GET(&quot;jobs/applications/user/{userId}&quot;)
+&nbsp;    suspend fun listByUser(@Path(&quot;userId&quot;) userId: String): List&lt;ApplicationDto&gt;
+&nbsp;
+&nbsp;    @POST(&quot;jobs/{jobId}/apply&quot;)
+&nbsp;    suspend fun apply(
+&nbsp;        @Path(&quot;jobId&quot;) jobId: Long,
+&nbsp;        @Query(&quot;userId&quot;) userId: String
+&nbsp;    ): retrofit2.Response&lt;Unit&gt;
+&nbsp;
+&nbsp;    @DELETE(&quot;jobs/applications/{id}&quot;)
+&nbsp;    suspend fun deleteApplication(@Path(&quot;id&quot;) id: Long): retrofit2.Response&lt;Unit&gt;
+&nbsp;
+&nbsp;    @PUT(&quot;jobs/applications/{id}/status&quot;)
+&nbsp;    suspend fun updateApplicationStatus(
+&nbsp;        @Path(&quot;id&quot;) id: Long,
+&nbsp;        @Body body: UpdateStatusRequest
+&nbsp;    ): retrofit2.Response&lt;Unit&gt;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,169 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JobsApi</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.data.remote</a>
+</div>
+
+<h1>Coverage Summary for Class: JobsApi (cl.catchgo.app.data.remote)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+  <tr>
+    <td class="name">JobsApi$DefaultImpls</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">JobsApi$Subclass3</td>
+  </tr>
+  <tr>
+    <td class="name">JobsApi$Subclass3$auxiliary$4PvZA8dP</td>
+  </tr>
+  <tr>
+    <td class="name">JobsApi$Subclass3$auxiliary$5ASX4ota</td>
+  </tr>
+  <tr>
+    <td class="name">JobsApi$Subclass3$auxiliary$8KYgR15j</td>
+  </tr>
+  <tr>
+    <td class="name">JobsApi$Subclass3$auxiliary$FO3gNt4n</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.data.remote
+&nbsp;
+&nbsp;import cl.catchgo.app.data.remote.dto.CreateJobOfferRequest
+&nbsp;import cl.catchgo.app.data.remote.dto.EmployerApplicationDto
+&nbsp;import cl.catchgo.app.data.remote.dto.JobOfferDto
+&nbsp;import cl.catchgo.app.data.remote.dto.UpdateStatusRequest
+&nbsp;import retrofit2.http.Body
+&nbsp;import retrofit2.http.DELETE
+&nbsp;import retrofit2.http.GET
+&nbsp;import retrofit2.http.POST
+&nbsp;import retrofit2.http.PUT
+&nbsp;import retrofit2.http.Path
+&nbsp;import retrofit2.http.Query
+&nbsp;
+&nbsp;interface JobsApi {
+&nbsp;    @GET(&quot;jobs&quot;)
+&nbsp;    suspend fun list(
+<b class="nc">&nbsp;        @Query(&quot;category&quot;) category: String? = null,</b>
+<b class="nc">&nbsp;        @Query(&quot;comuna&quot;) comuna: String? = null,</b>
+<b class="nc">&nbsp;        @Query(&quot;radius&quot;) radius: Int? = null</b>
+&nbsp;    ): List&lt;JobOfferDto&gt;
+&nbsp;
+&nbsp;    @GET(&quot;jobs/{id}&quot;)
+&nbsp;    suspend fun get(@Path(&quot;id&quot;) id: String): JobOfferDto
+&nbsp;
+&nbsp;    @POST(&quot;jobs&quot;)
+&nbsp;    suspend fun create(@Body dto: CreateJobOfferRequest): JobOfferDto
+&nbsp;
+&nbsp;    @PUT(&quot;jobs/{id}&quot;)
+&nbsp;    suspend fun update(@Path(&quot;id&quot;) id: Long, @Body dto: CreateJobOfferRequest): JobOfferDto
+&nbsp;
+&nbsp;    @DELETE(&quot;jobs/{id}&quot;)
+&nbsp;    suspend fun delete(@Path(&quot;id&quot;) id: Long): retrofit2.Response&lt;Unit&gt;
+&nbsp;
+&nbsp;    @GET(&quot;jobs/applications/employer/{employerId}&quot;)
+&nbsp;    suspend fun listByEmployer(@Path(&quot;employerId&quot;) employerId: String): List&lt;EmployerApplicationDto&gt;
+&nbsp;
+&nbsp;    @PUT(&quot;jobs/applications/{id}/status&quot;)
+&nbsp;    suspend fun updateApplicationStatus(
+&nbsp;        @Path(&quot;id&quot;) id: Long,
+&nbsp;        @Body body: UpdateStatusRequest
+&nbsp;    ): retrofit2.Response&lt;Unit&gt;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

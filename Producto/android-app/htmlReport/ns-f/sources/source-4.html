@@ -1,0 +1,391 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > OfferDetailViewModel</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.ui.detail</a>
+</div>
+
+<h1>Coverage Summary for Class: OfferDetailViewModel (cl.catchgo.app.ui.detail)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">OfferDetailViewModel</td>
+<td class="coverageStat">
+  <span class="percent">
+    57.1%
+  </span>
+  <span class="absValue">
+    (4/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (1/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    81%
+  </span>
+  <span class="absValue">
+    (17/21)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">OfferDetailViewModel$cancelPostulation$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (2/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    70%
+  </span>
+  <span class="absValue">
+    (7/10)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">OfferDetailViewModel$load$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (9/9)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">OfferDetailViewModel$state$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    33.3%
+  </span>
+  <span class="absValue">
+    (2/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">OfferDetailViewModel$submitApplication$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (10/10)
+  </span>
+</td>
+  </tr>
+  <tr>
+    <td class="name">OfferDetailViewModel$updateApplicationStatus$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    66.7%
+  </span>
+  <span class="absValue">
+    (8/12)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    54.2%
+  </span>
+  <span class="absValue">
+    (13/24)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    73.4%
+  </span>
+  <span class="absValue">
+    (47/64)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.ui.detail
+&nbsp;
+&nbsp;import androidx.lifecycle.SavedStateHandle
+&nbsp;import androidx.lifecycle.ViewModel
+&nbsp;import androidx.lifecycle.viewModelScope
+&nbsp;import cl.catchgo.app.core.error.ErrorMapper
+&nbsp;import cl.catchgo.app.domain.repository.ApplicationsRepository
+&nbsp;import cl.catchgo.app.domain.repository.JobsRepository
+&nbsp;import dagger.hilt.android.lifecycle.HiltViewModel
+&nbsp;import kotlinx.coroutines.channels.Channel
+&nbsp;import kotlinx.coroutines.flow.MutableStateFlow
+&nbsp;import kotlinx.coroutines.flow.SharingStarted
+&nbsp;import kotlinx.coroutines.flow.StateFlow
+&nbsp;import kotlinx.coroutines.flow.combine
+&nbsp;import kotlinx.coroutines.flow.receiveAsFlow
+&nbsp;import kotlinx.coroutines.flow.stateIn
+&nbsp;import kotlinx.coroutines.flow.update
+&nbsp;import kotlinx.coroutines.launch
+&nbsp;import javax.inject.Inject
+&nbsp;
+&nbsp;@HiltViewModel
+&nbsp;class OfferDetailViewModel @Inject constructor(
+<b class="fc">&nbsp;    private val jobsRepository: JobsRepository,</b>
+<b class="fc">&nbsp;    private val applicationsRepository: ApplicationsRepository,</b>
+&nbsp;    savedStateHandle: SavedStateHandle
+<b class="fc">&nbsp;) : ViewModel() {</b>
+&nbsp;
+<b class="pc">&nbsp;    private val offerId: String = checkNotNull(savedStateHandle[&quot;id&quot;]) {</b>
+<b class="nc">&nbsp;        &quot;OfferDetailViewModel requires &#39;id&#39; nav argument&quot;</b>
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    private val internalState = MutableStateFlow(OfferDetailUiState())</b>
+&nbsp;
+<b class="fc">&nbsp;    val state: StateFlow&lt;OfferDetailUiState&gt; = combine(</b>
+<b class="fc">&nbsp;        internalState,</b>
+<b class="fc">&nbsp;        applicationsRepository.observeMyApplications()</b>
+&nbsp;    ) { ui, apps -&gt;
+<b class="pc">&nbsp;        val activeApp = apps.find { it.offerId == offerId }</b>
+<b class="fc">&nbsp;        ui.copy(</b>
+<b class="pc">&nbsp;            isApplied = activeApp != null,</b>
+<b class="fc">&nbsp;            activeApplication = activeApp</b>
+&nbsp;        )
+<b class="fc">&nbsp;    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), OfferDetailUiState())</b>
+&nbsp;
+<b class="fc">&nbsp;    private val _events = Channel&lt;DetailEvent&gt;(Channel.BUFFERED)</b>
+<b class="fc">&nbsp;    val events = _events.receiveAsFlow()</b>
+&nbsp;
+<b class="fc">&nbsp;    init {</b>
+<b class="fc">&nbsp;        load()</b>
+<b class="fc">&nbsp;    }</b>
+&nbsp;
+<b class="nc">&nbsp;    fun retry() = load()</b>
+&nbsp;
+&nbsp;    fun submitApplication(message: String?) {
+<b class="fc">&nbsp;        viewModelScope.launch {</b>
+<b class="fc">&nbsp;            internalState.update { it.copy(isApplying = true, applyError = null) }</b>
+<b class="fc">&nbsp;            applicationsRepository.apply(offerId, message)</b>
+<b class="fc">&nbsp;                .onSuccess {</b>
+<b class="fc">&nbsp;                    internalState.update { it.copy(isApplying = false) }</b>
+<b class="fc">&nbsp;                    _events.send(DetailEvent.ApplicationSucceeded)</b>
+<b class="fc">&nbsp;                }</b>
+<b class="fc">&nbsp;                .onFailure { e -&gt;</b>
+<b class="fc">&nbsp;                    internalState.update {</b>
+<b class="fc">&nbsp;                        it.copy(isApplying = false, applyError = ErrorMapper.map(e).message)</b>
+&nbsp;                    }
+<b class="fc">&nbsp;                }</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun cancelPostulation(applicationId: Long) {
+<b class="fc">&nbsp;        viewModelScope.launch {</b>
+<b class="fc">&nbsp;            internalState.update { it.copy(isActionLoading = true, actionError = null) }</b>
+<b class="fc">&nbsp;            applicationsRepository.cancelApplication(applicationId)</b>
+<b class="pc">&nbsp;                .onSuccess {</b>
+<b class="fc">&nbsp;                    internalState.update { it.copy(isActionLoading = false) }</b>
+<b class="fc">&nbsp;                    _events.send(DetailEvent.StatusUpdated(&quot;Postulación cancelada con éxito&quot;))</b>
+<b class="fc">&nbsp;                }</b>
+<b class="pc">&nbsp;                .onFailure { e -&gt;</b>
+<b class="nc">&nbsp;                    internalState.update {</b>
+<b class="nc">&nbsp;                        it.copy(isActionLoading = false, actionError = ErrorMapper.map(e).message)</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                }</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun updateApplicationStatus(applicationId: Long, newStatus: String) {
+<b class="nc">&nbsp;        viewModelScope.launch {</b>
+<b class="nc">&nbsp;            internalState.update { it.copy(isActionLoading = true, actionError = null) }</b>
+<b class="nc">&nbsp;            applicationsRepository.updateStatus(applicationId, newStatus)</b>
+<b class="nc">&nbsp;                .onSuccess {</b>
+<b class="nc">&nbsp;                    internalState.update { it.copy(isActionLoading = false) }</b>
+<b class="nc">&nbsp;                    _events.send(DetailEvent.StatusUpdated(&quot;Estado actualizado a $newStatus&quot;))</b>
+<b class="nc">&nbsp;                }</b>
+<b class="nc">&nbsp;                .onFailure { e -&gt;</b>
+<b class="nc">&nbsp;                    internalState.update {</b>
+<b class="nc">&nbsp;                        it.copy(isActionLoading = false, actionError = ErrorMapper.map(e).message)</b>
+&nbsp;                    }
+<b class="nc">&nbsp;                }</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun clearApplyError() {
+<b class="nc">&nbsp;        internalState.update { it.copy(applyError = null) }</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private fun load() {
+<b class="fc">&nbsp;        viewModelScope.launch {</b>
+<b class="fc">&nbsp;            internalState.update { it.copy(isLoading = true, errorMessage = null) }</b>
+<b class="fc">&nbsp;            jobsRepository.getOffer(offerId)</b>
+<b class="fc">&nbsp;                .onSuccess { offer -&gt;</b>
+<b class="fc">&nbsp;                    internalState.update { it.copy(isLoading = false, offer = offer) }</b>
+<b class="fc">&nbsp;                }</b>
+<b class="fc">&nbsp;                .onFailure { e -&gt;</b>
+<b class="fc">&nbsp;                    internalState.update {</b>
+<b class="fc">&nbsp;                        it.copy(isLoading = false, errorMessage = ErrorMapper.map(e).message)</b>
+&nbsp;                    }
+<b class="fc">&nbsp;                }</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;sealed interface DetailEvent {
+&nbsp;    data object ApplicationSucceeded : DetailEvent
+&nbsp;    data class StatusUpdated(val message: String) : DetailEvent
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

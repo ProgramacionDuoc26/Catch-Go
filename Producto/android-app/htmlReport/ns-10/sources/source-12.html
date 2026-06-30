@@ -1,0 +1,468 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > EmpresaPerfilUiState</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.ui.empresa</a>
+</div>
+
+<h1>Coverage Summary for Class: EmpresaPerfilUiState (cl.catchgo.app.ui.empresa)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EmpresaPerfilUiState</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.ui.empresa
+&nbsp;
+&nbsp;import android.annotation.SuppressLint
+&nbsp;import android.content.Context
+&nbsp;import android.location.LocationManager
+&nbsp;import android.net.Uri
+&nbsp;import android.provider.OpenableColumns
+&nbsp;import androidx.lifecycle.ViewModel
+&nbsp;import androidx.lifecycle.viewModelScope
+&nbsp;import cl.catchgo.app.data.remote.dto.ProfileRemoteDto
+&nbsp;import cl.catchgo.app.domain.model.EjeRadar
+&nbsp;import cl.catchgo.app.domain.model.RadarData
+&nbsp;import cl.catchgo.app.domain.repository.AuthRepository
+&nbsp;import cl.catchgo.app.domain.repository.ProfileRepository
+&nbsp;import dagger.hilt.android.lifecycle.HiltViewModel
+&nbsp;import dagger.hilt.android.qualifiers.ApplicationContext
+&nbsp;import kotlinx.coroutines.Dispatchers
+&nbsp;import kotlinx.coroutines.flow.MutableStateFlow
+&nbsp;import kotlinx.coroutines.flow.StateFlow
+&nbsp;import kotlinx.coroutines.flow.asStateFlow
+&nbsp;import kotlinx.coroutines.flow.update
+&nbsp;import kotlinx.coroutines.launch
+&nbsp;import org.json.JSONObject
+&nbsp;import javax.inject.Inject
+&nbsp;
+&nbsp;data class EmpresaPerfilUiState(
+<b class="nc">&nbsp;    val isLoading: Boolean = false,</b>
+<b class="nc">&nbsp;    val isSaving: Boolean = false,</b>
+<b class="nc">&nbsp;    val photoUrl: String? = null,</b>
+<b class="nc">&nbsp;    val docUrl: String? = null,</b>
+<b class="nc">&nbsp;    val isUploadingPhoto: Boolean = false,</b>
+<b class="nc">&nbsp;    val isUploadingDoc: Boolean = false,</b>
+<b class="nc">&nbsp;    val hasLocation: Boolean = false,</b>
+<b class="nc">&nbsp;    val name: String = &quot;&quot;,</b>
+<b class="nc">&nbsp;    val rut: String = &quot;&quot;,</b>
+<b class="nc">&nbsp;    val representativeName: String = &quot;&quot;,</b>
+<b class="nc">&nbsp;    val email: String = &quot;&quot;,</b>
+<b class="nc">&nbsp;    val phone: String = &quot;+56 &quot;,</b>
+<b class="nc">&nbsp;    val address: String = &quot;&quot;,</b>
+<b class="nc">&nbsp;    val description: String = &quot;&quot;,</b>
+<b class="nc">&nbsp;    val bankName: String = &quot;&quot;,</b>
+<b class="nc">&nbsp;    val accountType: String = &quot;&quot;,</b>
+<b class="nc">&nbsp;    val accountNumber: String = &quot;&quot;,</b>
+<b class="nc">&nbsp;    val giro: String = &quot;&quot;,</b>
+<b class="nc">&nbsp;    val tipoTrabajador: String = &quot;&quot;,</b>
+<b class="nc">&nbsp;    val habilidadValorada: String = &quot;&quot;,</b>
+<b class="nc">&nbsp;    val ritmo: String = &quot;&quot;,</b>
+<b class="nc">&nbsp;    val latitude: Double? = null,</b>
+<b class="nc">&nbsp;    val longitude: Double? = null,</b>
+<b class="nc">&nbsp;    val radarData: RadarData? = null,</b>
+<b class="nc">&nbsp;    val saveSuccess: Boolean = false,</b>
+<b class="nc">&nbsp;    val errorMessage: String? = null,</b>
+<b class="nc">&nbsp;    val isDeletingAccount: Boolean = false,</b>
+<b class="nc">&nbsp;    val deleteAccountError: String? = null,</b>
+<b class="nc">&nbsp;    val accountDeleted: Boolean = false,</b>
+<b class="nc">&nbsp;    val plan: String = &quot;FREE&quot;,</b>
+<b class="nc">&nbsp;    val nameLocked: Boolean = false,</b>
+<b class="nc">&nbsp;    val rutLocked: Boolean = false,</b>
+<b class="nc">&nbsp;    val representativeNameLocked: Boolean = false,</b>
+<b class="nc">&nbsp;    val culturaLocked: Boolean = false</b>
+&nbsp;)
+&nbsp;
+&nbsp;@HiltViewModel
+&nbsp;class EmpresaPerfilViewModel @Inject constructor(
+&nbsp;    private val authRepository: AuthRepository,
+&nbsp;    private val profileRepository: ProfileRepository,
+&nbsp;    @ApplicationContext private val context: Context
+&nbsp;) : ViewModel() {
+&nbsp;
+&nbsp;    private val _uiState = MutableStateFlow(EmpresaPerfilUiState())
+&nbsp;    val uiState: StateFlow&lt;EmpresaPerfilUiState&gt; = _uiState.asStateFlow()
+&nbsp;
+&nbsp;    private var userId: String = &quot;&quot;
+&nbsp;    private var currentProfile: ProfileRemoteDto = ProfileRemoteDto()
+&nbsp;
+&nbsp;    fun loadProfile(userId: String) {
+&nbsp;        this.userId = userId
+&nbsp;        viewModelScope.launch {
+&nbsp;            _uiState.update { it.copy(isLoading = true) }
+&nbsp;            profileRepository.getProfile(userId).onSuccess { profile -&gt;
+&nbsp;                if (profile != null) {
+&nbsp;                    currentProfile = profile
+&nbsp;                    val skills = runCatching {
+&nbsp;                        if (profile.skills?.startsWith(&quot;{&quot;) == true) JSONObject(profile.skills) else null
+&nbsp;                    }.getOrNull()
+&nbsp;
+&nbsp;                    val plan = profile.plan ?: &quot;FREE&quot;
+&nbsp;                    val isPremium = plan == &quot;PREMIUM&quot; || plan == &quot;ENTERPRISE&quot;
+&nbsp;                    val giroSaved = skills?.optString(&quot;giro&quot;)?.isNotBlank() == true
+&nbsp;                    val tipoSaved = skills?.optString(&quot;tipoTrabajador&quot;)?.isNotBlank() == true
+&nbsp;                    val culturaLocked = (giroSaved || tipoSaved) &amp;&amp; !isPremium
+&nbsp;
+&nbsp;                    val newState = _uiState.value.copy(
+&nbsp;                        isLoading = false,
+&nbsp;                        photoUrl = profile.photoUrl,
+&nbsp;                        docUrl = profile.cvUrl,
+&nbsp;                        hasLocation = profile.latitude != null &amp;&amp; profile.longitude != null,
+&nbsp;                        latitude = profile.latitude,
+&nbsp;                        longitude = profile.longitude,
+&nbsp;                        name = profile.name ?: &quot;&quot;,
+&nbsp;                        rut = profile.rut ?: skills?.optString(&quot;rut&quot;, &quot;&quot;) ?: &quot;&quot;,
+&nbsp;                        representativeName = skills?.optString(&quot;representativeName&quot;, &quot;&quot;) ?: &quot;&quot;,
+&nbsp;                        email = profile.email ?: &quot;&quot;,
+&nbsp;                        phone = profile.phone?.takeIf { p -&gt; p.isNotBlank() } ?: &quot;+56 &quot;,
+&nbsp;                        address = skills?.optString(&quot;address&quot;, &quot;&quot;) ?: &quot;&quot;,
+&nbsp;                        description = profile.description ?: &quot;&quot;,
+&nbsp;                        bankName = profile.bankName ?: &quot;&quot;,
+&nbsp;                        accountType = profile.accountType ?: &quot;&quot;,
+&nbsp;                        accountNumber = profile.accountNumber ?: &quot;&quot;,
+&nbsp;                        giro = skills?.optString(&quot;giro&quot;, &quot;&quot;) ?: &quot;&quot;,
+&nbsp;                        tipoTrabajador = skills?.optString(&quot;tipoTrabajador&quot;, &quot;&quot;) ?: &quot;&quot;,
+&nbsp;                        habilidadValorada = skills?.optString(&quot;habilidadValorada&quot;, &quot;&quot;) ?: &quot;&quot;,
+&nbsp;                        ritmo = skills?.optString(&quot;ritmo&quot;, &quot;&quot;) ?: &quot;&quot;,
+&nbsp;                        plan = plan,
+&nbsp;                        nameLocked = !profile.name.isNullOrBlank(),
+&nbsp;                        rutLocked = !profile.rut.isNullOrBlank() || !skills?.optString(&quot;rut&quot;).isNullOrBlank(),
+&nbsp;                        representativeNameLocked = !skills?.optString(&quot;representativeName&quot;).isNullOrBlank(),
+&nbsp;                        culturaLocked = culturaLocked
+&nbsp;                    )
+&nbsp;                    _uiState.update { newState.copy(radarData = computeRadar(newState)) }
+&nbsp;                } else {
+&nbsp;                    _uiState.update { it.copy(isLoading = false) }
+&nbsp;                }
+&nbsp;            }.onFailure {
+&nbsp;                _uiState.update { it.copy(isLoading = false) }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun onFieldChange(field: String, value: String) {
+&nbsp;        _uiState.update { s -&gt;
+&nbsp;            val updated = when (field) {
+&nbsp;                &quot;name&quot; -&gt; s.copy(name = value)
+&nbsp;                &quot;rut&quot; -&gt; s.copy(rut = value)
+&nbsp;                &quot;representativeName&quot; -&gt; s.copy(representativeName = value)
+&nbsp;                &quot;phone&quot; -&gt; s.copy(phone = value)
+&nbsp;                &quot;address&quot; -&gt; s.copy(address = value)
+&nbsp;                &quot;description&quot; -&gt; s.copy(description = value)
+&nbsp;                &quot;bankName&quot; -&gt; s.copy(bankName = value)
+&nbsp;                &quot;accountType&quot; -&gt; s.copy(accountType = value)
+&nbsp;                &quot;accountNumber&quot; -&gt; s.copy(accountNumber = value)
+&nbsp;                &quot;giro&quot; -&gt; s.copy(giro = value)
+&nbsp;                &quot;tipoTrabajador&quot; -&gt; s.copy(tipoTrabajador = value)
+&nbsp;                &quot;habilidadValorada&quot; -&gt; s.copy(habilidadValorada = value)
+&nbsp;                &quot;ritmo&quot; -&gt; s.copy(ritmo = value)
+&nbsp;                else -&gt; s
+&nbsp;            }
+&nbsp;            updated.copy(radarData = computeRadar(updated))
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun saveProfile() {
+&nbsp;        val s = _uiState.value
+&nbsp;        viewModelScope.launch {
+&nbsp;            _uiState.update { it.copy(isSaving = true, errorMessage = null) }
+&nbsp;            val existingSkills = runCatching {
+&nbsp;                if (currentProfile.skills?.startsWith(&quot;{&quot;) == true)
+&nbsp;                    JSONObject(currentProfile.skills) else JSONObject()
+&nbsp;            }.getOrDefault(JSONObject())
+&nbsp;
+&nbsp;            existingSkills.put(&quot;rut&quot;, s.rut)
+&nbsp;            existingSkills.put(&quot;representativeName&quot;, s.representativeName)
+&nbsp;            existingSkills.put(&quot;address&quot;, s.address)
+&nbsp;            existingSkills.put(&quot;giro&quot;, s.giro)
+&nbsp;            existingSkills.put(&quot;tipoTrabajador&quot;, s.tipoTrabajador)
+&nbsp;            existingSkills.put(&quot;habilidadValorada&quot;, s.habilidadValorada)
+&nbsp;            existingSkills.put(&quot;ritmo&quot;, s.ritmo)
+&nbsp;
+&nbsp;            val dto = currentProfile.copy(
+&nbsp;                userId = userId,
+&nbsp;                name = s.name,
+&nbsp;                rut = s.rut,
+&nbsp;                phone = s.phone,
+&nbsp;                description = s.description,
+&nbsp;                bankName = s.bankName,
+&nbsp;                accountType = s.accountType,
+&nbsp;                accountNumber = s.accountNumber,
+&nbsp;                skills = existingSkills.toString()
+&nbsp;            )
+&nbsp;            profileRepository.saveProfile(dto)
+&nbsp;                .onSuccess { saved -&gt;
+&nbsp;                    currentProfile = saved
+&nbsp;                    val plan = saved.plan ?: &quot;FREE&quot;
+&nbsp;                    val isPremium = plan == &quot;PREMIUM&quot; || plan == &quot;ENTERPRISE&quot;
+&nbsp;                    val giroSaved = s.giro.isNotBlank()
+&nbsp;                    val tipoSaved = s.tipoTrabajador.isNotBlank()
+&nbsp;                    val culturaLocked = (giroSaved || tipoSaved) &amp;&amp; !isPremium
+&nbsp;
+&nbsp;                    _uiState.update {
+&nbsp;                        it.copy(
+&nbsp;                            isSaving = false,
+&nbsp;                            saveSuccess = true,
+&nbsp;                            plan = plan,
+&nbsp;                            nameLocked = !saved.name.isNullOrBlank(),
+&nbsp;                            rutLocked = !saved.rut.isNullOrBlank() || s.rut.isNotBlank(),
+&nbsp;                            representativeNameLocked = s.representativeName.isNotBlank(),
+&nbsp;                            culturaLocked = culturaLocked
+&nbsp;                        )
+&nbsp;                    }
+&nbsp;                }
+&nbsp;                .onFailure { e -&gt;
+&nbsp;                    _uiState.update { it.copy(isSaving = false, errorMessage = e.message ?: &quot;Error al guardar&quot;) }
+&nbsp;                }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun clearSaveSuccess() = _uiState.update { it.copy(saveSuccess = false) }
+&nbsp;    fun clearError() = _uiState.update { it.copy(errorMessage = null) }
+&nbsp;    fun clearDeleteError() = _uiState.update { it.copy(deleteAccountError = null) }
+&nbsp;
+&nbsp;    fun onPhotoPicked(uri: Uri) {
+&nbsp;        viewModelScope.launch {
+&nbsp;            _uiState.update { it.copy(isUploadingPhoto = true) }
+&nbsp;            val bytes = context.contentResolver.openInputStream(uri)?.readBytes() ?: run {
+&nbsp;                _uiState.update { it.copy(isUploadingPhoto = false) }; return@launch
+&nbsp;            }
+&nbsp;            val mimeType = context.contentResolver.getType(uri) ?: &quot;image/jpeg&quot;
+&nbsp;            val ext = if (mimeType.contains(&quot;png&quot;)) &quot;.png&quot; else &quot;.jpg&quot;
+&nbsp;            profileRepository.uploadFile(userId, bytes, &quot;logo$ext&quot;, mimeType)
+&nbsp;                .onSuccess { url -&gt;
+&nbsp;                    val updated = currentProfile.copy(userId = userId, photoUrl = url)
+&nbsp;                    profileRepository.saveProfile(updated).onSuccess { saved -&gt;
+&nbsp;                        currentProfile = saved
+&nbsp;                        _uiState.update { it.copy(isUploadingPhoto = false, photoUrl = url) }
+&nbsp;                    }.onFailure { _uiState.update { it.copy(isUploadingPhoto = false) } }
+&nbsp;                }
+&nbsp;                .onFailure { _uiState.update { it.copy(isUploadingPhoto = false) } }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun onDocPicked(uri: Uri) {
+&nbsp;        viewModelScope.launch {
+&nbsp;            _uiState.update { it.copy(isUploadingDoc = true) }
+&nbsp;            val bytes = context.contentResolver.openInputStream(uri)?.readBytes() ?: run {
+&nbsp;                _uiState.update { it.copy(isUploadingDoc = false) }; return@launch
+&nbsp;            }
+&nbsp;            val fileName = resolveFileName(uri)
+&nbsp;            val mimeType = context.contentResolver.getType(uri) ?: &quot;application/pdf&quot;
+&nbsp;            profileRepository.uploadFile(userId, bytes, fileName, mimeType)
+&nbsp;                .onSuccess { url -&gt;
+&nbsp;                    val updated = currentProfile.copy(userId = userId, cvUrl = url)
+&nbsp;                    profileRepository.saveProfile(updated).onSuccess { saved -&gt;
+&nbsp;                        currentProfile = saved
+&nbsp;                        _uiState.update { it.copy(isUploadingDoc = false, docUrl = url) }
+&nbsp;                    }.onFailure { _uiState.update { it.copy(isUploadingDoc = false) } }
+&nbsp;                }
+&nbsp;                .onFailure { _uiState.update { it.copy(isUploadingDoc = false) } }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private fun resolveFileName(uri: Uri): String {
+&nbsp;        var name = &quot;documento.pdf&quot;
+&nbsp;        context.contentResolver.query(uri, null, null, null, null)?.use { cursor -&gt;
+&nbsp;            val col = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+&nbsp;            if (cursor.moveToFirst() &amp;&amp; col &gt;= 0) name = cursor.getString(col)
+&nbsp;        }
+&nbsp;        return name
+&nbsp;    }
+&nbsp;
+&nbsp;    @SuppressLint(&quot;MissingPermission&quot;)
+&nbsp;    fun fetchAndSaveLocation() {
+&nbsp;        viewModelScope.launch(Dispatchers.IO) {
+&nbsp;            try {
+&nbsp;                val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+&nbsp;                val loc = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+&nbsp;                    ?: lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+&nbsp;                if (loc != null) {
+&nbsp;                    val updated = currentProfile.copy(userId = userId, latitude = loc.latitude, longitude = loc.longitude)
+&nbsp;                    profileRepository.saveProfile(updated).onSuccess { saved -&gt;
+&nbsp;                        currentProfile = saved
+&nbsp;                        _uiState.update { it.copy(hasLocation = true) }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            } catch (_: Exception) {}
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun updateLocation(lat: Double, lon: Double) {
+&nbsp;        viewModelScope.launch {
+&nbsp;            _uiState.update { it.copy(latitude = lat, longitude = lon, hasLocation = true) }
+&nbsp;            val updated = currentProfile.copy(userId = userId, latitude = lat, longitude = lon)
+&nbsp;            profileRepository.saveProfile(updated).onSuccess { saved -&gt; currentProfile = saved }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun searchAddress(addressQuery: String) {
+&nbsp;        if (addressQuery.isBlank()) return
+&nbsp;        viewModelScope.launch(Dispatchers.IO) {
+&nbsp;            runCatching {
+&nbsp;                val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())
+&nbsp;                @Suppress(&quot;DEPRECATION&quot;)
+&nbsp;                val addresses = geocoder.getFromLocationName(addressQuery, 1)
+&nbsp;                if (!addresses.isNullOrEmpty()) {
+&nbsp;                    val addr = addresses[0]
+&nbsp;                    _uiState.update { it.copy(latitude = addr.latitude, longitude = addr.longitude, hasLocation = true, errorMessage = null) }
+&nbsp;                    val updated = currentProfile.copy(userId = userId, latitude = addr.latitude, longitude = addr.longitude)
+&nbsp;                    profileRepository.saveProfile(updated).onSuccess { saved -&gt; currentProfile = saved }
+&nbsp;                } else {
+&nbsp;                    _uiState.update { it.copy(errorMessage = &quot;No se pudo encontrar la dirección&quot;) }
+&nbsp;                }
+&nbsp;            }.onFailure { e -&gt;
+&nbsp;                _uiState.update { it.copy(errorMessage = &quot;Error al buscar dirección: ${e.localizedMessage}&quot;) }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun reverseGeocode(lat: Double, lon: Double) {
+&nbsp;        _uiState.update { it.copy(latitude = lat, longitude = lon, hasLocation = true) }
+&nbsp;        val updated = currentProfile.copy(userId = userId, latitude = lat, longitude = lon)
+&nbsp;        viewModelScope.launch {
+&nbsp;            profileRepository.saveProfile(updated).onSuccess { saved -&gt; currentProfile = saved }
+&nbsp;        }
+&nbsp;        viewModelScope.launch(Dispatchers.IO) {
+&nbsp;            runCatching {
+&nbsp;                val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())
+&nbsp;                @Suppress(&quot;DEPRECATION&quot;)
+&nbsp;                val addresses = geocoder.getFromLocation(lat, lon, 1)
+&nbsp;                if (!addresses.isNullOrEmpty()) {
+&nbsp;                    val addr = addresses[0]
+&nbsp;                    val fullAddress = addr.getAddressLine(0) ?: &quot;${addr.thoroughfare ?: &quot;&quot;} ${addr.subThoroughfare ?: &quot;&quot;}, ${addr.locality ?: &quot;&quot;}&quot;.trim()
+&nbsp;                    if (fullAddress.isNotBlank()) {
+&nbsp;                        _uiState.update { it.copy(address = fullAddress) }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private fun computeRadar(s: EmpresaPerfilUiState): RadarData {
+&nbsp;        val perfilScore = listOf(s.name, s.rut, s.representativeName, s.phone, s.address, s.description)
+&nbsp;            .count { it.isNotBlank() }.toDouble() / 6.0 * 100.0
+&nbsp;        return RadarData(listOf(
+&nbsp;            EjeRadar(1, &quot;Perfil&quot;, perfilScore),
+&nbsp;            EjeRadar(2, &quot;Giro&quot;, if (s.giro.isNotBlank()) 100.0 else 0.0),
+&nbsp;            EjeRadar(3, &quot;Tipo&quot;, if (s.tipoTrabajador.isNotBlank()) 100.0 else 0.0),
+&nbsp;            EjeRadar(4, &quot;Habilidad&quot;, if (s.habilidadValorada.isNotBlank()) 100.0 else 0.0),
+&nbsp;            EjeRadar(5, &quot;Ritmo&quot;, if (s.ritmo.isNotBlank()) 100.0 else 0.0)
+&nbsp;        ))
+&nbsp;    }
+&nbsp;
+&nbsp;    fun deleteAccount(password: String) {
+&nbsp;        viewModelScope.launch {
+&nbsp;            _uiState.update { it.copy(isDeletingAccount = true, deleteAccountError = null) }
+&nbsp;            authRepository.verifyPassword(userId, password)
+&nbsp;                .onSuccess { valid -&gt;
+&nbsp;                    if (!valid) {
+&nbsp;                        _uiState.update { it.copy(isDeletingAccount = false, deleteAccountError = &quot;Contraseña incorrecta&quot;) }
+&nbsp;                        return@launch
+&nbsp;                    }
+&nbsp;                    profileRepository.deleteProfile(userId)
+&nbsp;                    authRepository.deleteAccount(userId)
+&nbsp;                        .onSuccess { _uiState.update { it.copy(isDeletingAccount = false, accountDeleted = true) } }
+&nbsp;                        .onFailure { e -&gt; _uiState.update { it.copy(isDeletingAccount = false, deleteAccountError = e.message ?: &quot;Error al eliminar cuenta&quot;) } }
+&nbsp;                }
+&nbsp;                .onFailure { e -&gt;
+&nbsp;                    _uiState.update { it.copy(isDeletingAccount = false, deleteAccountError = e.message ?: &quot;Error al verificar contraseña&quot;) }
+&nbsp;                }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun onLogout() {
+&nbsp;        viewModelScope.launch { authRepository.logout() }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

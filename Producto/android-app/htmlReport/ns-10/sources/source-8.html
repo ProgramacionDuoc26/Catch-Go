@@ -1,0 +1,219 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > CrearOfertaUiState</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.ui.empresa</a>
+</div>
+
+<h1>Coverage Summary for Class: CrearOfertaUiState (cl.catchgo.app.ui.empresa)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">CrearOfertaUiState</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (12/12)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.ui.empresa
+&nbsp;
+&nbsp;import androidx.lifecycle.ViewModel
+&nbsp;import androidx.lifecycle.viewModelScope
+&nbsp;import cl.catchgo.app.data.local.SessionStore
+&nbsp;import cl.catchgo.app.data.remote.JobsApi
+&nbsp;import cl.catchgo.app.data.remote.dto.CreateJobOfferRequest
+&nbsp;import dagger.hilt.android.lifecycle.HiltViewModel
+&nbsp;import kotlinx.coroutines.flow.MutableStateFlow
+&nbsp;import kotlinx.coroutines.flow.StateFlow
+&nbsp;import kotlinx.coroutines.flow.first
+&nbsp;import kotlinx.coroutines.flow.update
+&nbsp;import kotlinx.coroutines.launch
+&nbsp;import javax.inject.Inject
+&nbsp;
+&nbsp;data class CrearOfertaUiState(
+<b class="fc">&nbsp;    val titulo: String = &quot;&quot;,</b>
+<b class="fc">&nbsp;    val descripcion: String = &quot;&quot;,</b>
+<b class="fc">&nbsp;    val ubicacion: String = &quot;Santiago, RM&quot;,</b>
+<b class="fc">&nbsp;    val categoria: String = &quot;Guardia&quot;,</b>
+<b class="fc">&nbsp;    val remuneracion: String = &quot;&quot;,</b>
+<b class="fc">&nbsp;    val fechaInicio: String = &quot;&quot;,</b>
+<b class="fc">&nbsp;    val fechaFin: String = &quot;&quot;,</b>
+<b class="fc">&nbsp;    val isLoading: Boolean = false,</b>
+<b class="fc">&nbsp;    val success: Boolean = false,</b>
+<b class="fc">&nbsp;    val error: String? = null,</b>
+<b class="fc">&nbsp;    val latitude: Double? = null,</b>
+<b class="fc">&nbsp;    val longitude: Double? = null</b>
+&nbsp;)
+&nbsp;
+&nbsp;@HiltViewModel
+&nbsp;class CrearOfertaViewModel @Inject constructor(
+&nbsp;    private val jobsApi: JobsApi,
+&nbsp;    private val sessionStore: SessionStore
+&nbsp;) : ViewModel() {
+&nbsp;
+&nbsp;    val state: StateFlow&lt;CrearOfertaUiState&gt; get() = _state
+&nbsp;    private val _state = MutableStateFlow(CrearOfertaUiState())
+&nbsp;
+&nbsp;    fun onTituloChange(v: String) = _state.update { it.copy(titulo = v) }
+&nbsp;    fun onDescripcionChange(v: String) = _state.update { it.copy(descripcion = v) }
+&nbsp;    fun onUbicacionChange(v: String) = _state.update { it.copy(ubicacion = v) }
+&nbsp;    fun onCategoriaChange(v: String) = _state.update { it.copy(categoria = v) }
+&nbsp;    fun onRemuneracionChange(v: String) = _state.update { it.copy(remuneracion = v) }
+&nbsp;    fun onFechaInicioChange(v: String) = _state.update { it.copy(fechaInicio = v) }
+&nbsp;    fun onFechaFinChange(v: String) = _state.update { it.copy(fechaFin = v) }
+&nbsp;    fun onLocationChange(lat: Double, lon: Double) = _state.update { it.copy(latitude = lat, longitude = lon) }
+&nbsp;
+&nbsp;    fun searchAddress(context: android.content.Context, addressQuery: String) {
+&nbsp;        if (addressQuery.isBlank()) return
+&nbsp;        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+&nbsp;            runCatching {
+&nbsp;                val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())
+&nbsp;                @Suppress(&quot;DEPRECATION&quot;)
+&nbsp;                val addresses = geocoder.getFromLocationName(addressQuery, 1)
+&nbsp;                if (!addresses.isNullOrEmpty()) {
+&nbsp;                    val addr = addresses[0]
+&nbsp;                    _state.update { it.copy(latitude = addr.latitude, longitude = addr.longitude, error = null) }
+&nbsp;                } else {
+&nbsp;                    _state.update { it.copy(error = &quot;No se pudo encontrar la dirección&quot;) }
+&nbsp;                }
+&nbsp;            }.onFailure { e -&gt;
+&nbsp;                _state.update { it.copy(error = &quot;Error al buscar dirección: ${e.localizedMessage}&quot;) }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun reverseGeocode(context: android.content.Context, lat: Double, lon: Double) {
+&nbsp;        _state.update { it.copy(latitude = lat, longitude = lon) }
+&nbsp;        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+&nbsp;            runCatching {
+&nbsp;                val geocoder = android.location.Geocoder(context, java.util.Locale.getDefault())
+&nbsp;                @Suppress(&quot;DEPRECATION&quot;)
+&nbsp;                val addresses = geocoder.getFromLocation(lat, lon, 1)
+&nbsp;                if (!addresses.isNullOrEmpty()) {
+&nbsp;                    val addr = addresses[0]
+&nbsp;                    val fullAddress = addr.getAddressLine(0) ?: &quot;${addr.thoroughfare ?: &quot;&quot;} ${addr.subThoroughfare ?: &quot;&quot;}, ${addr.locality ?: &quot;&quot;}&quot;.trim()
+&nbsp;                    if (fullAddress.isNotBlank()) {
+&nbsp;                        _state.update { it.copy(ubicacion = fullAddress) }
+&nbsp;                    }
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    fun submit() {
+&nbsp;        val s = _state.value
+&nbsp;        if (s.titulo.isBlank() || s.descripcion.isBlank() || s.remuneracion.isBlank() || s.fechaInicio.isBlank()) {
+&nbsp;            _state.update { it.copy(error = &quot;Completa todos los campos obligatorios&quot;) }
+&nbsp;            return
+&nbsp;        }
+&nbsp;        viewModelScope.launch {
+&nbsp;            _state.update { it.copy(isLoading = true, error = null) }
+&nbsp;            try {
+&nbsp;                val session = sessionStore.session.first() ?: return@launch
+&nbsp;                val request = CreateJobOfferRequest(
+&nbsp;                    titulo = s.titulo,
+&nbsp;                    descripcion = s.descripcion,
+&nbsp;                    ubicacion = s.ubicacion,
+&nbsp;                    categoria = s.categoria,
+&nbsp;                    remuneracion = s.remuneracion.toIntOrNull() ?: 0,
+&nbsp;                    fechaInicio = s.fechaInicio,
+&nbsp;                    fechaFin = s.fechaFin.ifBlank { null },
+&nbsp;                    empresaId = session.user.id,
+&nbsp;                    latitude = s.latitude,
+&nbsp;                    longitude = s.longitude
+&nbsp;                )
+&nbsp;                jobsApi.create(request)
+&nbsp;                _state.update { it.copy(isLoading = false, success = true) }
+&nbsp;            } catch (e: Exception) {
+&nbsp;                _state.update { it.copy(isLoading = false, error = e.message) }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

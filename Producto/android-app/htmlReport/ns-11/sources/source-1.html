@@ -1,0 +1,172 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > FeedPlaceholderScreenKt</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.ui.feed</a>
+</div>
+
+<h1>Coverage Summary for Class: FeedPlaceholderScreenKt (cl.catchgo.app.ui.feed)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FeedPlaceholderScreenKt</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">FeedPlaceholderScreenKt$WhenMappings</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/10)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.ui.feed
+&nbsp;
+&nbsp;import androidx.compose.foundation.layout.fillMaxSize
+&nbsp;import androidx.compose.foundation.layout.padding
+&nbsp;import androidx.compose.material.icons.Icons
+&nbsp;import androidx.compose.material.icons.outlined.Search
+&nbsp;import androidx.compose.material3.Icon
+&nbsp;import androidx.compose.runtime.Composable
+&nbsp;import androidx.compose.ui.Modifier
+&nbsp;import androidx.compose.ui.unit.dp
+&nbsp;import cl.catchgo.app.domain.model.UserRole
+&nbsp;import cl.catchgo.app.ui.components.EmptyState
+&nbsp;import cl.catchgo.app.ui.theme.Gray500
+&nbsp;import cl.catchgo.app.ui.theme.Spacing
+&nbsp;
+&nbsp;@Composable
+&nbsp;fun FeedPlaceholderScreen(
+&nbsp;    role: UserRole,
+<b class="nc">&nbsp;    modifier: Modifier = Modifier</b>
+<b class="nc">&nbsp;) {</b>
+<b class="nc">&nbsp;    val (title, description) = when (role) {</b>
+<b class="nc">&nbsp;        UserRole.EMPRESA -&gt; &quot;Mis ofertas&quot; to &quot;Acá vas a publicar y ver tus ofertas activas. Disponible en F6.&quot;</b>
+<b class="nc">&nbsp;        else -&gt; &quot;Ofertas cerca tuyo&quot; to &quot;Acá vas a ver ofertas compatibles con tu perfil y ubicación. Disponible en F6.&quot;</b>
+&nbsp;    }
+<b class="nc">&nbsp;    EmptyState(</b>
+<b class="nc">&nbsp;        title = title,</b>
+<b class="nc">&nbsp;        description = description,</b>
+&nbsp;        icon = {
+&nbsp;            Icon(
+&nbsp;                imageVector = Icons.Outlined.Search,
+&nbsp;                contentDescription = null,
+&nbsp;                tint = Gray500,
+&nbsp;                modifier = Modifier.padding(Spacing.sm)
+&nbsp;            )
+&nbsp;        },
+<b class="nc">&nbsp;        modifier = modifier.fillMaxSize().padding(Spacing.lg)</b>
+&nbsp;    )
+<b class="nc">&nbsp;}</b>
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

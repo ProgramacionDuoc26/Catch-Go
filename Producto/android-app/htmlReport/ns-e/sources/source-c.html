@@ -1,0 +1,155 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > StatusType</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.ui.components</a>
+</div>
+
+<h1>Coverage Summary for Class: StatusType (cl.catchgo.app.ui.components)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">StatusType</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.ui.components
+&nbsp;
+&nbsp;import androidx.compose.foundation.background
+&nbsp;import androidx.compose.foundation.layout.Box
+&nbsp;import androidx.compose.foundation.layout.padding
+&nbsp;import androidx.compose.foundation.shape.RoundedCornerShape
+&nbsp;import androidx.compose.material3.MaterialTheme
+&nbsp;import androidx.compose.material3.Text
+&nbsp;import androidx.compose.runtime.Composable
+&nbsp;import androidx.compose.ui.Modifier
+&nbsp;import androidx.compose.ui.draw.clip
+&nbsp;import cl.catchgo.app.ui.theme.BrandBlue50
+&nbsp;import cl.catchgo.app.ui.theme.BrandBlue700
+&nbsp;import cl.catchgo.app.ui.theme.Error50
+&nbsp;import cl.catchgo.app.ui.theme.Error600
+&nbsp;import cl.catchgo.app.ui.theme.Gray100
+&nbsp;import cl.catchgo.app.ui.theme.Gray700
+&nbsp;import cl.catchgo.app.ui.theme.Spacing
+&nbsp;import cl.catchgo.app.ui.theme.Success50
+&nbsp;import cl.catchgo.app.ui.theme.Success600
+&nbsp;import cl.catchgo.app.ui.theme.Warning50
+&nbsp;import cl.catchgo.app.ui.theme.Warning600
+&nbsp;
+<b class="nc">&nbsp;enum class StatusType { Pending, Success, Error, Info, Neutral }</b>
+&nbsp;
+&nbsp;@Composable
+&nbsp;fun StatusBadge(
+&nbsp;    text: String,
+&nbsp;    type: StatusType,
+&nbsp;    modifier: Modifier = Modifier
+&nbsp;) {
+&nbsp;    val (bg, fg) = when (type) {
+&nbsp;        StatusType.Pending -&gt; Warning50 to Warning600
+&nbsp;        StatusType.Success -&gt; Success50 to Success600
+&nbsp;        StatusType.Error -&gt; Error50 to Error600
+&nbsp;        StatusType.Info -&gt; BrandBlue50 to BrandBlue700
+&nbsp;        StatusType.Neutral -&gt; Gray100 to Gray700
+&nbsp;    }
+&nbsp;    Box(
+&nbsp;        modifier = modifier
+&nbsp;            .clip(RoundedCornerShape(50))
+&nbsp;            .background(bg)
+&nbsp;            .padding(horizontal = Spacing.sm, vertical = Spacing.xs)
+&nbsp;    ) {
+&nbsp;        Text(
+&nbsp;            text = text,
+&nbsp;            style = MaterialTheme.typography.labelMedium,
+&nbsp;            color = fg
+&nbsp;        )
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,184 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > MainActivity</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app</a>
+</div>
+
+<h1>Coverage Summary for Class: MainActivity (cl.catchgo.app)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MainActivity</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app
+&nbsp;
+&nbsp;import android.os.Bundle
+&nbsp;import androidx.activity.ComponentActivity
+&nbsp;import androidx.activity.compose.setContent
+&nbsp;import androidx.activity.enableEdgeToEdge
+&nbsp;import androidx.compose.foundation.layout.Box
+&nbsp;import androidx.compose.foundation.layout.fillMaxSize
+&nbsp;import androidx.compose.foundation.layout.padding
+&nbsp;import androidx.compose.material3.CircularProgressIndicator
+&nbsp;import androidx.compose.material3.MaterialTheme
+&nbsp;import androidx.compose.material3.Scaffold
+&nbsp;import androidx.compose.runtime.Composable
+&nbsp;import androidx.compose.runtime.getValue
+&nbsp;import androidx.compose.runtime.mutableStateOf
+&nbsp;import androidx.compose.runtime.remember
+&nbsp;import androidx.compose.runtime.setValue
+&nbsp;import androidx.compose.ui.Alignment
+&nbsp;import androidx.compose.ui.Modifier
+&nbsp;import androidx.hilt.navigation.compose.hiltViewModel
+&nbsp;import androidx.lifecycle.compose.collectAsStateWithLifecycle
+&nbsp;import cl.catchgo.app.ui.auth.AuthNavGraph
+&nbsp;import cl.catchgo.app.ui.main.MainScaffold
+&nbsp;import cl.catchgo.app.ui.root.RootViewModel
+&nbsp;import cl.catchgo.app.ui.root.SessionState
+&nbsp;import cl.catchgo.app.ui.splash.SplashScreen
+&nbsp;import cl.catchgo.app.ui.theme.CatchGoTheme
+&nbsp;import dagger.hilt.android.AndroidEntryPoint
+&nbsp;
+&nbsp;@AndroidEntryPoint
+<b class="nc">&nbsp;class MainActivity : ComponentActivity() {</b>
+&nbsp;    override fun onCreate(savedInstanceState: Bundle?) {
+<b class="nc">&nbsp;        super.onCreate(savedInstanceState)</b>
+<b class="nc">&nbsp;        enableEdgeToEdge()</b>
+<b class="nc">&nbsp;        setContent {</b>
+&nbsp;            CatchGoTheme {
+&nbsp;                Scaffold(
+&nbsp;                    modifier = Modifier.fillMaxSize(),
+&nbsp;                    containerColor = MaterialTheme.colorScheme.background
+&nbsp;                ) { innerPadding -&gt;
+&nbsp;                    AppRoot(modifier = Modifier.padding(innerPadding))
+&nbsp;                }
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+&nbsp;
+&nbsp;@Composable
+&nbsp;private fun AppRoot(
+&nbsp;    modifier: Modifier = Modifier,
+&nbsp;    rootViewModel: RootViewModel = hiltViewModel()
+&nbsp;) {
+&nbsp;    var splashDone by remember { mutableStateOf(false) }
+&nbsp;    val sessionState by rootViewModel.sessionState.collectAsStateWithLifecycle()
+&nbsp;
+&nbsp;    if (!splashDone) {
+&nbsp;        SplashScreen(onFinished = { splashDone = true })
+&nbsp;        return
+&nbsp;    }
+&nbsp;
+&nbsp;    when (val state = sessionState) {
+&nbsp;        SessionState.Loading -&gt; Box(
+&nbsp;            modifier = modifier.fillMaxSize(),
+&nbsp;            contentAlignment = Alignment.Center
+&nbsp;        ) { CircularProgressIndicator() }
+&nbsp;
+&nbsp;        SessionState.Unauthenticated -&gt; {
+&nbsp;            cl.catchgo.app.ui.theme.ThemeManager.activeUserId = null
+&nbsp;            AuthNavGraph(modifier = modifier)
+&nbsp;        }
+&nbsp;
+&nbsp;        is SessionState.Authenticated -&gt; {
+&nbsp;            cl.catchgo.app.ui.theme.ThemeManager.activeUserId = state.session.user.id
+&nbsp;            MainScaffold(
+&nbsp;                session = state.session,
+&nbsp;                modifier = modifier
+&nbsp;            )
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

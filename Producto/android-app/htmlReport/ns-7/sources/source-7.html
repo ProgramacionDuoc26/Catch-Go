@@ -1,0 +1,218 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > EjeRadarDto</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.data.remote.dto</a>
+</div>
+
+<h1>Coverage Summary for Class: EjeRadarDto (cl.catchgo.app.data.remote.dto)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">EjeRadarDto</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">EjeRadarDto$Companion</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/3)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.data.remote.dto
+&nbsp;
+&nbsp;import cl.catchgo.app.domain.model.CategoriaHabilidades
+&nbsp;import cl.catchgo.app.domain.model.Habilidad
+&nbsp;import cl.catchgo.app.domain.model.HabilidadUsuario
+&nbsp;import cl.catchgo.app.domain.model.RadarData
+&nbsp;import cl.catchgo.app.domain.model.EjeRadar
+&nbsp;import kotlinx.serialization.Serializable
+&nbsp;
+&nbsp;@Serializable
+&nbsp;data class HabilidadItemDto(
+&nbsp;    val id: Long,
+&nbsp;    val nombre: String,
+&nbsp;    val categoriaId: Long,
+&nbsp;    val categoriaNombre: String,
+&nbsp;    val predeterminada: Boolean = false
+&nbsp;) {
+&nbsp;    fun toDomain() = Habilidad(id, nombre, categoriaId, categoriaNombre, predeterminada)
+&nbsp;}
+&nbsp;
+&nbsp;@Serializable
+&nbsp;data class CategoriaConHabilidadesDto(
+&nbsp;    val id: Long,
+&nbsp;    val nombre: String,
+&nbsp;    val habilidades: List&lt;HabilidadItemDto&gt;
+&nbsp;) {
+&nbsp;    fun toDomain() = CategoriaHabilidades(id, nombre, habilidades.map { it.toDomain() })
+&nbsp;}
+&nbsp;
+&nbsp;@Serializable
+&nbsp;data class HabilidadUsuarioDto(
+&nbsp;    val id: Long,
+&nbsp;    val habilidadId: Long,
+&nbsp;    val nombre: String,
+&nbsp;    val categoriaId: Long,
+&nbsp;    val categoriaNombre: String,
+&nbsp;    val puntos: Int,
+&nbsp;    val trabajosAplicados: Int = 0
+&nbsp;) {
+&nbsp;    fun toDomain() = HabilidadUsuario(id, habilidadId, nombre, categoriaId, categoriaNombre, puntos)
+&nbsp;}
+&nbsp;
+<b class="nc">&nbsp;@Serializable</b>
+<b class="nc">&nbsp;data class EjeRadarDto(</b>
+<b class="nc">&nbsp;    val categoriaId: Long,</b>
+<b class="nc">&nbsp;    val nombre: String,</b>
+<b class="nc">&nbsp;    val valor: Double</b>
+&nbsp;)
+&nbsp;
+&nbsp;@Serializable
+&nbsp;data class RadarDataDto(
+&nbsp;    val ejes: List&lt;EjeRadarDto&gt;
+&nbsp;) {
+&nbsp;    fun toDomain() = RadarData(ejes.map { EjeRadar(it.categoriaId, it.nombre, it.valor) })
+&nbsp;}
+&nbsp;
+&nbsp;@Serializable
+&nbsp;data class CrearHabilidadRequest(
+&nbsp;    val nombre: String,
+&nbsp;    val categoriaId: Long,
+&nbsp;    val creadorId: Long
+&nbsp;)
+&nbsp;
+&nbsp;@Serializable
+&nbsp;data class AsignarHabilidadRequest(
+&nbsp;    val habilidadId: Long,
+&nbsp;    val puntos: Int
+&nbsp;)
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

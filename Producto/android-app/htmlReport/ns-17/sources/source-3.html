@@ -1,0 +1,213 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RegisterViewModel</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.ui.register</a>
+</div>
+
+<h1>Coverage Summary for Class: RegisterViewModel (cl.catchgo.app.ui.register)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RegisterViewModel</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (8/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    50%
+  </span>
+  <span class="absValue">
+    (2/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (14/14)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">RegisterViewModel$onSubmit$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (14/14)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (9/9)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    75%
+  </span>
+  <span class="absValue">
+    (6/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (28/28)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.ui.register
+&nbsp;
+&nbsp;import androidx.lifecycle.ViewModel
+&nbsp;import androidx.lifecycle.viewModelScope
+&nbsp;import cl.catchgo.app.core.error.ErrorMapper
+&nbsp;import cl.catchgo.app.domain.model.RegisterInput
+&nbsp;import cl.catchgo.app.domain.model.UserRole
+&nbsp;import cl.catchgo.app.domain.repository.AuthRepository
+&nbsp;import dagger.hilt.android.lifecycle.HiltViewModel
+&nbsp;import kotlinx.coroutines.flow.MutableStateFlow
+&nbsp;import kotlinx.coroutines.flow.StateFlow
+&nbsp;import kotlinx.coroutines.flow.asStateFlow
+&nbsp;import kotlinx.coroutines.flow.update
+&nbsp;import kotlinx.coroutines.launch
+&nbsp;import javax.inject.Inject
+&nbsp;
+&nbsp;@HiltViewModel
+&nbsp;class RegisterViewModel @Inject constructor(
+<b class="fc">&nbsp;    private val authRepository: AuthRepository</b>
+<b class="fc">&nbsp;) : ViewModel() {</b>
+&nbsp;
+<b class="fc">&nbsp;    private val _state = MutableStateFlow(RegisterUiState())</b>
+<b class="fc">&nbsp;    val state: StateFlow&lt;RegisterUiState&gt; = _state.asStateFlow()</b>
+&nbsp;
+<b class="fc">&nbsp;    fun onRoleSelect(role: UserRole) = _state.update { it.copy(role = role, errorMessage = null) }</b>
+<b class="fc">&nbsp;    fun onEmailChange(v: String) = _state.update { it.copy(email = v, errorMessage = null) }</b>
+<b class="fc">&nbsp;    fun onPasswordChange(v: String) = _state.update { it.copy(password = v, errorMessage = null) }</b>
+<b class="fc">&nbsp;    fun onFullNameChange(v: String) = _state.update { it.copy(fullName = v, errorMessage = null) }</b>
+<b class="fc">&nbsp;    fun onRutChange(v: String) = _state.update { it.copy(rut = v, errorMessage = null) }</b>
+<b class="fc">&nbsp;    fun onPhoneChange(v: String) = _state.update { it.copy(phone = v, errorMessage = null) }</b>
+&nbsp;
+&nbsp;    fun onSubmit() {
+<b class="fc">&nbsp;        val s = _state.value</b>
+<b class="pc">&nbsp;        if (!s.canSubmit) return</b>
+<b class="pc">&nbsp;        val role = s.role ?: return</b>
+<b class="fc">&nbsp;        viewModelScope.launch {</b>
+<b class="fc">&nbsp;            _state.update { it.copy(isLoading = true, errorMessage = null) }</b>
+<b class="fc">&nbsp;            authRepository.register(</b>
+<b class="fc">&nbsp;                RegisterInput(</b>
+<b class="fc">&nbsp;                    email = s.email.trim(),</b>
+<b class="fc">&nbsp;                    password = s.password,</b>
+<b class="fc">&nbsp;                    fullName = s.fullName.trim(),</b>
+<b class="fc">&nbsp;                    rut = s.rut.trim(),</b>
+<b class="fc">&nbsp;                    phone = s.phone.trim(),</b>
+<b class="fc">&nbsp;                    role = role</b>
+&nbsp;                )
+<b class="fc">&nbsp;            ).onSuccess { _state.update { it.copy(isLoading = false) } }</b>
+<b class="fc">&nbsp;                .onFailure { e -&gt;</b>
+<b class="fc">&nbsp;                    _state.update {</b>
+<b class="fc">&nbsp;                        it.copy(isLoading = false, errorMessage = ErrorMapper.map(e).message)</b>
+&nbsp;                    }
+<b class="fc">&nbsp;                }</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

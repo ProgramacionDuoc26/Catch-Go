@@ -1,0 +1,221 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > RadarChartViewKt</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.ui.components</a>
+</div>
+
+<h1>Coverage Summary for Class: RadarChartViewKt (cl.catchgo.app.ui.components)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">RadarChartViewKt</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/58)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.ui.components
+&nbsp;
+&nbsp;import androidx.compose.foundation.Canvas
+&nbsp;import androidx.compose.runtime.Composable
+&nbsp;import androidx.compose.ui.Modifier
+&nbsp;import androidx.compose.ui.geometry.Offset
+&nbsp;import androidx.compose.ui.graphics.Path
+&nbsp;import androidx.compose.ui.graphics.drawscope.Stroke
+&nbsp;import androidx.compose.ui.text.TextStyle
+&nbsp;import androidx.compose.ui.text.drawText
+&nbsp;import androidx.compose.ui.text.rememberTextMeasurer
+&nbsp;import androidx.compose.ui.unit.dp
+&nbsp;import androidx.compose.ui.unit.sp
+&nbsp;import cl.catchgo.app.domain.model.RadarData
+&nbsp;import cl.catchgo.app.ui.theme.Gray200
+&nbsp;import cl.catchgo.app.ui.theme.Gray700
+&nbsp;import cl.catchgo.app.ui.theme.Teal500
+&nbsp;import kotlin.math.PI
+&nbsp;import kotlin.math.cos
+&nbsp;import kotlin.math.sin
+&nbsp;
+&nbsp;@Composable
+&nbsp;fun RadarChartView(
+&nbsp;    data: RadarData,
+<b class="nc">&nbsp;    modifier: Modifier = Modifier</b>
+<b class="nc">&nbsp;) {</b>
+<b class="nc">&nbsp;    val textMeasurer = rememberTextMeasurer()</b>
+&nbsp;
+<b class="nc">&nbsp;    Canvas(modifier = modifier) {</b>
+<b class="nc">&nbsp;        val cx = size.width / 2f</b>
+<b class="nc">&nbsp;        val cy = size.height / 2f</b>
+<b class="nc">&nbsp;        val maxRadius = minOf(cx, cy) * 0.62f</b>
+<b class="nc">&nbsp;        val ejes = data.ejes</b>
+<b class="nc">&nbsp;        val n = ejes.size</b>
+<b class="nc">&nbsp;        if (n &lt; 3) return@Canvas</b>
+&nbsp;
+<b class="nc">&nbsp;        val gridLevels = 5</b>
+<b class="nc">&nbsp;        val strokeThin = 0.8.dp.toPx()</b>
+<b class="nc">&nbsp;        val strokeData = 2.dp.toPx()</b>
+&nbsp;
+<b class="nc">&nbsp;        fun angleOf(i: Int) = 2 * PI * i / n - PI / 2</b>
+&nbsp;
+&nbsp;        fun pointAt(index: Int, radius: Float): Offset {
+<b class="nc">&nbsp;            val a = angleOf(index)</b>
+<b class="nc">&nbsp;            return Offset((cx + radius * cos(a)).toFloat(), (cy + radius * sin(a)).toFloat())</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        for (level in 1..gridLevels) {</b>
+<b class="nc">&nbsp;            val r = maxRadius * level / gridLevels</b>
+<b class="nc">&nbsp;            val gridPath = Path().apply {</b>
+<b class="nc">&nbsp;                val p0 = pointAt(0, r)</b>
+<b class="nc">&nbsp;                moveTo(p0.x, p0.y)</b>
+<b class="nc">&nbsp;                for (i in 1 until n) {</b>
+<b class="nc">&nbsp;                    val p = pointAt(i, r)</b>
+<b class="nc">&nbsp;                    lineTo(p.x, p.y)</b>
+&nbsp;                }
+&nbsp;                close()
+<b class="nc">&nbsp;            }</b>
+<b class="nc">&nbsp;            drawPath(gridPath, color = Gray200, style = Stroke(strokeThin))</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        for (i in 0 until n) {</b>
+<b class="nc">&nbsp;            drawLine(</b>
+<b class="nc">&nbsp;                color = Gray200,</b>
+<b class="nc">&nbsp;                start = Offset(cx, cy),</b>
+<b class="nc">&nbsp;                end = pointAt(i, maxRadius),</b>
+<b class="nc">&nbsp;                strokeWidth = strokeThin</b>
+&nbsp;            )
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        val dataPath = Path().apply {</b>
+<b class="nc">&nbsp;            val p0 = pointAt(0, (maxRadius * (ejes[0].valor / 100.0).coerceIn(0.0, 1.0)).toFloat())</b>
+<b class="nc">&nbsp;            moveTo(p0.x, p0.y)</b>
+<b class="nc">&nbsp;            for (i in 1 until n) {</b>
+<b class="nc">&nbsp;                val r = (maxRadius * (ejes[i].valor / 100.0).coerceIn(0.0, 1.0)).toFloat()</b>
+<b class="nc">&nbsp;                val p = pointAt(i, r)</b>
+<b class="nc">&nbsp;                lineTo(p.x, p.y)</b>
+&nbsp;            }
+&nbsp;            close()
+<b class="nc">&nbsp;        }</b>
+<b class="nc">&nbsp;        drawPath(dataPath, color = Teal500.copy(alpha = 0.22f))</b>
+<b class="nc">&nbsp;        drawPath(dataPath, color = Teal500, style = Stroke(strokeData))</b>
+&nbsp;
+<b class="nc">&nbsp;        for (i in 0 until n) {</b>
+<b class="nc">&nbsp;            val r = (maxRadius * (ejes[i].valor / 100.0).coerceIn(0.0, 1.0)).toFloat()</b>
+<b class="nc">&nbsp;            drawCircle(color = Teal500, radius = 4.dp.toPx(), center = pointAt(i, r))</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        val labelRadius = maxRadius + 22.dp.toPx()</b>
+<b class="nc">&nbsp;        ejes.forEachIndexed { i, eje -&gt;</b>
+<b class="nc">&nbsp;            val measured = textMeasurer.measure(</b>
+<b class="nc">&nbsp;                eje.nombre,</b>
+<b class="nc">&nbsp;                style = TextStyle(fontSize = 10.sp, color = Gray700)</b>
+&nbsp;            )
+<b class="nc">&nbsp;            val lp = pointAt(i, labelRadius)</b>
+<b class="nc">&nbsp;            drawText(</b>
+<b class="nc">&nbsp;                measured,</b>
+<b class="nc">&nbsp;                topLeft = Offset(</b>
+<b class="nc">&nbsp;                    lp.x - measured.size.width / 2f,</b>
+<b class="nc">&nbsp;                    lp.y - measured.size.height / 2f</b>
+&nbsp;                )
+&nbsp;            )
+<b class="nc">&nbsp;        }</b>
+&nbsp;    }
+<b class="nc">&nbsp;}</b>
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

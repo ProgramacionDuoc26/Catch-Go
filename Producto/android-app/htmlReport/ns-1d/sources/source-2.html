@@ -1,0 +1,252 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > NotificationSoundPlayer</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.util</a>
+</div>
+
+<h1>Coverage Summary for Class: NotificationSoundPlayer (cl.catchgo.app.util)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">NotificationSoundPlayer</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/22)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">NotificationSoundPlayer$playToneSequence$2</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/28)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/8)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/50)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.util
+&nbsp;
+&nbsp;import android.media.AudioAttributes
+&nbsp;import android.media.AudioFormat
+&nbsp;import android.media.AudioTrack
+&nbsp;import kotlinx.coroutines.Dispatchers
+&nbsp;import kotlinx.coroutines.withContext
+&nbsp;import kotlin.math.sin
+&nbsp;
+&nbsp;object NotificationSoundPlayer {
+&nbsp;    private const val SAMPLE_RATE = 44100
+&nbsp;
+<b class="nc">&nbsp;    private fun generateTone(freq: Double, durationMs: Int, volume: Double = 1.0): ShortArray {</b>
+<b class="nc">&nbsp;        val numSamples = (durationMs * SAMPLE_RATE) / 1000</b>
+<b class="nc">&nbsp;        val sample = ShortArray(numSamples)</b>
+<b class="nc">&nbsp;        for (i in 0 until numSamples) {</b>
+&nbsp;            // Generar onda senoidal (sine wave)
+<b class="nc">&nbsp;            val angle = 2.0 * Math.PI * i / (SAMPLE_RATE / freq)</b>
+&nbsp;            // Ramp down to simulate exponential decay
+<b class="nc">&nbsp;            val decay = 1.0 - (i.toDouble() / numSamples.toDouble())</b>
+<b class="nc">&nbsp;            val amplitude = 32767.0 * volume * decay</b>
+<b class="nc">&nbsp;            sample[i] = (sin(angle) * amplitude).toInt().toShort()</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return sample</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private suspend fun playToneSequence(vararg tones: Pair&lt;ShortArray, Int&gt;) {
+<b class="nc">&nbsp;        withContext(Dispatchers.IO) {</b>
+&nbsp;            try {
+&nbsp;                // Calculate total length
+<b class="nc">&nbsp;                val totalSamples = tones.sumOf { it.first.size + (it.second * SAMPLE_RATE / 1000) }</b>
+<b class="nc">&nbsp;                val audioTrack = AudioTrack.Builder()</b>
+<b class="nc">&nbsp;                    .setAudioAttributes(</b>
+<b class="nc">&nbsp;                        AudioAttributes.Builder()</b>
+<b class="nc">&nbsp;                            .setUsage(AudioAttributes.USAGE_NOTIFICATION)</b>
+<b class="nc">&nbsp;                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)</b>
+<b class="nc">&nbsp;                            .build()</b>
+&nbsp;                    )
+<b class="nc">&nbsp;                    .setAudioFormat(</b>
+<b class="nc">&nbsp;                        AudioFormat.Builder()</b>
+<b class="nc">&nbsp;                            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)</b>
+<b class="nc">&nbsp;                            .setSampleRate(SAMPLE_RATE)</b>
+<b class="nc">&nbsp;                            .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)</b>
+<b class="nc">&nbsp;                            .build()</b>
+&nbsp;                    )
+<b class="nc">&nbsp;                    .setBufferSizeInBytes(totalSamples * 2) // 16 bit = 2 bytes per sample</b>
+<b class="nc">&nbsp;                    .setTransferMode(AudioTrack.MODE_STATIC)</b>
+<b class="nc">&nbsp;                    .build()</b>
+&nbsp;
+<b class="nc">&nbsp;                val combinedBuffer = ShortArray(totalSamples)</b>
+<b class="nc">&nbsp;                var offset = 0</b>
+<b class="nc">&nbsp;                for (tone in tones) {</b>
+<b class="nc">&nbsp;                    val sample = tone.first</b>
+<b class="nc">&nbsp;                    val delayMs = tone.second</b>
+<b class="nc">&nbsp;                    System.arraycopy(sample, 0, combinedBuffer, offset, sample.size)</b>
+<b class="nc">&nbsp;                    offset += sample.size + (delayMs * SAMPLE_RATE / 1000)</b>
+&nbsp;                }
+&nbsp;
+<b class="nc">&nbsp;                audioTrack.write(combinedBuffer, 0, combinedBuffer.size)</b>
+<b class="nc">&nbsp;                audioTrack.play()</b>
+&nbsp;
+&nbsp;                // Liberar recursos después de que termine
+<b class="nc">&nbsp;                Thread.sleep((totalSamples * 1000L / SAMPLE_RATE) + 100)</b>
+<b class="nc">&nbsp;                audioTrack.release()</b>
+&nbsp;            } catch (e: Exception) {
+<b class="nc">&nbsp;                e.printStackTrace()</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    suspend fun playSuccess() {
+<b class="nc">&nbsp;        val t1 = generateTone(523.25, 150, 0.5)</b>
+<b class="nc">&nbsp;        val t2 = generateTone(783.99, 250, 0.5)</b>
+<b class="nc">&nbsp;        playToneSequence(Pair(t1, 80), Pair(t2, 0))</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    suspend fun playError() {
+<b class="nc">&nbsp;        val t1 = generateTone(293.66, 150, 0.6)</b>
+<b class="nc">&nbsp;        val t2 = generateTone(261.63, 250, 0.6)</b>
+<b class="nc">&nbsp;        playToneSequence(Pair(t1, 100), Pair(t2, 0))</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    suspend fun playWarning() {
+<b class="nc">&nbsp;        val t1 = generateTone(440.00, 200, 0.5)</b>
+<b class="nc">&nbsp;        val t2 = generateTone(392.00, 150, 0.5)</b>
+<b class="nc">&nbsp;        playToneSequence(Pair(t1, 100), Pair(t2, 0))</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    suspend fun playInfo() {
+<b class="nc">&nbsp;        val t1 = generateTone(659.25, 100, 0.5)</b>
+<b class="nc">&nbsp;        val t2 = generateTone(783.99, 200, 0.5)</b>
+<b class="nc">&nbsp;        playToneSequence(Pair(t1, 60), Pair(t2, 0))</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

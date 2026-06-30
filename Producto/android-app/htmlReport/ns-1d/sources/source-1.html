@@ -1,0 +1,325 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > MatchEngine</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.util</a>
+</div>
+
+<h1>Coverage Summary for Class: MatchEngine (cl.catchgo.app.util)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MatchEngine</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    80%
+  </span>
+  <span class="absValue">
+    (4/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    49.4%
+  </span>
+  <span class="absValue">
+    (83/168)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    80.9%
+  </span>
+  <span class="absValue">
+    (93/115)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.util
+&nbsp;
+&nbsp;import cl.catchgo.app.data.remote.dto.ProfileRemoteDto
+&nbsp;import cl.catchgo.app.domain.model.JobOffer
+&nbsp;import org.json.JSONObject
+&nbsp;import kotlin.math.*
+&nbsp;
+&nbsp;object MatchEngine {
+&nbsp;
+&nbsp;    fun calculateDistance(lat1: Double?, lon1: Double?, lat2: Double?, lon2: Double?): Double {
+<b class="pc">&nbsp;        if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return -1.0</b>
+<b class="fc">&nbsp;        val r = 6371.0 // km</b>
+<b class="fc">&nbsp;        val dLat = Math.toRadians(lat2 - lat1)</b>
+<b class="fc">&nbsp;        val dLon = Math.toRadians(lon2 - lon1)</b>
+<b class="fc">&nbsp;        val a = sin(dLat / 2).pow(2.0) +</b>
+<b class="fc">&nbsp;                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *</b>
+<b class="fc">&nbsp;                sin(dLon / 2).pow(2.0)</b>
+<b class="fc">&nbsp;        val c = 2.0 * atan2(sqrt(a), sqrt(1.0 - a))</b>
+<b class="fc">&nbsp;        return r * c</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    fun calculate(
+&nbsp;        worker: ProfileRemoteDto?,
+&nbsp;        company: ProfileRemoteDto?,
+&nbsp;        offer: JobOffer,
+<b class="nc">&nbsp;        plan: String = &quot;TRIAL&quot;</b>
+&nbsp;    ): Int {
+<b class="fc">&nbsp;        val isPremium = plan == &quot;PREMIUM&quot; || plan == &quot;ENTERPRISE&quot;</b>
+&nbsp;        
+<b class="fc">&nbsp;        var habilidadesScore = 0</b>
+<b class="fc">&nbsp;        var experienciaScore = 0</b>
+<b class="fc">&nbsp;        var distanciaScore = 0</b>
+<b class="fc">&nbsp;        var disponibilidadScore = 0</b>
+<b class="fc">&nbsp;        var calificacionScore = 0</b>
+&nbsp;
+&nbsp;        // Parse skills safely
+<b class="fc">&nbsp;        val wSkills = try {</b>
+<b class="pc">&nbsp;            JSONObject(worker?.skills ?: &quot;{}&quot;)</b>
+&nbsp;        } catch (e: Exception) {
+<b class="nc">&nbsp;            JSONObject()</b>
+&nbsp;        }
+<b class="fc">&nbsp;        val cSkills = try {</b>
+<b class="pc">&nbsp;            JSONObject(company?.skills ?: &quot;{}&quot;)</b>
+&nbsp;        } catch (e: Exception) {
+<b class="nc">&nbsp;            JSONObject()</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // 1. Habilidades (40%)
+<b class="fc">&nbsp;        val wCaract = wSkills.optString(&quot;caracteristica&quot;, &quot;&quot;)</b>
+<b class="fc">&nbsp;        val cHabil = cSkills.optString(&quot;habilidadValorada&quot;, &quot;&quot;)</b>
+&nbsp;        
+<b class="fc">&nbsp;        val charactMap = mapOf(</b>
+<b class="fc">&nbsp;            &quot;Responsable&quot; to &quot;Responsabilidad&quot;,</b>
+<b class="fc">&nbsp;            &quot;Rápido&quot; to &quot;Rapidez&quot;,</b>
+<b class="fc">&nbsp;            &quot;Líder&quot; to &quot;Liderazgo&quot;,</b>
+<b class="fc">&nbsp;            &quot;Comunicativo&quot; to &quot;Comunicación&quot;,</b>
+<b class="fc">&nbsp;            &quot;Analítico&quot; to &quot;Resolución de problemas&quot;</b>
+&nbsp;        )
+&nbsp;
+<b class="pc">&nbsp;        if (wCaract.isNotBlank() &amp;&amp; cHabil.isNotBlank()) {</b>
+<b class="pc">&nbsp;            if (charactMap[wCaract] == cHabil || wCaract == cHabil) {</b>
+<b class="fc">&nbsp;                habilidadesScore += 20</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                habilidadesScore += 10</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        val wAmbiente = wSkills.optString(&quot;ambiente&quot;, &quot;&quot;)</b>
+<b class="fc">&nbsp;        val cRitmo = cSkills.optString(&quot;ritmo&quot;, &quot;&quot;)</b>
+&nbsp;
+<b class="pc">&nbsp;        if (wAmbiente.isNotBlank() &amp;&amp; cRitmo.isNotBlank()) {</b>
+<b class="pc">&nbsp;            if (wAmbiente == cRitmo) {</b>
+<b class="fc">&nbsp;                habilidadesScore += 20</b>
+&nbsp;            } else if (
+<b class="nc">&nbsp;                (wAmbiente == &quot;Alta presión&quot; &amp;&amp; cRitmo == &quot;Muy dinámico&quot;) ||</b>
+<b class="nc">&nbsp;                (wAmbiente == &quot;Trabajo en equipo&quot; &amp;&amp; cRitmo == &quot;Estructurado&quot;)</b>
+&nbsp;            ) {
+<b class="nc">&nbsp;                habilidadesScore += 15</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                habilidadesScore += 5</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="fc">&nbsp;            val habArray = wSkills.optJSONArray(&quot;habilidades&quot;)</b>
+<b class="pc">&nbsp;            if (habArray != null &amp;&amp; habArray.length() &gt; 0) {</b>
+<b class="fc">&nbsp;                habilidadesScore += 10</b>
+&nbsp;            }
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        habilidadesScore = minOf(40, habilidadesScore)</b>
+&nbsp;
+&nbsp;        // 2. Experiencia (20%)
+<b class="pc">&nbsp;        val desc = (worker?.description ?: &quot;&quot;).lowercase()</b>
+<b class="pc">&nbsp;        if (desc.length &gt; 10) experienciaScore += 10</b>
+<b class="pc">&nbsp;        if (desc.contains(&quot;experiencia&quot;) || desc.contains(&quot;años&quot;) || desc.contains(&quot;trabajé&quot;) || desc.contains(&quot;trabaje&quot;)) {</b>
+<b class="fc">&nbsp;            experienciaScore += 10</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // 3. Distancia (20%)
+<b class="pc">&nbsp;        val targetLat = offer.latitude ?: company?.latitude</b>
+<b class="pc">&nbsp;        val targetLng = offer.longitude ?: company?.longitude</b>
+&nbsp;        
+<b class="pc">&nbsp;        val dist = calculateDistance(worker?.latitude, worker?.longitude, targetLat, targetLng)</b>
+<b class="pc">&nbsp;        if (dist &lt; 0.0) {</b>
+<b class="nc">&nbsp;            distanciaScore = 10</b>
+<b class="fc">&nbsp;        } else if (isPremium) {</b>
+<b class="fc">&nbsp;            distanciaScore = when {</b>
+<b class="pc">&nbsp;                dist &lt;= 5.0 -&gt; 20</b>
+<b class="nc">&nbsp;                dist &lt;= 10.0 -&gt; 15</b>
+<b class="nc">&nbsp;                dist &lt;= 15.0 -&gt; 10</b>
+<b class="nc">&nbsp;                else -&gt; 5</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="pc">&nbsp;            distanciaScore = if (dist &lt;= 5.0) 20 else 0</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // 4. Disponibilidad (20%)
+<b class="fc">&nbsp;        val wPref = wSkills.optString(&quot;preferencia&quot;, &quot;&quot;)</b>
+<b class="fc">&nbsp;        val jobTitleDesc = (offer.title + &quot; &quot; + offer.description).lowercase()</b>
+&nbsp;
+<b class="fc">&nbsp;        if (wPref.isNotBlank()) {</b>
+<b class="pc">&nbsp;            if (jobTitleDesc.contains(wPref.lowercase())) {</b>
+<b class="fc">&nbsp;                disponibilidadScore = 20</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                disponibilidadScore = 15</b>
+&nbsp;            }
+&nbsp;        } else {
+<b class="fc">&nbsp;            disponibilidadScore = 10</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // 5. Calificación (Bonus +10)
+<b class="pc">&nbsp;        val workerRating = worker?.rating ?: 0.0</b>
+<b class="fc">&nbsp;        calificacionScore = when {</b>
+<b class="fc">&nbsp;            workerRating &gt;= 4.8 -&gt; 10</b>
+<b class="pc">&nbsp;            workerRating &gt;= 4.5 -&gt; 7</b>
+<b class="nc">&nbsp;            workerRating &gt;= 4.0 -&gt; 4</b>
+<b class="nc">&nbsp;            else -&gt; 0</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        var total = habilidadesScore + experienciaScore + distanciaScore + disponibilidadScore + calificacionScore</b>
+&nbsp;
+<b class="fc">&nbsp;        if (isPremium) {</b>
+<b class="fc">&nbsp;            total = (total * 1.20).roundToInt()</b>
+&nbsp;        }
+&nbsp;
+<b class="fc">&nbsp;        return minOf(100, maxOf(0, total))</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    fun calculateProfileCompletion(profile: ProfileRemoteDto?): Int {
+<b class="fc">&nbsp;        if (profile == null) return 0</b>
+&nbsp;        
+<b class="fc">&nbsp;        var score = 0</b>
+<b class="fc">&nbsp;        var totalWeight = 0</b>
+&nbsp;
+&nbsp;        fun addScore(condition: Boolean, weight: Int) {
+<b class="fc">&nbsp;            totalWeight += weight</b>
+<b class="fc">&nbsp;            if (condition) score += weight</b>
+&nbsp;        }
+&nbsp;
+&nbsp;        // Datos Básicos
+<b class="fc">&nbsp;        addScore(!profile.name.isNullOrBlank(), 10)</b>
+<b class="fc">&nbsp;        addScore(!profile.email.isNullOrBlank(), 10)</b>
+&nbsp;        
+<b class="fc">&nbsp;        val phone = profile.phone ?: &quot;&quot;</b>
+<b class="fc">&nbsp;        val hasPhone = phone.isNotBlank() &amp;&amp; phone != &quot;+56 &quot;</b>
+<b class="fc">&nbsp;        addScore(hasPhone, 10)</b>
+&nbsp;        
+&nbsp;        // Archivos
+<b class="fc">&nbsp;        addScore(!profile.photoUrl.isNullOrBlank(), 10)</b>
+<b class="fc">&nbsp;        addScore(!profile.cvUrl.isNullOrBlank(), 15)</b>
+&nbsp;
+&nbsp;        // Ubicación
+<b class="pc">&nbsp;        addScore(profile.latitude != null &amp;&amp; profile.longitude != null, 10)</b>
+&nbsp;
+&nbsp;        // Datos Bancarios (Todos o nada)
+<b class="fc">&nbsp;        val hasBank = !profile.bankName.isNullOrBlank() &amp;&amp; </b>
+<b class="pc">&nbsp;                      !profile.accountType.isNullOrBlank() &amp;&amp; </b>
+<b class="pc">&nbsp;                      !profile.accountNumber.isNullOrBlank()</b>
+<b class="fc">&nbsp;        addScore(hasBank, 15)</b>
+&nbsp;
+&nbsp;        // Skills / Preferencias
+<b class="fc">&nbsp;        var hasSkills = false</b>
+&nbsp;        try {
+<b class="fc">&nbsp;            val skillsStr = profile.skills</b>
+<b class="fc">&nbsp;            if (!skillsStr.isNullOrBlank()) {</b>
+<b class="fc">&nbsp;                val parsed = JSONObject(skillsStr)</b>
+<b class="fc">&nbsp;                val habArray = parsed.optJSONArray(&quot;habilidades&quot;)</b>
+<b class="pc">&nbsp;                val hasHabilidades = habArray != null &amp;&amp; habArray.length() &gt; 0</b>
+&nbsp;                
+<b class="pc">&nbsp;                if (hasHabilidades ||</b>
+<b class="nc">&nbsp;                    !parsed.optString(&quot;ambiente&quot;).isNullOrBlank() ||</b>
+<b class="nc">&nbsp;                    !parsed.optString(&quot;caracteristica&quot;).isNullOrBlank() ||</b>
+<b class="nc">&nbsp;                    !parsed.optString(&quot;preferencia&quot;).isNullOrBlank() ||</b>
+<b class="nc">&nbsp;                    !parsed.optString(&quot;giro&quot;).isNullOrBlank() ||</b>
+<b class="nc">&nbsp;                    !parsed.optString(&quot;tipoTrabajador&quot;).isNullOrBlank() ||</b>
+<b class="nc">&nbsp;                    !parsed.optString(&quot;habilidadValorada&quot;).isNullOrBlank() ||</b>
+<b class="nc">&nbsp;                    !parsed.optString(&quot;ritmo&quot;).isNullOrBlank()</b>
+&nbsp;                ) {
+<b class="fc">&nbsp;                    hasSkills = true</b>
+&nbsp;                }
+&nbsp;            }
+&nbsp;        } catch (e: Exception) {
+&nbsp;            // ignore
+&nbsp;        }
+<b class="fc">&nbsp;        addScore(hasSkills, 20)</b>
+&nbsp;
+<b class="pc">&nbsp;        if (totalWeight == 0) return 0</b>
+<b class="fc">&nbsp;        return minOf(100, ((score.toDouble() / totalWeight.toDouble()) * 100.0).roundToInt())</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

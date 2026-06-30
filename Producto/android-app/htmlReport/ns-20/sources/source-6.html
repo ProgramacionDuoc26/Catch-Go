@@ -1,0 +1,82 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > HabilidadesRepository</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.domain.repository</a>
+</div>
+
+<h1>Coverage Summary for Class: HabilidadesRepository (cl.catchgo.app.domain.repository)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+</tr>
+<tr>
+  <td class="name">HabilidadesRepository</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.domain.repository
+&nbsp;
+&nbsp;import cl.catchgo.app.domain.model.CategoriaHabilidades
+&nbsp;import cl.catchgo.app.domain.model.Habilidad
+&nbsp;import cl.catchgo.app.domain.model.HabilidadUsuario
+&nbsp;import cl.catchgo.app.domain.model.RadarData
+&nbsp;
+&nbsp;interface HabilidadesRepository {
+&nbsp;    suspend fun getCategorias(): Result&lt;List&lt;CategoriaHabilidades&gt;&gt;
+&nbsp;    suspend fun crearHabilidad(nombre: String, categoriaId: Long, creadorId: Long): Result&lt;Habilidad&gt;
+&nbsp;    suspend fun getHabilidadesUsuario(usuarioId: Long): Result&lt;List&lt;HabilidadUsuario&gt;&gt;
+&nbsp;    suspend fun asignarHabilidad(usuarioId: Long, habilidadId: Long, puntos: Int): Result&lt;HabilidadUsuario&gt;
+&nbsp;    suspend fun getRadar(usuarioId: Long): Result&lt;RadarData&gt;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,201 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > PrimaryButtonKt</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.ui.components</a>
+</div>
+
+<h1>Coverage Summary for Class: PrimaryButtonKt (cl.catchgo.app.ui.components)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">PrimaryButtonKt</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/16)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/14)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">PrimaryButtonKt$PrimaryButton$1</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/21)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.ui.components
+&nbsp;
+&nbsp;import androidx.compose.foundation.layout.PaddingValues
+&nbsp;import androidx.compose.foundation.layout.fillMaxWidth
+&nbsp;import androidx.compose.foundation.layout.heightIn
+&nbsp;import androidx.compose.foundation.layout.size
+&nbsp;import androidx.compose.material3.Button
+&nbsp;import androidx.compose.material3.CircularProgressIndicator
+&nbsp;import androidx.compose.material3.MaterialTheme
+&nbsp;import androidx.compose.material3.Text
+&nbsp;import androidx.compose.runtime.Composable
+&nbsp;import androidx.compose.ui.Modifier
+&nbsp;import androidx.compose.ui.unit.dp
+&nbsp;import cl.catchgo.app.ui.theme.Spacing
+&nbsp;
+&nbsp;@Composable
+&nbsp;fun PrimaryButton(
+&nbsp;    text: String,
+&nbsp;    onClick: () -&gt; Unit,
+<b class="nc">&nbsp;    modifier: Modifier = Modifier,</b>
+<b class="nc">&nbsp;    enabled: Boolean = true,</b>
+<b class="nc">&nbsp;    loading: Boolean = false,</b>
+<b class="nc">&nbsp;    fullWidth: Boolean = true</b>
+<b class="nc">&nbsp;) {</b>
+<b class="nc">&nbsp;    val widthModifier = if (fullWidth) Modifier.fillMaxWidth() else Modifier</b>
+<b class="nc">&nbsp;    Button(</b>
+<b class="nc">&nbsp;        onClick = onClick,</b>
+<b class="nc">&nbsp;        enabled = enabled &amp;&amp; !loading,</b>
+<b class="nc">&nbsp;        modifier = modifier.then(widthModifier).heightIn(min = 48.dp),</b>
+<b class="nc">&nbsp;        shape = MaterialTheme.shapes.small,</b>
+<b class="nc">&nbsp;        contentPadding = PaddingValues(horizontal = Spacing.lg, vertical = Spacing.sm)</b>
+<b class="nc">&nbsp;    ) {</b>
+<b class="nc">&nbsp;        if (loading) {</b>
+<b class="nc">&nbsp;            CircularProgressIndicator(</b>
+<b class="nc">&nbsp;                modifier = Modifier.size(20.dp),</b>
+<b class="nc">&nbsp;                strokeWidth = 2.dp,</b>
+<b class="nc">&nbsp;                color = MaterialTheme.colorScheme.onPrimary</b>
+&nbsp;            )
+<b class="nc">&nbsp;        } else {</b>
+<b class="nc">&nbsp;            Text(text = text, style = MaterialTheme.typography.labelLarge)</b>
+&nbsp;        }
+&nbsp;    }
+<b class="nc">&nbsp;}</b>
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

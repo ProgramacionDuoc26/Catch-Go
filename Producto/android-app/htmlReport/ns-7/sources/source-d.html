@@ -1,0 +1,215 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > JobOfferDto</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.data.remote.dto</a>
+</div>
+
+<h1>Coverage Summary for Class: JobOfferDto (cl.catchgo.app.data.remote.dto)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">JobOfferDto</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/5)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/160)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/46)
+  </span>
+</td>
+</tr>
+  <tr>
+    <td class="name">JobOfferDto$Companion</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/160)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/47)
+  </span>
+</td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.data.remote.dto
+&nbsp;
+&nbsp;import cl.catchgo.app.domain.model.JobCategory
+&nbsp;import cl.catchgo.app.domain.model.JobOffer
+&nbsp;import kotlinx.serialization.Serializable
+&nbsp;
+<b class="nc">&nbsp;@Serializable</b>
+&nbsp;data class JobOfferDto(
+<b class="nc">&nbsp;    val id: Long,</b>
+<b class="nc">&nbsp;    val titulo: String? = null,</b>
+<b class="nc">&nbsp;    val descripcion: String? = null,</b>
+<b class="nc">&nbsp;    val ubicacion: String? = null,</b>
+<b class="nc">&nbsp;    val categoria: String? = null,</b>
+<b class="nc">&nbsp;    val remuneracion: Int? = null,</b>
+<b class="nc">&nbsp;    val fechaInicio: String? = null,</b>
+<b class="nc">&nbsp;    val fechaFin: String? = null,</b>
+<b class="nc">&nbsp;    val estado: String? = null,</b>
+<b class="nc">&nbsp;    val empresaId: String? = null,</b>
+<b class="nc">&nbsp;    val latitude: Double? = null,</b>
+<b class="nc">&nbsp;    val longitude: Double? = null</b>
+&nbsp;) {
+&nbsp;    fun toDomain(): JobOffer {
+<b class="nc">&nbsp;        val parts = ubicacion?.split(&quot;,&quot;)?.map { it.trim() } ?: emptyList()</b>
+<b class="nc">&nbsp;        val comuna = parts.getOrElse(0) { &quot;Sin especificar&quot; }</b>
+<b class="nc">&nbsp;        val region = parts.getOrElse(1) { &quot;Metropolitana&quot; }</b>
+<b class="nc">&nbsp;        return JobOffer(</b>
+<b class="nc">&nbsp;            id = id.toString(),</b>
+<b class="nc">&nbsp;            title = titulo ?: &quot;Sin título&quot;,</b>
+<b class="nc">&nbsp;            company = if (!empresaId.isNullOrBlank()) &quot;Empresa #$empresaId&quot; else &quot;Sin empresa&quot;,</b>
+<b class="nc">&nbsp;            category = parseCategory(categoria, titulo),</b>
+<b class="nc">&nbsp;            region = region,</b>
+<b class="nc">&nbsp;            comuna = comuna,</b>
+<b class="nc">&nbsp;            jornada = &quot;Por definir&quot;,</b>
+<b class="nc">&nbsp;            scheduleText = buildSchedule(fechaInicio, fechaFin),</b>
+<b class="nc">&nbsp;            salaryClp = remuneracion ?: 0,</b>
+<b class="nc">&nbsp;            salaryUnit = &quot;trabajo&quot;,</b>
+<b class="nc">&nbsp;            description = descripcion ?: &quot;&quot;,</b>
+<b class="nc">&nbsp;            requirements = emptyList(),</b>
+<b class="nc">&nbsp;            score = 0,</b>
+<b class="nc">&nbsp;            latitude = latitude,</b>
+<b class="nc">&nbsp;            longitude = longitude,</b>
+<b class="nc">&nbsp;            empresaId = empresaId,</b>
+<b class="nc">&nbsp;            distanceKm = null,</b>
+<b class="nc">&nbsp;            photoUrl = null</b>
+&nbsp;        )
+&nbsp;    }
+&nbsp;
+&nbsp;    private fun parseCategory(cat: String?, title: String?): JobCategory {
+<b class="nc">&nbsp;        val text = &quot;${cat ?: &quot;&quot;} ${title ?: &quot;&quot;}&quot;.lowercase()</b>
+<b class="nc">&nbsp;        return when {</b>
+<b class="nc">&nbsp;            text.contains(&quot;guardia&quot;) -&gt; JobCategory.GUARDIA</b>
+<b class="nc">&nbsp;            text.contains(&quot;conserje&quot;) || text.contains(&quot;recepcionista&quot;) || text.contains(&quot;anfitrión&quot;) || text.contains(&quot;anfitrion&quot;) -&gt; JobCategory.CONSERJE</b>
+<b class="nc">&nbsp;            text.contains(&quot;aseo&quot;) || text.contains(&quot;limpieza&quot;) -&gt; JobCategory.ASEO</b>
+<b class="nc">&nbsp;            text.contains(&quot;temporero&quot;) || text.contains(&quot;agrícola&quot;) || text.contains(&quot;agricola&quot;) -&gt; JobCategory.TEMPORERO</b>
+<b class="nc">&nbsp;            text.contains(&quot;carga&quot;) || text.contains(&quot;descarga&quot;) || text.contains(&quot;bodega&quot;) || text.contains(&quot;operario&quot;) || text.contains(&quot;embalador&quot;) -&gt; JobCategory.CARGA</b>
+<b class="nc">&nbsp;            text.contains(&quot;niñera&quot;) || text.contains(&quot;nanny&quot;) || text.contains(&quot;cuidado&quot;) || text.contains(&quot;bebé&quot;) || text.contains(&quot;infantil&quot;) -&gt; JobCategory.NINERA</b>
+<b class="nc">&nbsp;            else -&gt; JobCategory.OTRO</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+&nbsp;    private fun buildSchedule(inicio: String?, fin: String?): String {
+<b class="nc">&nbsp;        if (inicio == null) return &quot;A coordinar&quot;</b>
+<b class="nc">&nbsp;        return if (fin != null) &quot;$inicio → $fin&quot; else &quot;Desde $inicio&quot;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

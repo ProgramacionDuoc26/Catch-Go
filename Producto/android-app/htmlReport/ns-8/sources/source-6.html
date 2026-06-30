@@ -1,0 +1,151 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > MockApplications</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.data.repository</a>
+</div>
+
+<h1>Coverage Summary for Class: MockApplications (cl.catchgo.app.data.repository)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">MockApplications</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/2)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/34)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.data.repository
+&nbsp;
+&nbsp;import cl.catchgo.app.domain.model.ApplicationStatus
+&nbsp;import cl.catchgo.app.domain.model.JobApplication
+&nbsp;import java.time.Instant
+&nbsp;import java.time.temporal.ChronoUnit
+&nbsp;
+&nbsp;internal object MockApplications {
+<b class="nc">&nbsp;    val preseed: List&lt;JobApplication&gt; = listOf(</b>
+<b class="nc">&nbsp;        JobApplication(</b>
+<b class="nc">&nbsp;            id = &quot;a-001&quot;,</b>
+<b class="nc">&nbsp;            offerId = &quot;j-003&quot;,</b>
+<b class="nc">&nbsp;            offerTitle = &quot;Conserje turno noche&quot;,</b>
+<b class="nc">&nbsp;            company = &quot;Hotel Sheraton&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;Las Condes&quot;,</b>
+<b class="nc">&nbsp;            message = &quot;Tengo experiencia previa en hoteles boutique.&quot;,</b>
+<b class="nc">&nbsp;            status = ApplicationStatus.ACCEPTED,</b>
+<b class="nc">&nbsp;            rawStatus = &quot;ACEPTADO&quot;,</b>
+<b class="nc">&nbsp;            createdAtIso = Instant.now().minus(2, ChronoUnit.DAYS).toString(),</b>
+<b class="nc">&nbsp;            photoUrl = &quot;https://images.unsplash.com/photo-1566073771259-6a8506099945?w=120&amp;auto=format&amp;fit=crop&amp;q=60&quot;</b>
+&nbsp;        ),
+<b class="nc">&nbsp;        JobApplication(</b>
+<b class="nc">&nbsp;            id = &quot;a-002&quot;,</b>
+<b class="nc">&nbsp;            offerId = &quot;j-007&quot;,</b>
+<b class="nc">&nbsp;            offerTitle = &quot;Temporero vendimia&quot;,</b>
+<b class="nc">&nbsp;            company = &quot;Concha y Toro&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;Pirque&quot;,</b>
+<b class="nc">&nbsp;            message = null,</b>
+<b class="nc">&nbsp;            status = ApplicationStatus.PENDING,</b>
+<b class="nc">&nbsp;            rawStatus = &quot;PENDIENTE&quot;,</b>
+<b class="nc">&nbsp;            createdAtIso = Instant.now().minus(5, ChronoUnit.HOURS).toString(),</b>
+<b class="nc">&nbsp;            photoUrl = &quot;https://images.unsplash.com/photo-1506306813292-23c241a3fa40?w=120&amp;auto=format&amp;fit=crop&amp;q=60&quot;</b>
+&nbsp;        ),
+<b class="nc">&nbsp;        JobApplication(</b>
+<b class="nc">&nbsp;            id = &quot;a-003&quot;,</b>
+<b class="nc">&nbsp;            offerId = &quot;j-010&quot;,</b>
+<b class="nc">&nbsp;            offerTitle = &quot;Acomodador de eventos&quot;,</b>
+<b class="nc">&nbsp;            company = &quot;Estadio Nacional&quot;,</b>
+<b class="nc">&nbsp;            comuna = &quot;Ñuñoa&quot;,</b>
+<b class="nc">&nbsp;            message = &quot;Disponible este fin de semana.&quot;,</b>
+<b class="nc">&nbsp;            status = ApplicationStatus.REJECTED,</b>
+<b class="nc">&nbsp;            rawStatus = &quot;RECHAZADO&quot;,</b>
+<b class="nc">&nbsp;            createdAtIso = Instant.now().minus(7, ChronoUnit.DAYS).toString(),</b>
+<b class="nc">&nbsp;            photoUrl = &quot;https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=120&amp;auto=format&amp;fit=crop&amp;q=60&quot;</b>
+&nbsp;        )
+&nbsp;    )
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>

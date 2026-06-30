@@ -1,0 +1,154 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"> 
+  <title>Coverage Report > ErrorMapper</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">cl.catchgo.app.core.error</a>
+</div>
+
+<h1>Coverage Summary for Class: ErrorMapper (cl.catchgo.app.core.error)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Branch, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">ErrorMapper</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (4/4)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    37.5%
+  </span>
+  <span class="absValue">
+    (18/48)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    85%
+  </span>
+  <span class="absValue">
+    (17/20)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package cl.catchgo.app.core.error
+&nbsp;
+&nbsp;import cl.catchgo.app.data.remote.dto.ErrorResponse
+&nbsp;import kotlinx.serialization.json.Json
+&nbsp;import retrofit2.HttpException
+&nbsp;import java.io.IOException
+&nbsp;import java.net.SocketTimeoutException
+&nbsp;import java.net.UnknownHostException
+&nbsp;
+&nbsp;object ErrorMapper {
+<b class="fc">&nbsp;    private val json = Json { ignoreUnknownKeys = true }</b>
+&nbsp;
+<b class="fc">&nbsp;    fun map(throwable: Throwable): ApiError = when (throwable) {</b>
+<b class="fc">&nbsp;        is HttpException -&gt; mapHttp(throwable)</b>
+<b class="fc">&nbsp;        is SocketTimeoutException -&gt; ApiError.Timeout</b>
+<b class="fc">&nbsp;        is UnknownHostException -&gt; ApiError.NoConnection</b>
+<b class="fc">&nbsp;        is IOException -&gt; ApiError.NoConnection</b>
+<b class="pc">&nbsp;        else -&gt; ApiError.Unknown(throwable.message ?: &quot;Error desconocido&quot;)</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private fun mapHttp(exception: HttpException): ApiError {
+<b class="fc">&nbsp;        val parsed = parseBody(exception)</b>
+<b class="pc">&nbsp;        val msg = parsed?.message ?: parsed?.error ?: exception.message()</b>
+<b class="fc">&nbsp;        return when (exception.code()) {</b>
+<b class="pc">&nbsp;            400 -&gt; ApiError.Validation(msg.ifBlank { &quot;Solicitud inválida&quot; })</b>
+<b class="fc">&nbsp;            401 -&gt; ApiError.Unauthorized</b>
+<b class="pc">&nbsp;            403 -&gt; ApiError.Forbidden</b>
+<b class="pc">&nbsp;            404 -&gt; ApiError.NotFound</b>
+<b class="nc">&nbsp;            409 -&gt; ApiError.Conflict(msg.ifBlank { &quot;Conflicto&quot; })</b>
+<b class="nc">&nbsp;            in 500..599 -&gt; ApiError.Server(msg.ifBlank { &quot;Error en el servidor&quot; })</b>
+<b class="nc">&nbsp;            else -&gt; ApiError.Unknown(msg.ifBlank { &quot;Error HTTP ${exception.code()}&quot; })</b>
+&nbsp;        }
+&nbsp;    }
+&nbsp;
+<b class="fc">&nbsp;    private fun parseBody(exception: HttpException): ErrorResponse? = runCatching {</b>
+<b class="pc">&nbsp;        exception.response()?.errorBody()?.string()?.let { json.decodeFromString&lt;ErrorResponse&gt;(it) }</b>
+<b class="pc">&nbsp;    }.getOrNull()</b>
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2026-06-30 19:32</div>
+</div>
+</body>
+</html>
