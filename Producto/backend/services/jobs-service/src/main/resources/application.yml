@@ -49,7 +49,8 @@ springdoc:
     path: /jobs/v3/api-docs
   swagger-ui:
     path: /jobs/swagger-ui.html
-  servers:
-    - url: https://api-gateway2-catch-go.up.railway.app
-      description: API Gateway (Producción)
+  openapi:
+    servers:
+      - url: https://api-gateway2-catch-go.up.railway.app
+        description: API Gateway (Producción)
 
