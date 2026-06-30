@@ -9,8 +9,8 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME:catchandgo}
     password: ${SPRING_DATASOURCE_PASSWORD:catchandgo}
     hikari:
-      maximum-pool-size: 2
-      minimum-idle: 1
+      maximum-pool-size: 8
+      minimum-idle: 2
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
