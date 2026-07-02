@@ -30,29 +30,42 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const { soundNotifications } = useSettings();
-  const [notifications, setNotifications] = useState<Notification[]>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('catchgo_notifications');
-      if (saved) {
-        try {
-          return JSON.parse(saved).map((n: any) => ({ ...n, timestamp: new Date(n.timestamp) }));
-        } catch (e) {
-          console.error('Error parsing notifications from local storage:', e);
-        }
-      }
-    }
-    return [];
-  });
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const currentUserIdRef = useRef<string | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const pathname = usePathname();
   const stompClient = useRef<Client | null>(null);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
   useEffect(() => {
+    currentUserIdRef.current = currentUserId;
+  }, [currentUserId]);
+
+  // Cargar notificaciones del localStorage del usuario específico al cambiar de sesión
+  useEffect(() => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('catchgo_notifications', JSON.stringify(notifications));
+      if (currentUserId) {
+        const saved = localStorage.getItem(`catchgo_notifications_${currentUserId}`);
+        if (saved) {
+          try {
+            setNotifications(JSON.parse(saved).map((n: any) => ({ ...n, timestamp: new Date(n.timestamp) })));
+            return;
+          } catch (e) {
+            console.error('Error parsing notifications from local storage:', e);
+          }
+        }
+      }
+      setNotifications([]);
     }
-  }, [notifications]);
+  }, [currentUserId]);
+
+  // Guardar notificaciones del usuario específico cuando cambian
+  useEffect(() => {
+    if (typeof window !== 'undefined' && currentUserId) {
+      localStorage.setItem(`catchgo_notifications_${currentUserId}`, JSON.stringify(notifications));
+    }
+  }, [notifications, currentUserId]);
 
   const playNotificationSound = (type: 'info' | 'success' | 'warning' | 'error') => {
     if (typeof window === 'undefined') return;
@@ -169,17 +182,35 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         try {
           const user = JSON.parse(storedUser);
           const userId = user.id?.toString();
-          if (userId && !stompClient.current) {
-            connectWebSocket(userId);
+          if (userId) {
+            if (userId !== currentUserIdRef.current) {
+              // El usuario cambió o inició sesión
+              setCurrentUserId(userId);
+              
+              // Desconectar el WebSocket anterior antes de conectar el nuevo
+              if (stompClient.current) {
+                console.log('User changed, deactivating previous WebSocket');
+                stompClient.current.deactivate();
+                stompClient.current = null;
+              }
+            }
+            if (!stompClient.current) {
+              connectWebSocket(userId);
+            }
           }
         } catch (e) {
           console.error('Error parsing user_info', e);
         }
-      } else if (stompClient.current) {
-        // User logged out
-        console.log('User logged out, deactivating WebSocket');
-        stompClient.current.deactivate();
-        stompClient.current = null;
+      } else {
+        if (currentUserIdRef.current !== null) {
+          setCurrentUserId(null);
+        }
+        if (stompClient.current) {
+          // El usuario cerró sesión
+          console.log('User logged out, deactivating WebSocket');
+          stompClient.current.deactivate();
+          stompClient.current = null;
+        }
       }
     };
 

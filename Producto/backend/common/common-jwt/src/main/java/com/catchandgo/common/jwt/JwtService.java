@@ -8,7 +8,7 @@ import java.time.Instant;
 import java.util.Date;
 import javax.crypto.SecretKey;
 
-public class JwtService {
+public final class JwtService {
     private final SecretKey secretKey;
 
     public JwtService(String secret) {
