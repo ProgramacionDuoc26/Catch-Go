@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { UserPlus, Building2, User, Eye, EyeOff, CheckCircle2, ArrowRight, ShieldCheck, Zap, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -27,6 +27,24 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [globalError, setGlobalError] = useState<string>('');
   const [showTermsModal, setShowTermsModal] = useState(false);
+
+  // Estados para verificación OTP
+  const [showOtpScreen, setShowOtpScreen] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [isResendingOtp, setIsResendingOtp] = useState(false);
+
+  const searchParams = useSearchParams();
+
+  React.useEffect(() => {
+    const emailParam = searchParams.get('email');
+    const verifyParam = searchParams.get('verify');
+    if (verifyParam === 'true' && emailParam) {
+      setFormData(prev => ({ ...prev, email: emailParam }));
+      setShowOtpScreen(true);
+    }
+  }, [searchParams]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
@@ -88,6 +106,43 @@ export default function RegisterPage() {
       if (res.error) {
         setGlobalError(res.error || 'Ocurrió un error en el registro');
       } else {
+        // Si el backend no devuelve token de inmediato, significa que requiere validación OTP
+        if (!res.data?.token) {
+          setShowOtpScreen(true);
+        } else {
+          localStorage.setItem('auth_token', res.data.token);
+          if (res.data?.usuario) {
+            const userWithRut = { 
+              ...res.data.usuario, 
+              rut: accountType === 'trabajador' ? formData.rut : formData.companyRut 
+            };
+            localStorage.setItem('user_info', JSON.stringify(userWithRut));
+          }
+          router.push(accountType === 'trabajador' ? '/trabajador/perfil' : '/empresa/perfil');
+        }
+      }
+    } catch (err: any) {
+      setGlobalError('Error de red al intentar registrar la cuenta');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setOtpError('');
+    if (otpCode.length !== 6 || !/^\d+$/.test(otpCode)) {
+      setOtpError('El código debe tener exactamente 6 dígitos numéricos');
+      return;
+    }
+
+    setIsVerifyingOtp(true);
+    try {
+      const { authApi } = await import('@/lib/api/auth');
+      const res = await authApi.verifyOtp(formData.email, otpCode);
+      if (res.error) {
+        setOtpError(res.error || 'Código de verificación incorrecto');
+      } else {
         if (res.data?.token) localStorage.setItem('auth_token', res.data.token);
         if (res.data?.usuario) {
           const userWithRut = { 
@@ -98,10 +153,29 @@ export default function RegisterPage() {
         }
         router.push(accountType === 'trabajador' ? '/trabajador/perfil' : '/empresa/perfil');
       }
-    } catch (err: any) {
-      setGlobalError('Error de red al intentar registrar la cuenta');
+    } catch (err) {
+      setOtpError('Error de red al intentar verificar el código');
     } finally {
-      setIsLoading(false);
+      setIsVerifyingOtp(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setOtpError('');
+    setIsResendingOtp(true);
+    try {
+      const { authApi } = await import('@/lib/api/auth');
+      const res = await authApi.resendOtp(formData.email);
+      if (res.error) {
+        setOtpError(res.error || 'No se pudo reenviar el código');
+      } else {
+        setOtpCode('');
+        alert('Código de verificación reenviado. Revisa la consola de tu backend.');
+      }
+    } catch (err) {
+      setOtpError('Error de red al intentar reenviar el código');
+    } finally {
+      setIsResendingOtp(false);
     }
   };
 
@@ -171,155 +245,231 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {/* LADO DERECHO: Formulario */}
+        {/* LADO DERECHO: Formulario / OTP */}
         <div className="lg:col-span-3 p-8 lg:p-12">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900">Crear Cuenta</h3>
-              <p className="text-gray-500 text-sm mt-1">Empieza hoy mismo tu camino con Catch-Go</p>
-            </div>
-            <Link href="/login" className="text-sm font-bold text-primary hover:text-primary-dark transition-colors flex items-center gap-1">
-              ¿Ya tienes cuenta? <ArrowRight size={16} />
-            </Link>
-          </div>
+          {!showOtpScreen ? (
+            <>
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900">Crear Cuenta</h3>
+                  <p className="text-gray-500 text-sm mt-1">Empieza hoy mismo tu camino con Catch-Go</p>
+                </div>
+                <Link href="/login" className="text-sm font-bold text-primary hover:text-primary-dark transition-colors flex items-center gap-1">
+                  ¿Ya tienes cuenta? <ArrowRight size={16} />
+                </Link>
+              </div>
 
-          {/* Selector de tipo con animación */}
-          <div className="flex p-1 bg-gray-100 rounded-2xl mb-8 relative">
-            <motion.div 
-              className="absolute top-1 bottom-1 bg-white rounded-xl shadow-sm z-0"
-              initial={false}
-              animate={{ 
-                left: accountType === 'trabajador' ? '4px' : '50%',
-                right: accountType === 'trabajador' ? '50%' : '4px'
-              }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            />
-            <button 
-              type="button"
-              onClick={() => setAccountType('trabajador')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold z-10 transition-colors ${accountType === 'trabajador' ? 'text-primary' : 'text-gray-500'}`}
-            >
-              <User size={18} /> Trabajador
-            </button>
-            <button 
-              type="button"
-              onClick={() => setAccountType('empresa')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold z-10 transition-colors ${accountType === 'empresa' ? 'text-primary' : 'text-gray-500'}`}
-            >
-              <Building2 size={18} /> Empresa
-            </button>
-          </div>
+              {/* Selector de tipo con animación */}
+              <div className="flex p-1 bg-gray-100 rounded-2xl mb-8 relative">
+                <motion.div 
+                  className="absolute top-1 bottom-1 bg-white rounded-xl shadow-sm z-0"
+                  initial={false}
+                  animate={{ 
+                    left: accountType === 'trabajador' ? '4px' : '50%',
+                    right: accountType === 'trabajador' ? '50%' : '4px'
+                  }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                />
+                <button 
+                  type="button"
+                  onClick={() => setAccountType('trabajador')}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold z-10 transition-colors ${accountType === 'trabajador' ? 'text-primary' : 'text-gray-500'}`}
+                >
+                  <User size={18} /> Trabajador
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setAccountType('empresa')}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold z-10 transition-colors ${accountType === 'empresa' ? 'text-primary' : 'text-gray-500'}`}
+                >
+                  <Building2 size={18} /> Empresa
+                </button>
+              </div>
 
-          <form onSubmit={handleRegister} className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <AnimatePresence mode="wait">
-                {accountType === 'trabajador' ? (
-                  <motion.div 
-                    key="trabajador-fields"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5"
-                  >
-                    <div className="md:col-span-1">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Nombre Completo</label>
-                      <input id="name" type="text" value={formData.name} onChange={handleInputChange} 
-                        className={`w-full border ${errors.name ? 'border-red-500' : 'border-gray-200'} rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 outline-none transition-all`} placeholder="Juan Pérez" />
-                      {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
+              <form onSubmit={handleRegister} className="space-y-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <AnimatePresence mode="wait">
+                    {accountType === 'trabajador' ? (
+                      <motion.div 
+                        key="trabajador-fields"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5"
+                      >
+                        <div className="md:col-span-1">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Nombre Completo</label>
+                          <input id="name" type="text" value={formData.name} onChange={handleInputChange} 
+                            className={`w-full border ${errors.name ? 'border-red-500' : 'border-gray-200'} rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 outline-none transition-all`} placeholder="Juan Pérez" />
+                          {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
+                        </div>
+                        <div className="md:col-span-1">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">RUT</label>
+                          <input id="rut" type="text" value={formData.rut} onChange={handleInputChange}
+                            className={`w-full border ${errors.rut ? 'border-red-500' : 'border-gray-200'} rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 outline-none transition-all`} placeholder="12345678-9" />
+                          {errors.rut && <p className="mt-1 text-xs text-red-500">{errors.rut}</p>}
+                        </div>
+                      </motion.div>
+                    ) : (
+                      <motion.div 
+                        key="empresa-fields"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5"
+                      >
+                        <div className="md:col-span-1">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Razón Social</label>
+                          <input id="companyName" type="text" value={formData.companyName} onChange={handleInputChange}
+                            className={`w-full border ${errors.companyName ? 'border-red-500' : 'border-gray-200'} rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 outline-none transition-all`} placeholder="Empresa S.A." />
+                          {errors.companyName && <p className="mt-1 text-xs text-red-500">{errors.companyName}</p>}
+                        </div>
+                        <div className="md:col-span-1">
+                          <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">RUT Empresa</label>
+                          <input id="companyRut" type="text" value={formData.companyRut} onChange={handleInputChange}
+                            className={`w-full border ${errors.companyRut ? 'border-red-500' : 'border-gray-200'} rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 outline-none transition-all`} placeholder="76123456-7" />
+                          {errors.companyRut && <p className="mt-1 text-xs text-red-500">{errors.companyRut}</p>}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <div className="md:col-span-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Email</label>
+                    <input id="email" type="email" value={formData.email} onChange={handleInputChange}
+                      className={`w-full border ${errors.email ? 'border-red-500' : 'border-gray-200'} rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 outline-none transition-all`} placeholder="correo@ejemplo.com" />
+                    {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
+                  </div>
+                  <div className="md:col-span-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Teléfono</label>
+                    <input id="phone" type="tel" value={formData.phone} onChange={handleInputChange}
+                      className={`w-full border ${errors.phone ? 'border-red-500' : 'border-gray-200'} rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 outline-none transition-all`} placeholder="+56 9 1234 5678" />
+                    {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
+                  </div>
+
+                  <div className="md:col-span-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Contraseña</label>
+                    <div className="relative">
+                      <input id="password" type={showPassword ? "text" : "password"} value={formData.password} onChange={handleInputChange}
+                        className={`w-full border ${errors.password ? 'border-red-500' : 'border-gray-200'} rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-primary/20 outline-none transition-all`} placeholder="••••••••" />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors">
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
                     </div>
-                    <div className="md:col-span-1">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">RUT</label>
-                      <input id="rut" type="text" value={formData.rut} onChange={handleInputChange}
-                        className={`w-full border ${errors.rut ? 'border-red-500' : 'border-gray-200'} rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 outline-none transition-all`} placeholder="12345678-9" />
-                      {errors.rut && <p className="mt-1 text-xs text-red-500">{errors.rut}</p>}
+                    {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
+                  </div>
+                  <div className="md:col-span-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Confirmar</label>
+                    <div className="relative">
+                      <input id="confirmPassword" type={showConfirmPassword ? "text" : "password"} value={formData.confirmPassword} onChange={handleInputChange}
+                        className={`w-full border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-200'} rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-primary/20 outline-none transition-all`} placeholder="••••••••" />
+                      <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors">
+                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
                     </div>
-                  </motion.div>
-                ) : (
-                  <motion.div 
-                    key="empresa-fields"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5"
-                  >
-                    <div className="md:col-span-1">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Razón Social</label>
-                      <input id="companyName" type="text" value={formData.companyName} onChange={handleInputChange}
-                        className={`w-full border ${errors.companyName ? 'border-red-500' : 'border-gray-200'} rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 outline-none transition-all`} placeholder="Empresa S.A." />
-                      {errors.companyName && <p className="mt-1 text-xs text-red-500">{errors.companyName}</p>}
-                    </div>
-                    <div className="md:col-span-1">
-                      <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">RUT Empresa</label>
-                      <input id="companyRut" type="text" value={formData.companyRut} onChange={handleInputChange}
-                        className={`w-full border ${errors.companyRut ? 'border-red-500' : 'border-gray-200'} rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 outline-none transition-all`} placeholder="76123456-7" />
-                      {errors.companyRut && <p className="mt-1 text-xs text-red-500">{errors.companyRut}</p>}
-                    </div>
+                    {errors.confirmPassword && <p className="mt-1 text-xs text-red-500">{errors.confirmPassword}</p>}
+                  </div>
+                </div>
+
+                {globalError && (
+                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm font-medium flex items-center gap-2">
+                    <AlertTriangle size={18} /> {globalError}
                   </motion.div>
                 )}
-              </AnimatePresence>
 
-              <div className="md:col-span-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Email</label>
-                <input id="email" type="email" value={formData.email} onChange={handleInputChange}
-                  className={`w-full border ${errors.email ? 'border-red-500' : 'border-gray-200'} rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 outline-none transition-all`} placeholder="correo@ejemplo.com" />
-                {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
-              </div>
-              <div className="md:col-span-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Teléfono</label>
-                <input id="phone" type="tel" value={formData.phone} onChange={handleInputChange}
-                  className={`w-full border ${errors.phone ? 'border-red-500' : 'border-gray-200'} rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/20 outline-none transition-all`} placeholder="+56 9 1234 5678" />
-                {errors.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
-              </div>
+                <button 
+                  type="submit" 
+                  disabled={isLoading}
+                  className="w-full flex justify-center items-center py-4 px-4 bg-primary hover:bg-primary-dark text-white rounded-xl shadow-lg shadow-primary/20 font-bold transition-all disabled:opacity-50 gap-2 mt-4"
+                >
+                  {isLoading ? (
+                    <Loader2 className="animate-spin" size={20} />
+                  ) : (
+                    <>
+                      <UserPlus size={20} />
+                      Crear Cuenta de {accountType === 'trabajador' ? 'Trabajador' : 'Empresa'}
+                    </>
+                  )}
+                </button>
+              </form>
 
-              <div className="md:col-span-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Contraseña</label>
-                <div className="relative">
-                  <input id="password" type={showPassword ? "text" : "password"} value={formData.password} onChange={handleInputChange}
-                    className={`w-full border ${errors.password ? 'border-red-500' : 'border-gray-200'} rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-primary/20 outline-none transition-all`} placeholder="••••••••" />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors">
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-                {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password}</p>}
-              </div>
-              <div className="md:col-span-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Confirmar</label>
-                <div className="relative">
-                  <input id="confirmPassword" type={showConfirmPassword ? "text" : "password"} value={formData.confirmPassword} onChange={handleInputChange}
-                    className={`w-full border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-200'} rounded-xl px-4 py-3 pr-12 focus:ring-2 focus:ring-primary/20 outline-none transition-all`} placeholder="••••••••" />
-                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors">
-                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-                {errors.confirmPassword && <p className="mt-1 text-xs text-red-500">{errors.confirmPassword}</p>}
-              </div>
-            </div>
-
-            {globalError && (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm font-medium flex items-center gap-2">
-                <AlertTriangle size={18} /> {globalError}
-              </motion.div>
-            )}
-
-            <button 
-              type="submit" 
-              disabled={isLoading}
-              className="w-full flex justify-center items-center py-4 px-4 bg-primary hover:bg-primary-dark text-white rounded-xl shadow-lg shadow-primary/20 font-bold transition-all disabled:opacity-50 gap-2 mt-4"
+              <p className="mt-8 text-center text-xs text-gray-400 font-medium">
+                Al registrarte, aceptas nuestros <Link href="#" className="text-primary hover:underline">Términos de Servicio</Link> y <Link href="#" className="text-primary hover:underline">Política de Privacidad</Link>.
+              </p>
+            </>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="space-y-6 flex flex-col justify-center h-full min-h-[400px]"
             >
-              {isLoading ? (
-                <Loader2 className="animate-spin" size={20} />
-              ) : (
-                <>
-                  <UserPlus size={20} />
-                  Crear Cuenta de {accountType === 'trabajador' ? 'Trabajador' : 'Empresa'}
-                </>
-              )}
-            </button>
-          </form>
+              <div>
+                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
+                  <ShieldCheck className="text-primary" size={28} />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900">Verifica tu Cuenta</h3>
+                <p className="text-gray-500 text-sm mt-2 leading-relaxed">
+                  Hemos enviado un código OTP de 6 dígitos para confirmar tu correo:<br/>
+                  <strong className="text-gray-800">{formData.email}</strong>
+                </p>
+              </div>
 
-          <p className="mt-8 text-center text-xs text-gray-400 font-medium">
-            Al registrarte, aceptas nuestros <Link href="#" className="text-primary hover:underline">Términos de Servicio</Link> y <Link href="#" className="text-primary hover:underline">Política de Privacidad</Link>.
-          </p>
+              <form onSubmit={handleVerifyOtp} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">Código de Verificación (OTP)</label>
+                  <input 
+                    id="otpCode" 
+                    type="text" 
+                    maxLength={6}
+                    value={otpCode} 
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    className={`w-full border ${otpError ? 'border-red-500' : 'border-gray-200'} rounded-xl px-4 py-4 text-center text-2xl font-bold tracking-widest focus:ring-2 focus:ring-primary/20 outline-none transition-all`} 
+                    placeholder="000000" 
+                  />
+                  {otpError && <p className="mt-1.5 text-xs text-red-500">{otpError}</p>}
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setShowOtpScreen(false);
+                      setOtpCode('');
+                      setOtpError('');
+                    }}
+                    className="flex-1 py-3 px-4 bg-white hover:bg-gray-100 text-gray-700 font-bold border border-gray-200 rounded-xl transition-colors text-center text-sm"
+                  >
+                    Volver al Registro
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={isVerifyingOtp}
+                    className="flex-1 py-3 px-4 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all disabled:opacity-50 flex justify-center items-center gap-2 text-sm"
+                  >
+                    {isVerifyingOtp ? (
+                      <Loader2 className="animate-spin" size={18} />
+                    ) : (
+                      'Verificar Código'
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              <div className="border-t border-gray-100 pt-6 text-center">
+                <p className="text-xs text-gray-400 font-medium">
+                  ¿No recibiste el código?{' '}
+                  <button 
+                    type="button" 
+                    disabled={isResendingOtp}
+                    onClick={handleResendOtp}
+                    className="text-primary font-bold hover:underline disabled:opacity-50"
+                  >
+                    {isResendingOtp ? 'Reenviando...' : 'Reenviar código'}
+                  </button>
+                </p>
+              </div>
+            </motion.div>
+          )}
         </div>
       </motion.div>
 

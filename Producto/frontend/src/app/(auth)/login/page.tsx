@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [globalError, setGlobalError] = useState<string>('');
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const [showVerificationLink, setShowVerificationLink] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -48,6 +49,11 @@ export default function LoginPage() {
 
       if (res.error) {
         setGlobalError(res.error || 'Correo o contraseña incorrectos');
+        if (res.error.toLowerCase().includes('verificar')) {
+          setShowVerificationLink(true);
+        } else {
+          setShowVerificationLink(false);
+        }
       } else if (res.data) {
         if (res.data.token) {
           localStorage.setItem('auth_token', res.data.token);
@@ -193,10 +199,18 @@ export default function LoginPage() {
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="p-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-2xl font-bold text-center" 
+                  className="p-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-2xl font-bold text-center flex flex-col gap-2" 
                   role="alert"
                 >
-                  {globalError}
+                  <span>{globalError}</span>
+                  {showVerificationLink && (
+                    <Link 
+                      href={`/register?email=${encodeURIComponent(formData.email)}&verify=true`}
+                      className="text-primary hover:underline font-bold mt-1 text-xs uppercase tracking-wider block"
+                    >
+                      Ir a verificar cuenta ahora →
+                    </Link>
+                  )}
                 </motion.div>
               )}
 
