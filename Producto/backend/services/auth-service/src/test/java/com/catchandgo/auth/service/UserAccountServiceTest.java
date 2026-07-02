@@ -54,7 +54,6 @@ public class UserAccountServiceTest {
         userAccount.setPassword("encodedPassword");
         userAccount.setTipo("Trabajador");
         userAccount.setPhone("+56912345678");
-        userAccount.setIsVerified(true); // Por defecto verificado para pruebas existentes
 
         userDto = new AuthResponseDto.UserDto(
                 1L,
@@ -67,8 +66,8 @@ public class UserAccountServiceTest {
 
     // CP-01 / CP-02: Registro de usuario exitoso (Trabajador o Empresa).
     // Verifica que si el correo no está registrado en el sistema, se mapee la petición,
-    // se encripte la contraseña, se guarde en base de datos, se genere un OTP
-    // y retorne la estructura completa con el token en null (esperando verificación).
+    // se encripte la contraseña, se guarde en base de datos, se genere un token JWT válido
+    // y retorne la estructura completa de respuesta exitosa.
     @Test
     void register_success() {
         RegisterRequestDto dto = new RegisterRequestDto(
@@ -83,12 +82,13 @@ public class UserAccountServiceTest {
         when(mapper.toEntity(dto)).thenReturn(userAccount);
         when(passwordEncoder.encode(dto.password())).thenReturn("encodedPassword");
         when(repository.save(userAccount)).thenReturn(userAccount);
+        when(jwtService.generateToken(anyString(), anyLong())).thenReturn("mocked-jwt-token");
         when(mapper.toUserDto(userAccount)).thenReturn(userDto);
 
         AuthResponseDto response = service.register(dto);
 
         assertNotNull(response);
-        assertNull(response.token());
+        assertEquals("mocked-jwt-token", response.token());
         assertEquals(userDto, response.usuario());
         verify(repository).save(userAccount);
     }
@@ -242,67 +242,5 @@ public class UserAccountServiceTest {
         service.deleteById(1L);
 
         verify(repository).deleteById(1L);
-    }
-
-    @Test
-    void login_fail_notVerified() {
-        LoginRequestDto dto = new LoginRequestDto("test@email.com", "Password123!");
-        userAccount.setIsVerified(false);
-
-        when(repository.findByEmail(dto.email())).thenReturn(Optional.of(userAccount));
-        when(passwordEncoder.matches(dto.password(), userAccount.getPassword())).thenReturn(true);
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            service.login(dto);
-        });
-
-        assertTrue(exception.getMessage().contains("verificar su cuenta"));
-    }
-
-    @Test
-    void verifyOtp_success() {
-        userAccount.setIsVerified(false);
-        userAccount.setVerificationOtp("123456");
-
-        when(repository.findByEmail("test@email.com")).thenReturn(Optional.of(userAccount));
-        when(repository.save(userAccount)).thenReturn(userAccount);
-        when(jwtService.generateToken(anyString(), anyLong())).thenReturn("mocked-jwt-token");
-        when(mapper.toUserDto(userAccount)).thenReturn(userDto);
-
-        AuthResponseDto response = service.verifyOtp("test@email.com", "123456");
-
-        assertNotNull(response);
-        assertEquals("mocked-jwt-token", response.token());
-        assertTrue(userAccount.getIsVerified());
-        assertNull(userAccount.getVerificationOtp());
-    }
-
-    @Test
-    void verifyOtp_invalidOtp() {
-        userAccount.setIsVerified(false);
-        userAccount.setVerificationOtp("123456");
-
-        when(repository.findByEmail("test@email.com")).thenReturn(Optional.of(userAccount));
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            service.verifyOtp("test@email.com", "wrong_otp");
-        });
-
-        assertEquals("Código OTP inválido o vencido", exception.getMessage());
-    }
-
-    @Test
-    void resendOtp_success() {
-        userAccount.setIsVerified(false);
-        userAccount.setVerificationOtp("123456");
-
-        when(repository.findByEmail("test@email.com")).thenReturn(Optional.of(userAccount));
-        when(repository.save(userAccount)).thenReturn(userAccount);
-
-        service.resendOtp("test@email.com");
-
-        assertNotNull(userAccount.getVerificationOtp());
-        assertNotEquals("123456", userAccount.getVerificationOtp());
-        verify(repository).save(userAccount);
     }
 }

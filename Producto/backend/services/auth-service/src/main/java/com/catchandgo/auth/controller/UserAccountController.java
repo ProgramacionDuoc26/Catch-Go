@@ -3,8 +3,6 @@ package com.catchandgo.auth.controller;
 import com.catchandgo.auth.dto.AuthResponseDto;
 import com.catchandgo.auth.dto.LoginRequestDto;
 import com.catchandgo.auth.dto.RegisterRequestDto;
-import com.catchandgo.auth.dto.VerifyOtpRequestDto;
-import com.catchandgo.auth.dto.ResendOtpRequestDto;
 import com.catchandgo.auth.service.UserAccountService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,17 +25,6 @@ public class UserAccountController {
     @PostMapping("/login")
     public AuthResponseDto login(@RequestBody LoginRequestDto dto) {
         return service.login(dto);
-    }
-
-    @PostMapping("/verify-otp")
-    public ResponseEntity<AuthResponseDto> verifyOtp(@RequestBody VerifyOtpRequestDto dto) {
-        return ResponseEntity.ok(service.verifyOtp(dto.email(), dto.otp()));
-    }
-
-    @PostMapping("/resend-otp")
-    public ResponseEntity<Void> resendOtp(@RequestBody ResendOtpRequestDto dto) {
-        service.resendOtp(dto.email());
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/user/{id}")

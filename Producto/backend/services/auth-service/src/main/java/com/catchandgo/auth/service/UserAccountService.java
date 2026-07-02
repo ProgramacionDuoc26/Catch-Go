@@ -33,15 +33,11 @@ public class UserAccountService {
 
         UserAccount entity = mapper.toEntity(dto);
         entity.setPassword(passwordEncoder.encode(dto.password()));
-        entity.setIsVerified(false);
-
-        String otp = String.format("%06d", new java.util.Random().nextInt(999999));
-        entity.setVerificationOtp(otp);
         
         UserAccount saved = repository.save(entity);
-        System.out.println("[EMAIL SIMULATOR] Enviando OTP a: " + dto.email() + " | Código: " + otp);
         
-        return new AuthResponseDto(null, mapper.toUserDto(saved));
+        String token = jwtService.generateToken(saved.getId().toString(), 86400); // 1 dia
+        return new AuthResponseDto(token, mapper.toUserDto(saved));
     }
 
     public AuthResponseDto login(LoginRequestDto dto) {
@@ -52,47 +48,8 @@ public class UserAccountService {
             throw new RuntimeException("Credenciales inválidas");
         }
 
-        if (user.getIsVerified() == null || !user.getIsVerified()) {
-            throw new RuntimeException("Debe verificar su cuenta ingresando el código OTP enviado a su correo");
-        }
-
         String token = jwtService.generateToken(user.getId().toString(), 86400);
         return new AuthResponseDto(token, mapper.toUserDto(user));
-    }
-
-    public AuthResponseDto verifyOtp(String email, String otp) {
-        UserAccount user = repository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        if (user.getIsVerified() != null && user.getIsVerified()) {
-            throw new RuntimeException("La cuenta ya está verificada");
-        }
-
-        if (user.getVerificationOtp() == null || !user.getVerificationOtp().equals(otp)) {
-            throw new RuntimeException("Código OTP inválido o vencido");
-        }
-
-        user.setIsVerified(true);
-        user.setVerificationOtp(null);
-        UserAccount saved = repository.save(user);
-
-        String token = jwtService.generateToken(saved.getId().toString(), 86400);
-        return new AuthResponseDto(token, mapper.toUserDto(saved));
-    }
-
-    public void resendOtp(String email) {
-        UserAccount user = repository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        if (user.getIsVerified() != null && user.getIsVerified()) {
-            throw new RuntimeException("La cuenta ya está verificada");
-        }
-
-        String otp = String.format("%06d", new java.util.Random().nextInt(999999));
-        user.setVerificationOtp(otp);
-        repository.save(user);
-
-        System.out.println("[EMAIL SIMULATOR] Reenviando OTP a: " + email + " | Nuevo Código: " + otp);
     }
 
     public boolean verifyPassword(Long id, String rawPassword) {

@@ -13,18 +13,6 @@ export const authApi = {
     api.post<AuthResponse>(`${BASE}/auth/register`, body),
 
   /**
-   * Verificar código OTP para completar registro
-   */
-  verifyOtp: (email: string, otp: string) =>
-    api.post<AuthResponse>(`${BASE}/auth/verify-otp`, { email, otp }),
-
-  /**
-   * Reenviar código OTP de confirmación
-   */
-  resendOtp: (email: string) =>
-    api.post<void>(`${BASE}/auth/resend-otp`, { email }),
-
-  /**
    * Iniciar sesión
    * POST /auth/login  (pendiente implementación backend)
    */

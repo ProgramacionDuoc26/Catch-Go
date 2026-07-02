@@ -1,6 +1,5 @@
 package com.catchandgo.auth.entity;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,12 +18,6 @@ public class UserAccount {
     private String tipo;
     private String phone;
 
-    @Column(name = "is_verified")
-    private Boolean isVerified = false;
-
-    @Column(name = "verification_otp")
-    private String verificationOtp;
-
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
@@ -37,9 +30,4 @@ public class UserAccount {
     public void setTipo(String tipo) { this.tipo = tipo; }
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
-
-    public Boolean getIsVerified() { return isVerified; }
-    public void setIsVerified(Boolean isVerified) { this.isVerified = isVerified; }
-    public String getVerificationOtp() { return verificationOtp; }
-    public void setVerificationOtp(String verificationOtp) { this.verificationOtp = verificationOtp; }
 }

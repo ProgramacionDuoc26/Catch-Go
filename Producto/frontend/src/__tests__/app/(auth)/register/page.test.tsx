@@ -3,27 +3,19 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import RegisterPage from '@/app/(auth)/register/page';
 
-// Simular el router de Next.js y parámetros de búsqueda
+// Simular el router de Next.js
 const mockPush = vi.fn();
-const mockGet = vi.fn().mockReturnValue(null);
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
-  }),
-  useSearchParams: () => ({
-    get: mockGet,
   }),
 }));
 
 // Simular el servicio de API de autenticación (importación dinámica)
 const mockRegister = vi.fn();
-const mockVerifyOtp = vi.fn();
-const mockResendOtp = vi.fn();
 vi.mock('@/lib/api/auth', () => ({
   authApi: {
     register: mockRegister,
-    verifyOtp: mockVerifyOtp,
-    resendOtp: mockResendOtp,
   },
 }));
 
@@ -142,71 +134,6 @@ describe('RegisterPage Component', () => {
       });
 
       // Redirigir a /trabajador/perfil
-      expect(mockPush).toHaveBeenCalledWith('/trabajador/perfil');
-    });
-  });
-
-  // CP-65: Verificación OTP exitosa y redirección
-  it('CP-65: Muestra la pantalla de OTP si el registro no retorna token, y redirige tras verificar OTP correctamente', async () => {
-    mockRegister.mockResolvedValue({
-      data: {
-        token: null, // indica que requiere OTP
-        usuario: {
-          id: 'user-789',
-          nombre: 'Juan Perez',
-          tipo: 'TRABAJADOR'
-        }
-      },
-      error: null
-    });
-
-    mockVerifyOtp.mockResolvedValue({
-      data: {
-        token: 'otp-jwt-token',
-        usuario: {
-          id: 'user-789',
-          nombre: 'Juan Perez',
-          tipo: 'TRABAJADOR'
-        }
-      },
-      error: null
-    });
-
-    const { container } = render(<RegisterPage />);
-
-    // Rellenar campos válidos
-    fireEvent.change(container.querySelector('#name')!, { target: { value: 'Juan Perez' } });
-    fireEvent.change(container.querySelector('#rut')!, { target: { value: '12345678-9' } });
-    fireEvent.change(container.querySelector('#email')!, { target: { value: 'juan@test.com' } });
-    fireEvent.change(container.querySelector('#phone')!, { target: { value: '+56 912345678' } });
-    fireEvent.change(container.querySelector('#password')!, { target: { value: 'Secured123' } });
-    fireEvent.change(container.querySelector('#confirmPassword')!, { target: { value: 'Secured123' } });
-
-    // Enviar formulario
-    const submitBtn = screen.getByRole('button', { name: /Crear Cuenta de Trabajador/i });
-    fireEvent.click(submitBtn);
-
-    // Aceptar términos
-    const acceptBtn = screen.getByRole('button', { name: /Aceptar y Registrarse/i });
-    fireEvent.click(acceptBtn);
-
-    // Esperar a que se muestre la pantalla de OTP
-    await waitFor(() => {
-      expect(screen.getByText('Verifica tu Cuenta')).toBeInTheDocument();
-    });
-
-    // Ingresar código OTP
-    const otpInput = container.querySelector('#otpCode')!;
-    fireEvent.change(otpInput, { target: { value: '123456' } });
-
-    // Hacer submit del código
-    const verifyBtn = screen.getByRole('button', { name: /Verificar Código/i });
-    fireEvent.click(verifyBtn);
-
-    // Esperar redirección y persistencia de sesión
-    await waitFor(() => {
-      expect(mockVerifyOtp).toHaveBeenCalledWith('juan@test.com', '123456');
-      expect(localStorage.getItem('auth_token')).toBe('otp-jwt-token');
       expect(mockPush).toHaveBeenCalledWith('/trabajador/perfil');
     });
   });
