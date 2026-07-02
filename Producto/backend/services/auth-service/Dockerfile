@@ -9,7 +9,7 @@ WORKDIR /app
 COPY . .
 
 # Compilar solo el módulo auth-service y sus dependencias comunes
-RUN mvn clean package -pl auth-service -am -DskipTests -Dmaven.repo.local=/tmp/m2
+RUN mvn clean package -pl services/auth-service -am -DskipTests -Dmaven.repo.local=/tmp/m2
 
 # ── Runtime ──
 FROM eclipse-temurin:21-jre-alpine
@@ -18,7 +18,7 @@ WORKDIR /app
 RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
-COPY --from=builder /app/auth-service/target/*.jar app.jar
+COPY --from=builder /app/services/auth-service/target/*.jar app.jar
 
 EXPOSE 8081
 
