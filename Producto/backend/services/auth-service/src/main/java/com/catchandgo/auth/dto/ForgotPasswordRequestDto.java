@@ -1,7 +1,6 @@
 package com.catchandgo.auth.dto;
 
-public record LoginRequestDto(
+public record ForgotPasswordRequestDto(
     String email,
-    String password,
     String captchaToken
 ) {}

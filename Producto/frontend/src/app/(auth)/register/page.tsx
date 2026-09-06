@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { UserPlus, Building2, User, Eye, EyeOff, CheckCircle2, ArrowRight, ShieldCheck, Zap, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from 'framer-motion';
+import { SecurityCaptcha } from '@/components/auth/SecurityCaptcha';
 
 export default function RegisterPage() {
   const [accountType, setAccountType] = useState<'trabajador' | 'empresa'>('trabajador');
@@ -21,6 +22,7 @@ export default function RegisterPage() {
     confirmPassword: ''
   });
 
+  const [captchaToken, setCaptchaToken] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -39,11 +41,7 @@ export default function RegisterPage() {
     if (errors[e.target.id]) setErrors({ ...errors, [e.target.id]: '' });
   };
 
-  const validateRut = (rut: string) => {
-    // Validar estructura básica de RUT chileno (números con guión y dígito verificador)
-    // para facilitar pruebas y evitar bloqueos por dígitos verificadores estrictos.
-    return /^[0-9]+-[0-9kK]{1}$/.test(rut);
-  };
+  const validateRut = (rut: string) => /^[0-9]+-[0-9kK]{1}$/.test(rut);
   const validatePassword = (password: string) => /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
 
   const handleRegister = (e: React.FormEvent) => {
@@ -64,6 +62,11 @@ export default function RegisterPage() {
     if (!formData.password || !validatePassword(formData.password)) newErrors.password = 'Mínimo 8 caracteres, 1 mayúscula y 1 número';
     if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Las contraseñas no coinciden';
 
+    if (!captchaToken) {
+      setGlobalError('Por favor completa la verificación de seguridad (Captcha).');
+      return;
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -82,7 +85,8 @@ export default function RegisterPage() {
         password: formData.password,
         nombre: accountType === 'trabajador' ? formData.name : formData.companyName,
         tipo: accountType.toUpperCase() as 'TRABAJADOR' | 'EMPRESA',
-        telefono: formData.phone
+        telefono: formData.phone,
+        captchaToken
       });
       
       if (res.error) {
@@ -295,6 +299,14 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/* Captcha de Seguridad */}
+            <div className="pt-2">
+              <SecurityCaptcha 
+                onVerify={(token) => setCaptchaToken(token)} 
+                onReset={() => setCaptchaToken('')} 
+              />
+            </div>
+
             {globalError && (
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm font-medium flex items-center gap-2">
                 <AlertTriangle size={18} /> {globalError}
@@ -303,7 +315,7 @@ export default function RegisterPage() {
 
             <button 
               type="submit" 
-              disabled={isLoading}
+              disabled={isLoading || !captchaToken}
               className="w-full flex justify-center items-center py-4 px-4 bg-primary hover:bg-primary-dark text-white rounded-xl shadow-lg shadow-primary/20 font-bold transition-all disabled:opacity-50 gap-2 mt-4"
             >
               {isLoading ? (
@@ -333,7 +345,6 @@ export default function RegisterPage() {
               transition={{ duration: 0.3 }}
               className="w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100 flex flex-col max-h-[85vh]"
             >
-              {/* Encabezado */}
               <div className={`p-6 text-white flex items-center gap-3 ${accountType === 'trabajador' ? 'bg-primary' : 'bg-slate-900'}`}>
                 <ShieldCheck size={28} className="animate-pulse" />
                 <div>
@@ -342,7 +353,6 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              {/* Contenido (Scrollable) */}
               <div className="p-6 overflow-y-auto space-y-4 text-sm text-gray-600 leading-relaxed border-b border-gray-100">
                 {accountType === 'trabajador' ? (
                   <>
@@ -385,7 +395,6 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              {/* Botones de acción */}
               <div className="p-6 bg-gray-50 flex flex-col sm:flex-row gap-3">
                 <button
                   type="button"

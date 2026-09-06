@@ -39,6 +39,12 @@ public class UserAccountServiceTest {
     @Mock
     private JwtService jwtService;
 
+    @Mock
+    private CaptchaService captchaService;
+
+    @Mock
+    private OtpService otpService;
+
     @InjectMocks
     private UserAccountService service;
 
@@ -64,10 +70,6 @@ public class UserAccountServiceTest {
         );
     }
 
-    // CP-01 / CP-02: Registro de usuario exitoso (Trabajador o Empresa).
-    // Verifica que si el correo no está registrado en el sistema, se mapee la petición,
-    // se encripte la contraseña, se guarde en base de datos, se genere un token JWT válido
-    // y retorne la estructura completa de respuesta exitosa.
     @Test
     void register_success() {
         RegisterRequestDto dto = new RegisterRequestDto(
@@ -75,7 +77,9 @@ public class UserAccountServiceTest {
                 "Password123!",
                 "Test User",
                 "Trabajador",
-                "+56912345678"
+                "+56912345678",
+                "mock-captcha-token",
+                null
         );
 
         when(repository.findByEmail(dto.email())).thenReturn(Optional.empty());
@@ -93,9 +97,6 @@ public class UserAccountServiceTest {
         verify(repository).save(userAccount);
     }
 
-    // CP-03 / CP-04: Registro fallido por correo ya registrado.
-    // Verifica que si se intenta registrar una cuenta con un correo que ya existe en la base de datos,
-    // el servicio lance una excepción RuntimeException informando el error y no realice la persistencia.
     @Test
     void register_emailAlreadyRegistered() {
         RegisterRequestDto dto = new RegisterRequestDto(
@@ -103,7 +104,9 @@ public class UserAccountServiceTest {
                 "Password123!",
                 "Test User",
                 "Trabajador",
-                "+56912345678"
+                "+56912345678",
+                "mock-captcha-token",
+                null
         );
 
         when(repository.findByEmail(dto.email())).thenReturn(Optional.of(userAccount));
@@ -116,12 +119,9 @@ public class UserAccountServiceTest {
         verify(repository, never()).save(any());
     }
 
-    // CP-05 / CP-06: Inicio de sesión exitoso.
-    // Verifica que al proveer credenciales válidas (correo y contraseña correctos),
-    // el sistema verifique el hash de contraseña, cree un token JWT válido y devuelva los datos de sesión.
     @Test
     void login_success() {
-        LoginRequestDto dto = new LoginRequestDto("test@email.com", "Password123!");
+        LoginRequestDto dto = new LoginRequestDto("test@email.com", "Password123!", "mock-captcha-token");
 
         when(repository.findByEmail(dto.email())).thenReturn(Optional.of(userAccount));
         when(passwordEncoder.matches(dto.password(), userAccount.getPassword())).thenReturn(true);
@@ -135,12 +135,9 @@ public class UserAccountServiceTest {
         assertEquals(userDto, response.usuario());
     }
 
-    // CP-07 (Parte 1): Inicio de sesión fallido por correo no registrado.
-    // Verifica que si se intenta iniciar sesión con un correo electrónico que no existe en la BD,
-    // el servicio lance una excepción de credenciales inválidas.
     @Test
     void login_invalidEmail() {
-        LoginRequestDto dto = new LoginRequestDto("notfound@email.com", "Password123!");
+        LoginRequestDto dto = new LoginRequestDto("notfound@email.com", "Password123!", "mock-captcha-token");
 
         when(repository.findByEmail(dto.email())).thenReturn(Optional.empty());
 
@@ -151,12 +148,9 @@ public class UserAccountServiceTest {
         assertEquals("Credenciales inválidas", exception.getMessage());
     }
 
-    // CP-07 (Parte 2): Inicio de sesión fallido por contraseña incorrecta.
-    // Verifica que si se intenta iniciar sesión con la contraseña incorrecta para un correo registrado,
-    // el servicio lance una excepción de credenciales inválidas para proteger el acceso.
     @Test
     void login_invalidPassword() {
-        LoginRequestDto dto = new LoginRequestDto("test@email.com", "WrongPassword");
+        LoginRequestDto dto = new LoginRequestDto("test@email.com", "WrongPassword", "mock-captcha-token");
 
         when(repository.findByEmail(dto.email())).thenReturn(Optional.of(userAccount));
         when(passwordEncoder.matches(dto.password(), userAccount.getPassword())).thenReturn(false);
@@ -168,9 +162,6 @@ public class UserAccountServiceTest {
         assertEquals("Credenciales inválidas", exception.getMessage());
     }
 
-    // Prueba de verificación de contraseña exitosa.
-    // Verifica que al validar la contraseña actual de un usuario existente en la BD,
-    // retorne true si coincide con la contraseña encriptada almacenada.
     @Test
     void verifyPassword_success() {
         when(repository.findById(1L)).thenReturn(Optional.of(userAccount));
@@ -181,9 +172,6 @@ public class UserAccountServiceTest {
         assertTrue(result);
     }
 
-    // Prueba de verificación de contraseña fallida.
-    // Verifica que al validar la contraseña actual de un usuario existente,
-    // retorne false si esta no coincide con la almacenada.
     @Test
     void verifyPassword_fail() {
         when(repository.findById(1L)).thenReturn(Optional.of(userAccount));
@@ -194,8 +182,6 @@ public class UserAccountServiceTest {
         assertFalse(result);
     }
 
-    // Prueba de verificación de contraseña con usuario no existente.
-    // Verifica que lance excepción si se intenta verificar la contraseña de un ID de usuario que no existe.
     @Test
     void verifyPassword_userNotFound() {
         when(repository.findById(1L)).thenReturn(Optional.empty());
@@ -207,8 +193,6 @@ public class UserAccountServiceTest {
         assertEquals("Usuario no encontrado", exception.getMessage());
     }
 
-    // Prueba de búsqueda de usuario por ID exitosa.
-    // Verifica que el servicio recupere el usuario por ID y retorne su DTO mapeado correctamente.
     @Test
     void findById_success() {
         when(repository.findById(1L)).thenReturn(Optional.of(userAccount));
@@ -220,8 +204,6 @@ public class UserAccountServiceTest {
         assertEquals(userDto, result);
     }
 
-    // Prueba de búsqueda de usuario por ID fallida.
-    // Verifica que lance una excepción 'Usuario no encontrado' si el ID consultado no existe.
     @Test
     void findById_userNotFound() {
         when(repository.findById(1L)).thenReturn(Optional.empty());
@@ -233,8 +215,6 @@ public class UserAccountServiceTest {
         assertEquals("Usuario no encontrado", exception.getMessage());
     }
 
-    // Prueba de eliminación de usuario exitosa.
-    // Verifica que llame al repositorio para eliminar el usuario del sistema por su ID.
     @Test
     void deleteById_success() {
         doNothing().when(repository).deleteById(1L);

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LogIn, Loader2, ShieldCheck, ChevronLeft, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { SecurityCaptcha } from "@/components/auth/SecurityCaptcha";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function LoginPage() {
     email: '',
     password: ''
   });
+  const [captchaToken, setCaptchaToken] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [globalError, setGlobalError] = useState<string>('');
@@ -29,9 +31,13 @@ export default function LoginPage() {
     setGlobalError('');
     if (!validateForm()) return;
 
+    if (!captchaToken) {
+      setGlobalError('Por favor completa la verificación de seguridad (Captcha) antes de ingresar.');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // Limpiar cualquier sesión anterior de Supabase/OAuth
       try {
         const { createClient } = await import('@/lib/supabase/client');
         const supabase = createClient();
@@ -43,7 +49,8 @@ export default function LoginPage() {
       const { authApi } = await import('@/lib/api/auth');
       const res = await authApi.login({
         email: formData.email,
-        password: formData.password
+        password: formData.password,
+        captchaToken
       });
 
       if (res.error) {
@@ -116,7 +123,7 @@ export default function LoginPage() {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="text-center mb-10">
+            <div className="text-center mb-8">
               <div className="flex justify-center mb-6">
                 <div className={`p-4 rounded-2xl transition-colors duration-500 ${isAdminMode ? 'bg-blue-50 text-blue-600' : 'bg-primary/5 text-primary'}`}>
                   {isAdminMode ? <ShieldCheck size={40} /> : <LogIn size={40} />}
@@ -161,7 +168,14 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-2 ml-1">Contraseña</label>
+                <div className="flex items-center justify-between mb-2 ml-1">
+                  <label htmlFor="password" className="block text-sm font-semibold text-slate-700">Contraseña</label>
+                  {!isAdminMode && (
+                    <Link href="/forgot-password" className="text-xs font-semibold text-primary hover:underline">
+                      ¿Olvidaste tu contraseña?
+                    </Link>
+                  )}
+                </div>
                 <input 
                   id="password" 
                   name="password" 
@@ -174,6 +188,12 @@ export default function LoginPage() {
                 />
                 {errors.password && <p className="mt-2 text-sm text-red-500 font-semibold ml-1">{errors.password}</p>}
               </div>
+
+              {/* Captcha de Seguridad */}
+              <SecurityCaptcha 
+                onVerify={(token) => setCaptchaToken(token)} 
+                onReset={() => setCaptchaToken('')} 
+              />
 
               {!isAdminMode && (
                 <div className="flex items-center justify-between px-1">
@@ -202,7 +222,7 @@ export default function LoginPage() {
 
               <button 
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || !captchaToken}
                 className={`w-full flex justify-center items-center py-5 px-6 rounded-2xl shadow-lg text-base font-bold text-white transition-all gap-2 disabled:opacity-50 disabled:cursor-not-allowed
                   ${isAdminMode 
                     ? 'bg-slate-900 hover:bg-black shadow-slate-200' 

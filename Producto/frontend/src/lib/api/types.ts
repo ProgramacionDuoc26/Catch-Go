@@ -1,12 +1,12 @@
 /**
- * Tipos TypeScript alineados con el modelo de negocio de agent.md.
- * Se actualizarán cuando los DTOs Java sean completados por el equipo backend.
+ * Tipos TypeScript alineados con el modelo de negocio de Catch & Go.
  */
 
-// ── Auth ──────────────────────────────────────────────
+// ── Auth & Security ──────────────────────────────────
 export interface LoginRequest {
   email: string;
   password: string;
+  captchaToken?: string;
 }
 
 export interface RegisterRequest {
@@ -15,6 +15,30 @@ export interface RegisterRequest {
   nombre: string;
   tipo: 'EMPRESA' | 'TRABAJADOR' | 'ADMIN';
   telefono: string;
+  captchaToken?: string;
+  otpCode?: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+  captchaToken?: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  code: string;
+  newPassword: string;
+}
+
+export interface SendOtpRequest {
+  email: string;
+  purpose: 'REGISTER' | 'RESET_PASSWORD';
+}
+
+export interface VerifyOtpRequest {
+  email: string;
+  code: string;
+  purpose: 'REGISTER' | 'RESET_PASSWORD';
 }
 
 export interface AuthResponse {

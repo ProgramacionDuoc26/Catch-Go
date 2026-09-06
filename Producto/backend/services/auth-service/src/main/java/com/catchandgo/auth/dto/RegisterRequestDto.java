@@ -5,5 +5,7 @@ public record RegisterRequestDto(
     String password,
     String nombre,
     String tipo,
-    String telefono
+    String telefono,
+    String captchaToken,
+    String otpCode
 ) {}

@@ -1,6 +1,14 @@
 import { api } from './client';
 import { getServiceBaseUrl } from './base';
-import type { LoginRequest, RegisterRequest, AuthResponse } from './types';
+import type { 
+  LoginRequest, 
+  RegisterRequest, 
+  AuthResponse,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  SendOtpRequest,
+  VerifyOtpRequest
+} from './types';
 
 const BASE = getServiceBaseUrl('NEXT_PUBLIC_AUTH_SERVICE_URL', 'http://localhost:8081');
 
@@ -14,10 +22,38 @@ export const authApi = {
 
   /**
    * Iniciar sesión
-   * POST /auth/login  (pendiente implementación backend)
+   * POST /auth/login
    */
   login: (body: LoginRequest) =>
     api.post<AuthResponse>(`${BASE}/auth/login`, body),
+
+  /**
+   * Solicitar envío de código OTP al correo
+   * POST /auth/send-otp
+   */
+  sendOtp: (body: SendOtpRequest) =>
+    api.post<{ message: string; email: string }>(`${BASE}/auth/send-otp`, body),
+
+  /**
+   * Verificar código OTP ingresado por el usuario
+   * POST /auth/verify-otp
+   */
+  verifyOtp: (body: VerifyOtpRequest) =>
+    api.post<{ valid: boolean }>(`${BASE}/auth/verify-otp`, body),
+
+  /**
+   * Solicitar recuperación de contraseña (envía OTP al correo)
+   * POST /auth/forgot-password
+   */
+  forgotPassword: (body: ForgotPasswordRequest) =>
+    api.post<{ message: string }>(`${BASE}/auth/forgot-password`, body),
+
+  /**
+   * Restablecer contraseña con código OTP
+   * POST /auth/reset-password
+   */
+  resetPassword: (body: ResetPasswordRequest) =>
+    api.post<{ message: string }>(`${BASE}/auth/reset-password`, body),
 
   /**
    * Obtener todos los usuarios (solo desarrollo/admin)
