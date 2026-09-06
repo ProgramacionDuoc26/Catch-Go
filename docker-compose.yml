@@ -142,6 +142,13 @@ services:
     container_name: catch-and-go-gateway
     ports:
       - "8080:8080"
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8081
+      PROFILE_SERVICE_URL: http://profile-service:8082
+      JOBS_SERVICE_URL: http://jobs-service:8083
+      MATCHING_SERVICE_URL: http://matching-service:8084
+      NOTIFICATION_SERVICE_URL: http://notification-service:8085
+      JWT_SECRET: ${JWT_SECRET:-super-secret-key-for-development-must-be-long-enough}
     depends_on:
       - auth-service
       - profile-service

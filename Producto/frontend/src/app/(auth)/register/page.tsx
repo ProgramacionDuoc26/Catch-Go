@@ -119,10 +119,10 @@ export default function RegisterPage() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-5 bg-white rounded-3xl shadow-2xl shadow-primary/5 border border-gray-100 overflow-hidden"
+        className="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-5 bg-white rounded-3xl shadow-2xl shadow-primary/5 border border-gray-100"
       >
         {/* LADO IZQUIERDO: Info y Branding */}
-        <div className={`lg:col-span-2 p-8 lg:p-12 text-white flex flex-col justify-between transition-colors duration-500 ${accountType === 'trabajador' ? 'bg-primary' : 'bg-slate-900'}`}>
+        <div className={`lg:col-span-2 p-8 lg:p-12 text-white flex flex-col justify-between transition-colors duration-500 rounded-t-3xl lg:rounded-tr-none lg:rounded-l-3xl ${accountType === 'trabajador' ? 'bg-primary' : 'bg-slate-900'}`}>
           <div>
             <div className="flex items-center gap-2 mb-8">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">

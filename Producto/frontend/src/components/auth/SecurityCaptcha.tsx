@@ -50,7 +50,7 @@ export function SecurityCaptcha({ onVerify, onReset }: SecurityCaptchaProps) {
   };
 
   return (
-    <div className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-sm transition-all flex flex-col items-center justify-center gap-3 relative overflow-hidden min-h-[110px]">
+    <div className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 shadow-sm transition-all flex flex-col items-center justify-center gap-3 relative min-h-[110px]">
       <div className="w-full flex items-center justify-between">
         <div className="flex items-center gap-2 text-slate-800 font-bold text-xs uppercase tracking-wider">
           <ShieldCheck className="w-4 h-4 text-primary" />
@@ -74,7 +74,7 @@ export function SecurityCaptcha({ onVerify, onReset }: SecurityCaptchaProps) {
           <span>Verificación completada con éxito</span>
         </div>
       ) : (
-        <div className="w-full flex justify-center items-center overflow-hidden py-1">
+        <div className="w-full flex justify-center items-center py-1">
           <ReCAPTCHA
             ref={recaptchaRef}
             sitekey={RECAPTCHA_SITE_KEY}
