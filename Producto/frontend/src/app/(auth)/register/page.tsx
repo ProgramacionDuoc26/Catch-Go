@@ -200,14 +200,22 @@ export default function RegisterPage() {
             />
             <button 
               type="button"
-              onClick={() => setAccountType('trabajador')}
+              onClick={() => {
+                setAccountType('trabajador');
+                setErrors({});
+                setGlobalError('');
+              }}
               className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold z-10 transition-colors ${accountType === 'trabajador' ? 'text-primary' : 'text-gray-500'}`}
             >
               <User size={18} /> Trabajador
             </button>
             <button 
               type="button"
-              onClick={() => setAccountType('empresa')}
+              onClick={() => {
+                setAccountType('empresa');
+                setErrors({});
+                setGlobalError('');
+              }}
               className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold z-10 transition-colors ${accountType === 'empresa' ? 'text-primary' : 'text-gray-500'}`}
             >
               <Building2 size={18} /> Empresa
@@ -302,6 +310,7 @@ export default function RegisterPage() {
             {/* Captcha de Seguridad */}
             <div className="pt-2">
               <SecurityCaptcha 
+                key={accountType}
                 onVerify={(token) => setCaptchaToken(token)} 
                 onReset={() => setCaptchaToken('')} 
               />
