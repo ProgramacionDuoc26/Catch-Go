@@ -20,7 +20,7 @@ public class OtpService {
     private final JavaMailSender mailSender;
     private final SecureRandom random = new SecureRandom();
 
-    @Value("${SPRING_MAIL_USERNAME:}")
+    @Value("${spring.mail.username:${SPRING_MAIL_USERNAME:}}")
     private String mailFrom;
 
     public OtpService(StringRedisTemplate redisTemplate, @Autowired(required = false) JavaMailSender mailSender) {
@@ -34,12 +34,13 @@ public class OtpService {
 
         try {
             redisTemplate.opsForValue().set(key, code, 10, TimeUnit.MINUTES);
+            log.info("✅ Código OTP guardado en Redis key={}: {}", key, code);
         } catch (Exception e) {
             log.error("Error guardando OTP en Redis: {}", e.getMessage());
         }
 
         log.info("==================================================================");
-        log.info("[CORREO ELECTRÓNICO ENVIADO] Código OTP ({}) para {}: {}", purpose, email, code);
+        log.info("[CORREO ELECTRÓNICO GENERADO] Código OTP ({}) para {}: {}", purpose, email, code);
         log.info("==================================================================");
 
         sendRealEmail(email, purpose, code);
@@ -49,7 +50,8 @@ public class OtpService {
 
     private void sendRealEmail(String toEmail, String purpose, String code) {
         if (mailSender == null || mailFrom == null || mailFrom.isBlank()) {
-            log.info("SMTP no configurado (SPRING_MAIL_USERNAME vacío). El correo real no fue transmitido vía SMTP.");
+            log.warn("⚠️ SMTP no configurado (mailFrom está vacío o JavaMailSender es null). mailSenderDisponible={}, mailFrom='{}'. El correo real no fue transmitido vía SMTP.", 
+                    mailSender != null, mailFrom);
             return;
         }
 
@@ -95,9 +97,9 @@ public class OtpService {
 
             helper.setText(htmlBody, true);
             mailSender.send(message);
-            log.info("📧 Correo electrónico REAL enviado exitosamente a {} vía SMTP!", toEmail);
+            log.info("📧 Correo electrónico REAL enviado exitosamente a {} desde {} vía SMTP!", toEmail, mailFrom);
         } catch (Exception e) {
-            log.error("⚠️ Error enviando correo real a {} vía SMTP: {}", toEmail, e.getMessage());
+            log.error("❌ Error enviando correo real a {} vía SMTP: {}", toEmail, e.getMessage(), e);
         }
     }
 
