@@ -33,6 +33,17 @@ spring:
       host: ${SPRING_DATA_REDIS_HOST:${REDISHOST:${REDIS_HOST:localhost}}}
       port: ${SPRING_DATA_REDIS_PORT:${REDISPORT:${REDIS_PORT:6379}}}
       password: ${REDISPASSWORD:${REDIS_PASSWORD:}}
+  mail:
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:}
+    password: ${SPRING_MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 management:
   health:
