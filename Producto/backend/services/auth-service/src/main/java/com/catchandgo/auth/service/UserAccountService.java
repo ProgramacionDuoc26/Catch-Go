@@ -36,11 +36,13 @@ public class UserAccountService {
             throw new RuntimeException("El correo ya está registrado");
         }
 
-        if (dto.otpCode() != null && !dto.otpCode().isBlank()) {
-            boolean valid = otpService.verifyOtp(dto.email(), dto.otpCode(), "REGISTER");
-            if (!valid) {
-                throw new RuntimeException("El código de verificación enviado al correo es inválido o expiró");
-            }
+        if (dto.otpCode() == null || dto.otpCode().isBlank()) {
+            throw new RuntimeException("Debes solicitar y verificar el código de 6 dígitos enviado a tu correo.");
+        }
+
+        boolean valid = otpService.verifyOtp(dto.email(), dto.otpCode(), "REGISTER");
+        if (!valid) {
+            throw new RuntimeException("El código de verificación enviado al correo es inválido o expiró.");
         }
 
         UserAccount entity = mapper.toEntity(dto);

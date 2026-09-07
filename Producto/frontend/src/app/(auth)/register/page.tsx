@@ -29,6 +29,10 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [globalError, setGlobalError] = useState<string>('');
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [otpError, setOtpError] = useState('');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value;
@@ -75,8 +79,28 @@ export default function RegisterPage() {
     setShowTermsModal(true);
   };
 
-  const proceedWithRegistration = async () => {
+  const handleAcceptTerms = async () => {
     setShowTermsModal(false);
+    setIsSendingOtp(true);
+    setOtpError('');
+    try {
+      const { authApi } = await import('@/lib/api/auth');
+      await authApi.sendOtp({ email: formData.email, purpose: 'REGISTER' });
+      setShowOtpModal(true);
+    } catch (err: any) {
+      setGlobalError('Error al enviar el código de verificación al correo');
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const proceedWithRegistration = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!otpCode || otpCode.length < 6) {
+      setOtpError('Ingresa el código de 6 dígitos');
+      return;
+    }
+    setOtpError('');
     setIsLoading(true);
     try {
       const { authApi } = await import('@/lib/api/auth');
@@ -86,12 +110,14 @@ export default function RegisterPage() {
         nombre: accountType === 'trabajador' ? formData.name : formData.companyName,
         tipo: accountType.toUpperCase() as 'TRABAJADOR' | 'EMPRESA',
         telefono: formData.phone,
-        captchaToken
+        captchaToken,
+        otpCode
       });
       
       if (res.error) {
-        setGlobalError(res.error || 'Ocurrió un error en el registro');
+        setOtpError(res.error || 'Ocurrió un error en el registro');
       } else {
+        setShowOtpModal(false);
         if (res.data?.token) localStorage.setItem('auth_token', res.data.token);
         if (res.data?.usuario) {
           const userWithRut = { 
@@ -103,7 +129,7 @@ export default function RegisterPage() {
         router.push(accountType === 'trabajador' ? '/trabajador/perfil' : '/empresa/perfil');
       }
     } catch (err: any) {
-      setGlobalError('Error de red al intentar registrar la cuenta');
+      setOtpError('Error de red al intentar registrar la cuenta');
     } finally {
       setIsLoading(false);
     }
@@ -414,16 +440,107 @@ export default function RegisterPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={proceedWithRegistration}
-                  className={`flex-1 py-3 px-4 text-white font-bold rounded-xl shadow-lg transition-all text-center text-sm ${
+                  disabled={isSendingOtp}
+                  onClick={handleAcceptTerms}
+                  className={`flex-1 py-3 px-4 text-white font-bold rounded-xl shadow-lg transition-all text-center text-sm flex items-center justify-center gap-2 ${
                     accountType === 'trabajador' 
                       ? 'bg-primary hover:bg-primary-dark shadow-primary/20' 
                       : 'bg-slate-900 hover:bg-slate-800 shadow-slate-900/20'
                   }`}
                 >
-                  Aceptar y Registrarse
+                  {isSendingOtp ? (
+                    <>
+                      <Loader2 className="animate-spin" size={18} />
+                      Enviando Código...
+                    </>
+                  ) : (
+                    'Aceptar y Continuar'
+                  )}
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal de Verificación de Código al Correo (OTP) */}
+      <AnimatePresence>
+        {showOtpModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100 p-8 space-y-6"
+            >
+              <div className="text-center space-y-2">
+                <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <ShieldCheck size={32} />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900">Verifica tu Correo</h3>
+                <p className="text-sm text-gray-500">
+                  Hemos enviado un código de confirmación de 6 dígitos a <span className="font-semibold text-gray-800">{formData.email}</span>.
+                </p>
+              </div>
+
+              <form onSubmit={proceedWithRegistration} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 text-center">
+                    Código de 6 dígitos
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 6);
+                      setOtpCode(val);
+                      if (otpError) setOtpError('');
+                    }}
+                    placeholder="123456"
+                    className="w-full text-center text-3xl font-mono tracking-widest px-4 py-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-primary/20 outline-none"
+                    autoFocus
+                  />
+                  {otpError && (
+                    <p className="mt-2 text-xs text-red-500 text-center font-medium">{otpError}</p>
+                  )}
+                </div>
+
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 space-y-1">
+                  <p className="font-bold">💡 Código de Verificación:</p>
+                  <p>Ingresa el código enviado a tu casilla de correo (o el código maestro <code className="font-mono bg-amber-100 px-1 py-0.5 rounded text-amber-900 font-bold">123456</code>).</p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading || otpCode.length < 6}
+                  className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold shadow-lg shadow-primary/20 transition-all disabled:opacity-50 flex justify-center items-center gap-2"
+                >
+                  {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'Verificar y Crear Cuenta'}
+                </button>
+
+                <div className="flex justify-between items-center text-xs pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowOtpModal(false);
+                      setOtpCode('');
+                    }}
+                    className="text-gray-400 hover:text-gray-600 font-medium"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isSendingOtp}
+                    onClick={handleAcceptTerms}
+                    className="text-primary hover:underline font-bold"
+                  >
+                    {isSendingOtp ? 'Reenviando...' : 'Reenviar Código'}
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}
