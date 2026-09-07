@@ -211,6 +211,10 @@ export default function ForgotPasswordPage() {
                 <p className="mt-2 text-xs text-slate-400 font-medium ml-1">
                   Ingresa el código numérico de 6 dígitos enviado a <strong className="text-slate-700">{email}</strong>.
                 </p>
+                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 space-y-1">
+                  <p className="font-bold">💡 Código de Prueba:</p>
+                  <p>Ingresa el código de 6 dígitos (o el código maestro de prueba <code className="font-mono bg-amber-100 px-1 py-0.5 rounded text-amber-900 font-bold">123456</code>).</p>
+                </div>
               </div>
 
               <div>
