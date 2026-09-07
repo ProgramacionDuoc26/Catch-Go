@@ -108,7 +108,7 @@ public class OtpService {
     private boolean sendViaResendHttp(String toEmail, String subject, String htmlBody) {
         try {
             HttpClient client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build();
-            String fromSender = (mailFrom != null && !mailFrom.isBlank()) ? mailFrom : "onboarding@resend.dev";
+            String fromSender = "onboarding@resend.dev";
             String payload = """
                 {
                   "from": "Catch & Go <%s>",
