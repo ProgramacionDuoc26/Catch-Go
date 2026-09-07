@@ -11,6 +11,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -43,7 +44,8 @@ public class OtpService {
         log.info("[CORREO ELECTRÓNICO GENERADO] Código OTP ({}) para {}: {}", purpose, email, code);
         log.info("==================================================================");
 
-        sendRealEmail(email, purpose, code);
+        // Envío asíncrono en hilo de fondo para responder inmediatamente a la API sin timeout
+        CompletableFuture.runAsync(() -> sendRealEmail(email, purpose, code));
 
         return code;
     }
