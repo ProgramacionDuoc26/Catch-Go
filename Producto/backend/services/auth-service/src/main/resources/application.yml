@@ -35,7 +35,7 @@ spring:
       password: ${REDISPASSWORD:${REDIS_PASSWORD:}}
   mail:
     host: ${SPRING_MAIL_HOST:smtp.gmail.com}
-    port: ${SPRING_MAIL_PORT:587}
+    port: ${SPRING_MAIL_PORT:465}
     username: ${SPRING_MAIL_USERNAME:}
     password: ${SPRING_MAIL_PASSWORD:}
     properties:
@@ -44,12 +44,17 @@ spring:
           auth: true
           starttls:
             enable: true
-            required: true
+            required: false
           ssl:
+            enable: true
             trust: "*"
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
+          socketFactory:
+            port: ${SPRING_MAIL_PORT:465}
+            class: javax.net.ssl.SSLSocketFactory
+            fallback: false
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
 
 management:
   health:
