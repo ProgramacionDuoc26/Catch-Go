@@ -35,6 +35,10 @@ spring:
           uri: ${NOTIFICATION_SERVICE_URL:http://notification-service:8085}
           predicates:
             - Path=/ws-notifications/**
+        - id: queues-admin
+          uri: ${JOBS_SERVICE_URL:http://jobs-service:8083}
+          predicates:
+            - Path=/queues/**
 
 management:
   endpoints:

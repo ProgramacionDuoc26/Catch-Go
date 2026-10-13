@@ -24,3 +24,19 @@ management:
     web:
       exposure:
         include: health,info
+
+app:
+  messaging:
+    streams:
+      job-applications: "stream:job-applications"
+      notifications: "stream:notifications"
+      dlq: "stream:job-applications:dlq"
+    groups:
+      notifications-group: "notifications-group"
+    consumer:
+      name: "notification-consumer-1"
+      poll-timeout-ms: 2000
+      batch-size: 10
+    retry:
+      max-attempts: 3
+

@@ -54,3 +54,18 @@ springdoc:
       - url: https://api-gateway2-catch-go.up.railway.app
         description: API Gateway (Producción)
 
+app:
+  messaging:
+    streams:
+      job-applications: "stream:job-applications"
+      notifications: "stream:notifications"
+      dlq: "stream:job-applications:dlq"
+    groups:
+      notifications-group: "notifications-group"
+      matching-group: "matching-group"
+    retention:
+      max-len: 10000
+    retry:
+      max-attempts: 3
+      backoff-ms: 1000
+
