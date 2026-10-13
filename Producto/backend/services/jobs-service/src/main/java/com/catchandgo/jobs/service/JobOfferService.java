@@ -7,6 +7,8 @@ import com.catchandgo.jobs.entity.JobApplication;
 import com.catchandgo.jobs.mapper.JobOfferMapper;
 import com.catchandgo.jobs.repository.JobOfferRepository;
 import com.catchandgo.jobs.repository.JobApplicationRepository;
+import com.catchandgo.common.events.JobApplicationEvent;
+import com.catchandgo.jobs.messaging.producer.JobApplicationStreamPublisher;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -17,15 +19,18 @@ public class JobOfferService {
     private final JobOfferMapper mapper;
     private final JobApplicationRepository applicationRepository;
     private final NotificationPublisher notificationPublisher;
+    private final JobApplicationStreamPublisher jobStreamPublisher;
 
     public JobOfferService(JobOfferRepository repository, 
                            JobOfferMapper mapper, 
                            JobApplicationRepository applicationRepository,
-                           NotificationPublisher notificationPublisher) {
+                           NotificationPublisher notificationPublisher,
+                           JobApplicationStreamPublisher jobStreamPublisher) {
         this.repository = repository;
         this.mapper = mapper;
         this.applicationRepository = applicationRepository;
         this.notificationPublisher = notificationPublisher;
+        this.jobStreamPublisher = jobStreamPublisher;
     }
 
     public List<JobOfferDto> findAll() {
@@ -66,13 +71,26 @@ public class JobOfferService {
             application.setEstado("PENDIENTE");
             applicationRepository.save(application);
 
-            // Notificar a la Empresa
+            // Notificar a la Empresa vía Pub/Sub tradicional
             notificationPublisher.sendNotification(
                 offer.getEmpresaId(), 
                 "Nueva Postulación", 
                 "Un trabajador ha postulado a tu oferta: " + offer.getTitulo(),
                 "info"
             );
+
+            // Publicar evento en cola de mensajería durable (Redis Stream con ACK/DLQ)
+            if (jobStreamPublisher != null) {
+                jobStreamPublisher.publish(JobApplicationEvent.create(
+                    application.getId(),
+                    jobId,
+                    offer.getTitulo(),
+                    userId,
+                    userId,
+                    "",
+                    offer.getEmpresaId()
+                ));
+            }
 
         } catch (Exception e) {
             throw e;

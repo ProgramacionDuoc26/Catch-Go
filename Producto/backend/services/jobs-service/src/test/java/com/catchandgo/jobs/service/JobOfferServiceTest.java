@@ -39,6 +39,9 @@ public class JobOfferServiceTest {
     @Mock
     private NotificationPublisher notificationPublisher;
 
+    @Mock
+    private com.catchandgo.jobs.messaging.producer.JobApplicationStreamPublisher jobStreamPublisher;
+
     @InjectMocks
     private JobOfferService service;
 
