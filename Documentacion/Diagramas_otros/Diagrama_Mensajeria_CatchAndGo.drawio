@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-17T12:00:00.000Z" agent="CatchAndGo" version="22.1.0">
+  <diagram id="CatchGoMessaging" name="Arquitectura Mensajeria Catch & Go">
+    <mxGraphModel dx="1422" dy="850" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1350" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- TITULO -->
+        <mxCell id="title" value="ARQUITECTURA DE MENSAJERÍA SÍNCRONA Y ASÍNCRONA — CATCH &amp; GO" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#1E3A8A;" vertex="1" parent="1">
+          <mxGeometry x="250" y="20" width="850" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Evaluación DSY1107 — Spring Cloud OpenFeign (Síncrono) &amp; Redis Streams Broker con ACK / DLQ (Asíncrono)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#4B5563;" vertex="1" parent="1">
+          <mxGeometry x="250" y="55" width="850" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- CLIENTE / ACTOR -->
+        <mxCell id="actor" value="Usuario / Frontend&#xa;(Web / App Android)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#E0E7FF;strokeColor=#4338CA;" vertex="1" parent="1">
+          <mxGeometry x="40" y="320" width="40" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- API GATEWAY -->
+        <mxCell id="gateway" value="API GATEWAY (Spring Cloud)&#xa;:8080 (Railway Cloud)&#xa;Rutas: /matching/**, /jobs/**, /queues/**" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0284C7;strokeColor=#0369A1;fontColor=#FFFFFF;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="150" y="290" width="160" height="140" as="geometry" />
+        </mxCell>
+
+        <!-- CONECTOR ACTOR -> GATEWAY -->
+        <mxCell id="edge_actor_gw" value="HTTPS" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#4B5563;strokeWidth=2;" edge="1" parent="1" source="actor" target="gateway">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========================================== -->
+        <!-- ZONA SÍNCRONA (25% NICOLÁS) -->
+        <!-- ========================================== -->
+        <mxCell id="group_sync" value="COMUNICACIÓN SÍNCRONA (25% — Nicolás) — Request-Reply Bloqueante" style="swimlane;whiteSpace=wrap;html=1;fillColor=#EFF6FF;strokeColor=#3B82F6;fontColor=#1E40AF;fontStyle=1;fontSize=13;startSize=30;" vertex="1" parent="1">
+          <mxGeometry x="380" y="110" width="880" height="210" as="geometry" />
+        </mxCell>
+
+        <mxCell id="match_svc" value="matching-service (:8084)&#xa;&lt;b&gt;MatchSuggestionController&lt;/b&gt;&#xa;GET /matching/verify/{userId}&#xa;---------------------------&#xa;&lt;b&gt;MatchSuggestionService&lt;/b&gt;&#xa;Lógica de cálculo &amp; medición ms" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DBEAFE;strokeColor=#2563EB;fontColor=#1E3A8A;align=left;spacingLeft=10;" vertex="1" parent="group_sync">
+          <mxGeometry x="30" y="45" width="220" height="135" as="geometry" />
+        </mxCell>
+
+        <mxCell id="feign_client" value="&lt;b&gt;ProfileServiceClient&lt;/b&gt;&#xa;(@FeignClient)&#xa;Cliente HTTP declarativo&#xa;Llamada bloqueante punto a punto&#xa;GET /profiles/user/{userId}" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF08A;strokeColor=#CA8A04;fontColor=#854D0E;" vertex="1" parent="group_sync">
+          <mxGeometry x="320" y="60" width="240" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="profile_svc" value="profile-service (:8082)&#xa;&lt;b&gt;ProfileController&lt;/b&gt;&#xa;GET /profiles/user/{userId}&#xa;---------------------------&#xa;Consulta PostgreSQL y responde&#xa;datos y habilidades del perfil" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;fontColor=#14532D;align=left;spacingLeft=10;" vertex="1" parent="group_sync">
+          <mxGeometry x="630" y="45" width="220" height="135" as="geometry" />
+        </mxCell>
+
+        <!-- Conexiones Síncronas -->
+        <mxCell id="edge_gw_match" value="GET /matching/verify/{id}" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2563EB;strokeWidth=2;fontColor=#1D4ED8;" edge="1" parent="1" source="gateway" target="match_svc">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="340" y="330" />
+              <mxPoint x="340" y="220" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_match_feign" value="Invocación&#xa;Java" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#CA8A04;strokeWidth=2;" edge="1" parent="group_sync" source="match_svc" target="feign_client">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_feign_profile" value="HTTP Síncrono&#xa;(Request)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#2563EB;strokeWidth=2;" edge="1" parent="group_sync" source="feign_client" target="profile_svc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_profile_feign_resp" value="JSON Perfil&#xa;(Reply &lt; 50ms)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#16A34A;strokeWidth=2;dashed=1;" edge="1" parent="group_sync" source="profile_svc" target="match_svc">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="740" y="195" />
+              <mxPoint x="140" y="195" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ========================================== -->
+        <!-- ZONA ASÍNCRONA (75% MIGUEL) -->
+        <!-- ========================================== -->
+        <mxCell id="group_async" value="COMUNICACIÓN ASÍNCRONA (75% — Miguel) — Event-Driven con Redis Streams Broker &amp; ACK / DLQ" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#9333EA;fontColor=#581C87;fontStyle=1;fontSize=13;startSize=30;" vertex="1" parent="1">
+          <mxGeometry x="380" y="340" width="880" height="490" as="geometry" />
+        </mxCell>
+
+        <!-- JOBS SERVICE -->
+        <mxCell id="jobs_svc" value="jobs-service (:8083)&#xa;&lt;b&gt;JobOfferController&lt;/b&gt;&#xa;POST /jobs/{id}/apply&#xa;---------------------------&#xa;&lt;b&gt;JobApplicationStreamPublisher&lt;/b&gt;&#xa;Publica evento durable&#xa;Responde HTTP 200 en ms" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E8FF;strokeColor=#7E22CE;fontColor=#581C87;align=left;spacingLeft=10;" vertex="1" parent="group_async">
+          <mxGeometry x="30" y="45" width="220" height="135" as="geometry" />
+        </mxCell>
+
+        <!-- REDIS STREAM BROKER -->
+        <mxCell id="redis_stream" value="&lt;b&gt;BROKER: REDIS STREAMS 7&lt;/b&gt;&#xa;(Railway Cloud / Local :6379)&#xa;---------------------------&#xa;&lt;b&gt;stream:job-applications&lt;/b&gt;&#xa;Retención: MAXLEN ~ 10.000&#xa;Consumer Group: notification-group&#xa;Pending Entries List (PEL)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFEDD5;strokeColor=#EA580C;fontColor=#7C2D12;" vertex="1" parent="group_async">
+          <mxGeometry x="320" y="40" width="230" height="145" as="geometry" />
+        </mxCell>
+
+        <!-- NOTIFICATION SERVICE -->
+        <mxCell id="notif_svc" value="notification-service (:8085)&#xa;&lt;b&gt;JobApplicationStreamConsumer&lt;/b&gt;&#xa;Container: StreamMessageListenerContainer&#xa;1. Procesa postulación laboral&#xa;2. Reenvía vía WebSocket a usuario&#xa;3. Emite confirmación manual XACK&#xa;4. Desvío a DLQ ante 3 errores" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ECFCCB;strokeColor=#65A30D;fontColor=#365314;align=left;spacingLeft=10;" vertex="1" parent="group_async">
+          <mxGeometry x="610" y="45" width="250" height="145" as="geometry" />
+        </mxCell>
+
+        <!-- DEAD LETTER QUEUE -->
+        <mxCell id="dlq" value="&lt;b&gt;DEAD LETTER QUEUE (DLQ)&lt;/b&gt;&#xa;&lt;b&gt;stream:job-applications:dlq&lt;/b&gt;&#xa;Almacena fallos reiterados (&gt; 3 reintentos)&#xa;Incluye: payload, errorCause, failedAt&#xa;Protege de mensajes venenosos (Poison Pill)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#DC2626;fontColor=#7F1D1D;fontStyle=0;" vertex="1" parent="group_async">
+          <mxGeometry x="460" y="240" width="280" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- MODULO DE ADMINISTRACION DE COLAS -->
+        <mxCell id="admin_mod" value="&lt;b&gt;API ADMINISTRACIÓN DE COLAS (Rúbrica 30%)&lt;/b&gt;&#xa;&lt;b&gt;QueueAdminController&lt;/b&gt; en jobs-service&#xa;• POST /queues (crear con validación @Valid @NotBlank) -&gt; 400 Bad Request si vacío&#xa;• GET /queues (listar colas, longitud y consumer groups)&#xa;• GET /queues/{name}/dlq (inspeccionar mensajes muertos)&#xa;• DELETE /queues/{name} (eliminar cola)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#475569;fontColor=#0F172A;align=left;spacingLeft=10;" vertex="1" parent="group_async">
+          <mxGeometry x="30" y="360" width="830" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- Conexiones Asíncronas -->
+        <mxCell id="edge_gw_jobs" value="POST /jobs/{id}/apply" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#7E22CE;strokeWidth=2;fontColor=#6B21A8;" edge="1" parent="1" source="gateway" target="jobs_svc">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="340" y="390" />
+              <mxPoint x="340" y="450" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_jobs_redis" value="XADD&#xa;(Evento Durable)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#EA580C;strokeWidth=2;fontColor=#C2410C;" edge="1" parent="group_async" source="jobs_svc" target="redis_stream">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_redis_notif" value="XREADGROUP&#xa;(Asíncrono)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#65A30D;strokeWidth=2;fontColor=#4D7C0F;" edge="1" parent="group_async" source="redis_stream" target="notif_svc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="edge_notif_xack" value="XACK Manual&#xa;(Confirmación de entrega)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#16A34A;strokeWidth=2;dashed=1;fontColor=#15803D;" edge="1" parent="group_async" source="notif_svc" target="redis_stream">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="735" y="210" />
+              <mxPoint x="435" y="210" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_notif_dlq" value="Desvío tras fallos reiterados" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#DC2626;strokeWidth=2;dashed=1;fontColor=#B91C1C;" edge="1" parent="group_async" source="notif_svc" target="dlq">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="760" y="285" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="edge_admin_redis" value="Inspección y Gestión de Streams" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#475569;strokeWidth=2;dashed=1;" edge="1" parent="group_async" source="admin_mod" target="redis_stream">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="370" y="360" />
+              <mxPoint x="370" y="185" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
