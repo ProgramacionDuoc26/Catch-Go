@@ -1,5 +1,6 @@
 package com.catchandgo.matching.service;
 
+import com.catchandgo.matching.client.ProfileServiceClient;
 import com.catchandgo.matching.dto.MatchSuggestionDto;
 import com.catchandgo.matching.entity.MatchSuggestion;
 import com.catchandgo.matching.mapper.MatchSuggestionMapper;
@@ -26,6 +27,9 @@ public class MatchSuggestionServiceTest {
 
     @Mock
     private MatchSuggestionMapper mapper;
+
+    @Mock
+    private ProfileServiceClient profileClient;
 
     @InjectMocks
     private MatchSuggestionService service;
@@ -83,5 +87,43 @@ public class MatchSuggestionServiceTest {
         assertNotNull(result);
         assertEquals(dto, result);
         verify(repository).save(entity);
+    }
+
+    // Test de comunicación síncrona: Respuesta exitosa desde profile-service
+    @Test
+    void verifyCompatibilitySync_success() {
+        String userId = "usr-123";
+        java.util.Map<String, Object> mockProfile = java.util.Map.of(
+            "id", "prof-1",
+            "userId", userId,
+            "title", "Desarrollador Backend"
+        );
+        when(profileClient.getProfileByUserId(userId)).thenReturn(mockProfile);
+
+        java.util.Map<String, Object> result = service.verifyCompatibilitySync(userId);
+
+        assertNotNull(result);
+        assertEquals("SUCCESS", result.get("status"));
+        assertEquals("SYNCHRONOUS_HTTP_FEIGN", result.get("communicationType"));
+        assertEquals(userId, result.get("userId"));
+        assertEquals(mockProfile, result.get("profile"));
+        assertTrue(result.containsKey("durationMs"));
+        verify(profileClient).getProfileByUserId(userId);
+    }
+
+    // Test de comunicación síncrona: Fallback controlado cuando profile-service no responde o falla
+    @Test
+    void verifyCompatibilitySync_fallbackOnException() {
+        String userId = "usr-error";
+        when(profileClient.getProfileByUserId(userId)).thenThrow(new RuntimeException("Connection timed out"));
+
+        java.util.Map<String, Object> result = service.verifyCompatibilitySync(userId);
+
+        assertNotNull(result);
+        assertEquals("FALLBACK", result.get("status"));
+        assertEquals("SYNCHRONOUS_HTTP_FEIGN", result.get("communicationType"));
+        assertEquals(userId, result.get("userId"));
+        assertTrue(result.get("message").toString().contains("Connection timed out"));
+        verify(profileClient).getProfileByUserId(userId);
     }
 }
