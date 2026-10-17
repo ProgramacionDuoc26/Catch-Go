@@ -52,3 +52,9 @@ springdoc:
       - url: https://api-gateway2-catch-go.up.railway.app
         description: API Gateway (Producción)
 
+app:
+  services:
+    profile:
+      url: ${PROFILE_SERVICE_URL:http://localhost:8082}
+
+
