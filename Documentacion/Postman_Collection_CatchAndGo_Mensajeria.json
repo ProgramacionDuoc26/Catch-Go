@@ -1,0 +1,253 @@
+{
+  "info": {
+    "_postman_id": "b3e2d1a0-9c8f-4e1b-8765-catchandgo2026",
+    "name": "Catch & Go — Evaluación de Mensajería (DSY1107)",
+    "description": "Colección completa de peticiones para la evaluación de Arquitectura y Microservicios (DSY1107).\n\nIncluye:\n1. Comunicación Síncrona Request-Reply con OpenFeign (matching-service -> profile-service).\n2. Comunicación Asíncrona Event-Driven con Redis Streams Broker, confirmación ACK manual y desvío a Dead Letter Queue (DLQ).\n3. API REST de Administración y Monitoreo de Colas (Rúbrica 30% con validaciones 400 Bad Request).\n4. Casos de Negocio reales (Registro con despacho asíncrono y verificación síncrona con TTL de 15 min).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api-gateway2-catch-go.up.railway.app",
+      "type": "string",
+      "description": "URL base del API Gateway. Cambiar a http://localhost:8080 si se prueba en entorno local."
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Comunicación Síncrona (OpenFeign)",
+      "description": "Peticiones bloqueantes punto a punto donde un microservicio espera de inmediato la respuesta del otro.",
+      "item": [
+        {
+          "name": "Consultar Perfil y Medir Latencia (Request-Reply)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/matching/verify/usr-candidato-01",
+              "host": ["{{baseUrl}}"],
+              "path": ["matching", "verify", "usr-candidato-01"]
+            },
+            "description": "Invoca a matching-service (:8084), el cual ejecuta una llamada HTTP síncrona mediante Spring Cloud OpenFeign a profile-service (:8082). Retorna el perfil en JSON junto con la métrica 'durationMs' evidenciando el tiempo de respuesta bloqueante."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Comunicación Asíncrona (Redis Streams + ACK)",
+      "description": "Peticiones desacopladas donde el emisor publica en cola durable y el receptor procesa en background.",
+      "item": [
+        {
+          "name": "Postular a Empleo (Publicar Evento a Cola Durable)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"usr-candidato-01\",\n  \"candidateName\": \"Juan Perez\",\n  \"candidateEmail\": \"demo.evaluacion@catchandgo.cl\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/jobs/1/apply",
+              "host": ["{{baseUrl}}"],
+              "path": ["jobs", "1", "apply"]
+            },
+            "description": "Publica un evento con XADD a 'stream:job-applications' con retención MAXLEN 10000. jobs-service responde al usuario en menos de 10 ms con estado PENDING_NOTIFICATION. En background, notification-service consume el evento, avisa por WebSocket y emite XACK."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Administración y Monitoreo de Colas (Rúbrica 30%)",
+      "description": "Endpoints CRUD y monitoreo de colas Redis con validación Bean Validation (@Valid).",
+      "item": [
+        {
+          "name": "Listar Colas Activas y Monitoreo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/queues",
+              "host": ["{{baseUrl}}"],
+              "path": ["queues"]
+            },
+            "description": "Lista en tiempo real las colas registradas, su longitud de mensajes (length) y cantidad de grupos de consumidores asociados."
+          },
+          "response": []
+        },
+        {
+          "name": "Crear Nueva Cola Dinámicamente (Válido - 201 Created)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"stream:pagos-evaluacion\",\n  \"maxLen\": 5000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/queues",
+              "host": ["{{baseUrl}}"],
+              "path": ["queues"]
+            },
+            "description": "Crea una nueva cola con retención configurada y grupo de consumidores por defecto."
+          },
+          "response": []
+        },
+        {
+          "name": "Validar Entrada Errónea (Rúbrica: Retorna 400 Bad Request)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/queues",
+              "host": ["{{baseUrl}}"],
+              "path": ["queues"]
+            },
+            "description": "Demuestra la regla obligatoria de la rúbrica: ante campos vacíos o datos inválidos, el GlobalExceptionHandler y Bean Validation capturan la excepción y retornan HTTP 400 Bad Request con descripción de los errores."
+          },
+          "response": []
+        },
+        {
+          "name": "Inspeccionar Mensajes en Dead Letter Queue (DLQ)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/queues/job-applications/dlq",
+              "host": ["{{baseUrl}}"],
+              "path": ["queues", "job-applications", "dlq"]
+            },
+            "description": "Inspecciona los mensajes retenidos en 'stream:job-applications:dlq' que superaron el límite de 3 reintentos de procesamiento."
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar Cola",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/queues/stream:pagos-evaluacion",
+              "host": ["{{baseUrl}}"],
+              "path": ["queues", "stream:pagos-evaluacion"]
+            },
+            "description": "Elimina de forma controlada la cola y sus grupos de consumidores asociados."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Caso de Negocio — Flujo OTP (15 min TTL)",
+      "description": "Demuestra despacho asíncrono de correo y validación síncrona de token.",
+      "item": [
+        {
+          "name": "Registro con Envío Asíncrono de Correo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Usuario Demo\",\n  \"email\": \"demo.evaluacion@catchandgo.cl\",\n  \"password\": \"Password123!\",\n  \"role\": \"WORKER\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Crea el usuario y genera el token OTP de 15 minutos. El despacho del correo es asíncrono para que el registro responda inmediatamente al usuario."
+          },
+          "response": []
+        },
+        {
+          "name": "Validación Síncrona de Código OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"demo.evaluacion@catchandgo.cl\",\n  \"code\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/verify-otp",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "verify-otp"]
+            },
+            "description": "Llamada síncrona bloqueante que valida el código contra el backend. Si es válido entrega el JWT; si pasaron más de 15 minutos o es erróneo, retorna 400 Bad Request."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
