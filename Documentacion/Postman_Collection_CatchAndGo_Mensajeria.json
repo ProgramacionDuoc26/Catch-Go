@@ -63,11 +63,18 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/jobs/1/apply",
+              "raw": "{{baseUrl}}/jobs/1/apply?userId=35",
               "host": ["{{baseUrl}}"],
-              "path": ["jobs", "1", "apply"]
+              "path": ["jobs", "1", "apply"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "35",
+                  "description": "ID de usuario valido en tabla profiles (ej: 35 de Carlos Montero, o 2 de Juan Carmona)"
+                }
+              ]
             },
-            "description": "Publica un evento con XADD a 'stream:job-applications' con retención MAXLEN 10000. jobs-service responde al usuario en menos de 10 ms con estado PENDING_NOTIFICATION. En background, notification-service consume el evento, avisa por WebSocket y emite XACK."
+            "description": "Publica un evento con XADD a 'stream:job-applications' con retención MAXLEN 10000. jobs-service responde al usuario de forma rápida (200 OK) y persiste la postulación. En background, notification-service consume el evento, avisa por WebSocket y emite XACK."
           },
           "response": []
         }
@@ -189,10 +196,10 @@
     },
     {
       "name": "4. Caso de Negocio — Flujo OTP (15 min TTL)",
-      "description": "Demuestra despacho asíncrono de correo y validación síncrona de token.",
+      "description": "Demuestra despacho asíncrono de correo y validación síncrona de token OTP con límite de 15 minutos.",
       "item": [
         {
-          "name": "Registro con Envío Asíncrono de Correo",
+          "name": "1. Solicitar Código OTP (Despacho Asíncrono por Correo)",
           "request": {
             "method": "POST",
             "header": [
@@ -203,7 +210,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Usuario Demo\",\n  \"email\": \"demo.evaluacion@catchandgo.cl\",\n  \"password\": \"Password123!\",\n  \"role\": \"WORKER\"\n}",
+              "raw": "{\n  \"email\": \"demo.evaluacion@catchandgo.cl\",\n  \"purpose\": \"REGISTER\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -211,16 +218,16 @@
               }
             },
             "url": {
-              "raw": "{{baseUrl}}/auth/register",
+              "raw": "{{baseUrl}}/auth/send-otp",
               "host": ["{{baseUrl}}"],
-              "path": ["auth", "register"]
+              "path": ["auth", "send-otp"]
             },
-            "description": "Crea el usuario y genera el token OTP de 15 minutos. El despacho del correo es asíncrono para que el registro responda inmediatamente al usuario."
+            "description": "Genera el código OTP de 6 dígitos en Redis con TTL de 15 minutos y dispara el envío asíncrono del correo electrónico."
           },
           "response": []
         },
         {
-          "name": "Validación Síncrona de Código OTP",
+          "name": "2. Validación Síncrona de Código OTP (15 min TTL)",
           "request": {
             "method": "POST",
             "header": [
@@ -231,7 +238,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"demo.evaluacion@catchandgo.cl\",\n  \"code\": \"123456\"\n}",
+              "raw": "{\n  \"email\": \"demo.evaluacion@catchandgo.cl\",\n  \"code\": \"123456\",\n  \"purpose\": \"REGISTER\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -243,7 +250,35 @@
               "host": ["{{baseUrl}}"],
               "path": ["auth", "verify-otp"]
             },
-            "description": "Llamada síncrona bloqueante que valida el código contra el backend. Si es válido entrega el JWT; si pasaron más de 15 minutos o es erróneo, retorna 400 Bad Request."
+            "description": "Llamada síncrona bloqueante que valida el código contra Redis. Si es válido responde true; si pasaron más de 15 minutos o es erróneo, responde false."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Completar Registro con Código Validado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Usuario Demo\",\n  \"email\": \"demo.evaluacion99@catchandgo.cl\",\n  \"password\": \"Password123!\",\n  \"tipo\": \"TRABAJADOR\",\n  \"telefono\": \"+56912345678\",\n  \"captchaToken\": \"mock-captcha-token\",\n  \"otpCode\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Crea el usuario en la base de datos tras verificar el Captcha y el código OTP validado. Retorna 200 OK con el JWT Token."
           },
           "response": []
         }

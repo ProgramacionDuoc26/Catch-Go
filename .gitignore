@@ -47,7 +47,9 @@ build_log*.txt
 .factorypath
 .project
 .settings/
-.classpath/
+# Postman local cache
+.postman/
+postman/
 
 # Temporary scratch scripts
 scratch/

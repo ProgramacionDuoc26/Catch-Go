@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-19T11:45:00.000Z" agent="CatchAndGo" version="22.1.0">
+  <diagram id="SyncFlowDiagram" name="Flujo Sincrono - Request Reply">
+    <mxGraphModel dx="1422" dy="850" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1350" pageHeight="800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Titulo -->
+        <mxCell id="title" value="FLUJO A: COMUNICACIÓN SÍNCRONA (REQUEST - REPLY INTER-MICROSERVICIO)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#0F172A;" vertex="1" parent="1">
+          <mxGeometry x="175" y="25" width="1000" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Emisor: matching-service | Receptor: profile-service | Mecanismo: Spring Cloud OpenFeign (Llamada HTTP Bloqueante Punto a Punto)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#64748B;" vertex="1" parent="1">
+          <mxGeometry x="175" y="55" width="1000" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Justificación de Negocio -->
+        <mxCell id="just_box" value="&lt;b&gt;JUSTIFICACIÓN DE NEGOCIO:&lt;/b&gt;&lt;br&gt;Cuando un postulante solicita ver sus vacantes compatibles en la aplicación, el algoritmo de afinidad de &lt;b&gt;matching-service&lt;/b&gt; &lt;u&gt;NO PUEDE continuar&lt;/u&gt; sin disponer de inmediato del perfil y habilidades del usuario. La llamada debe ser síncrona (bloqueante) porque existe una dependencia causal directa: sin perfil en ese instante exacto, no hay cálculo de compatibilidad ni vacantes que mostrar al usuario." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#16A34A;fontColor=#15803D;fontSize=11;align=left;spacingLeft=15;spacingRight=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="95" width="1250" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- 1. Postulante / App -->
+        <mxCell id="client_box" value="&lt;b&gt;Postulante / App&lt;/b&gt;&lt;br&gt;Android / React Frontend&lt;br&gt;-----------------------&lt;br&gt;• Presiona &#39;Ver Vacantes&#39;&lt;br&gt;• Envía solicitud HTTP&lt;br&gt;• Espera respuesta en pantalla" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#64748B;fontColor=#0F172A;fontSize=11;align=center;" vertex="1" parent="1">
+          <mxGeometry x="50" y="210" width="180" height="200" as="geometry" />
+        </mxCell>
+
+        <!-- 2. API Gateway -->
+        <mxCell id="gateway_box" value="&lt;b&gt;API GATEWAY&lt;/b&gt;&lt;br&gt;Spring Cloud Gateway :8080&lt;br&gt;-----------------------&lt;br&gt;• Enrutamiento centralizado&lt;br&gt;• Autenticación &amp; JWT&lt;br&gt;• Filtros de seguridad&lt;br&gt;• Sin lógica de negocio" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0284C7;strokeColor=#0369A1;fontColor=#FFFFFF;fontSize=11;align=center;" vertex="1" parent="1">
+          <mxGeometry x="290" y="210" width="180" height="200" as="geometry" />
+        </mxCell>
+
+        <!-- 3. matching-service -->
+        <mxCell id="matching_box" value="&lt;b&gt;matching-service (:8084)&lt;/b&gt;&lt;br&gt;&lt;i&gt;Motor de Afinidad y Scoring&lt;/i&gt;&lt;br&gt;-----------------------&lt;br&gt;1. Recibe petición del Gateway&lt;br&gt;2. Bloquea hilo de ejecución&lt;br&gt;3. Invoca ProfileServiceClient&lt;br&gt;4. Espera respuesta del Perfil&lt;br&gt;5. Calcula scoring de afinidad&lt;br&gt;6. Retorna vacantes ponderadas" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;strokeWidth=2;fontColor=#0F172A;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="530" y="190" width="220" height="240" as="geometry" />
+        </mxCell>
+
+        <!-- 4. OpenFeign Client -->
+        <mxCell id="feign_box" value="&lt;b&gt;Spring Cloud OpenFeign&lt;/b&gt;&lt;br&gt;Cliente Declarativo&lt;br&gt;-----------------------&lt;br&gt;@FeignClient(profile-service)&lt;br&gt;GET /profiles/user/{userId}&lt;br&gt;Punto a punto bloqueante&lt;br&gt;Fallback de resiliencia" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF9C3;strokeColor=#CA8A04;fontColor=#713F12;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="800" y="235" width="190" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- 5. profile-service -->
+        <mxCell id="profile_box" value="&lt;b&gt;profile-service (:8082)&lt;/b&gt;&lt;br&gt;&lt;i&gt;Gestión de Perfiles y Skills&lt;/i&gt;&lt;br&gt;-----------------------&lt;br&gt;1. Atiende GET /profiles/user/{id}&lt;br&gt;2. Consulta PostgreSQL (Supabase)&lt;br&gt;   - Habilidades del candidato&lt;br&gt;   - Experiencia y disponibilidad&lt;br&gt;3. Serializa DTO a JSON&lt;br&gt;4. Responde 200 OK (&lt; 30 ms)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0E7490;strokeWidth=2;fontColor=#0F172A;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="1050" y="190" width="250" height="240" as="geometry" />
+        </mxCell>
+
+        <!-- Flechas de Ida (Request) -->
+        <mxCell id="arrow_req_1" value="GET /matching/vacantes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0284C7;strokeWidth=2;fontColor=#0284C7;fontSize=10;" edge="1" parent="1" source="client_box" target="gateway_box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow_req_2" value="Enruta petición" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0284C7;strokeWidth=2;fontColor=#0284C7;fontSize=10;" edge="1" parent="1" source="gateway_box" target="matching_box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="arrow_req_3" value="Invocación Feign" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#CA8A04;strokeWidth=2;fontColor=#CA8A04;fontSize=10;" edge="1" parent="1" source="matching_box" target="feign_box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="775" y="280" />
+              <mxPoint x="775" y="280" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow_req_4" value="HTTP GET directa" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#CA8A04;strokeWidth=2;fontColor=#CA8A04;fontSize=10;" edge="1" parent="1" source="feign_box" target="profile_box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1020" y="280" />
+              <mxPoint x="1020" y="280" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Flechas de Vuelta (Response) -->
+        <mxCell id="arrow_res_1" value="200 OK (Perfil JSON)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#16A34A;strokeWidth=2;dashed=1;fontColor=#16A34A;fontSize=10;" edge="1" parent="1" source="profile_box" target="feign_box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1020" y="340" />
+              <mxPoint x="1020" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow_res_2" value="Retorna DTO" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#16A34A;strokeWidth=2;dashed=1;fontColor=#16A34A;fontSize=10;" edge="1" parent="1" source="feign_box" target="matching_box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="775" y="340" />
+              <mxPoint x="775" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow_res_3" value="Vacantes ponderadas" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#16A34A;strokeWidth=2;dashed=1;fontColor=#16A34A;fontSize=10;" edge="1" parent="1" source="matching_box" target="gateway_box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="500" y="360" />
+              <mxPoint x="500" y="360" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="arrow_res_4" value="200 OK a Pantalla" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#16A34A;strokeWidth=2;dashed=1;fontColor=#16A34A;fontSize=10;" edge="1" parent="1" source="gateway_box" target="client_box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="260" y="360" />
+              <mxPoint x="260" y="360" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Tarjeta Inferior de Caracteristicas -->
+        <mxCell id="feat_box" value="&lt;b&gt;CARACTERÍSTICAS TÉCNICAS DEL FLUJO SÍNCRONO:&lt;/b&gt;&lt;br&gt;• &lt;b&gt;Acoplamiento Temporal:&lt;/b&gt; Emisor y receptor deben estar disponibles simultáneamente para concretar la transacción.&lt;br&gt;• &lt;b&gt;Consistencia Inmediata:&lt;/b&gt; Garantiza que la respuesta entregada al cliente contiene la última información disponible en la base de datos.&lt;br&gt;• &lt;b&gt;Tolerancia con Fallback:&lt;/b&gt; Si profile-service experimenta lentitud o indisponibilidad, OpenFeign invoca un método de rescate (fallback) para devolver vacantes generales sin provocar un error 500." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#CBD5E1;fontColor=#334155;fontSize=11;align=left;spacingLeft=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="470" width="1250" height="110" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-10-19T11:45:00.000Z" agent="CatchAndGo" version="22.1.0">
+  <diagram id="AsyncFlowDiagram" name="Flujo Asincrono - Broker ACK y DLQ">
+    <mxGraphModel dx="1422" dy="850" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1350" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Titulo -->
+        <mxCell id="title" value="FLUJO B: COMUNICACIÓN ASÍNCRONA (BROKER, CONSUMER GROUP, ACK Y DLQ)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#0F172A;" vertex="1" parent="1">
+          <mxGeometry x="175" y="25" width="1000" height="35" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Productor: jobs-service | Broker: Redis Streams (stream:job-applications) | Consumidor: notification-service | Resiliencia: DLQ" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontColor=#64748B;" vertex="1" parent="1">
+          <mxGeometry x="175" y="55" width="1000" height="25" as="geometry" />
+        </mxCell>
+
+        <!-- Justificación de Negocio -->
+        <mxCell id="just_box" value="&lt;b&gt;JUSTIFICACIÓN DE NEGOCIO:&lt;/b&gt;&lt;br&gt;Cuando un postulante aplica a una oferta laboral (&lt;b&gt;POST /jobs/{id}/apply&lt;/b&gt;), la aplicación &lt;u&gt;NO DEBE bloquearse&lt;/u&gt; esperando que se despache un correo o una notificación push a la empresa. &lt;b&gt;jobs-service&lt;/b&gt; persiste la postulación en la base de datos, deposita el evento en &lt;b&gt;Redis Streams&lt;/b&gt; y devuelve &lt;b&gt;201 Created&lt;/b&gt; en menos de 40 ms. El envío de alertas ocurre en segundo plano de manera desacoplada y tolerante a fallos." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#7E22CE;fontColor=#581C87;fontSize=11;align=left;spacingLeft=15;spacingRight=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="90" width="1250" height="75" as="geometry" />
+        </mxCell>
+
+        <!-- 1. Postulante -->
+        <mxCell id="candidato_box" value="&lt;b&gt;Candidato / App&lt;/b&gt;&lt;br&gt;Android / React Frontend&lt;br&gt;-----------------------&lt;br&gt;• Postula a vacante:&lt;br&gt;  POST /jobs/1/apply&lt;br&gt;• Recibe 201 Created&lt;br&gt;  inmediato (&lt; 40 ms)&lt;br&gt;• Pantalla no se congela" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#64748B;fontColor=#0F172A;fontSize=11;align=center;" vertex="1" parent="1">
+          <mxGeometry x="50" y="190" width="180" height="210" as="geometry" />
+        </mxCell>
+
+        <!-- 2. jobs-service (Productor) -->
+        <mxCell id="jobs_box" value="&lt;b&gt;jobs-service (Productor)&lt;/b&gt;&lt;br&gt;&lt;i&gt;Gestión de Ofertas y Postulaciones&lt;/i&gt;&lt;br&gt;-----------------------&lt;br&gt;1. Registra postulación en DB&lt;br&gt;2. Arma payload de evento JSON&lt;br&gt;3. Ejecuta &lt;b&gt;XADD&lt;/b&gt; a Redis Stream&lt;br&gt;4. Retorna &lt;b&gt;201 Created&lt;/b&gt; a la App&lt;br&gt;-----------------------&lt;br&gt;&lt;font color=&#39;#64748B&#39;&gt;JobApplicationStreamPublisher&lt;br&gt;redisTemplate.opsForStream().add()&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0284C7;strokeWidth=2;fontColor=#0F172A;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="270" y="190" width="240" height="210" as="geometry" />
+        </mxCell>
+
+        <!-- 3. Redis Streams Broker -->
+        <mxCell id="redis_box" value="&lt;b&gt;REDIS STREAMS BROKER&lt;/b&gt;&lt;br&gt;&lt;i&gt;Plataforma de Mensajería Distribuida&lt;/i&gt;&lt;br&gt;=======================&lt;br&gt;&lt;b&gt;Stream Principal:&lt;/b&gt;&lt;br&gt;• &lt;b&gt;stream:job-applications&lt;/b&gt;&lt;br&gt;• Persistencia AOF/RDB en disco&lt;br&gt;• IDs Secuenciales: 172933...-0&lt;br&gt;-----------------------&lt;br&gt;&lt;b&gt;Consumer Group:&lt;/b&gt;&lt;br&gt;• &lt;b&gt;notifications-group&lt;/b&gt;&lt;br&gt;• Seguimiento de mensajes pendientes&lt;br&gt;• Lista PEL (Pending Entries List)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#7E22CE;strokeWidth=2;fontColor=#581C87;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="550" y="180" width="280" height="230" as="geometry" />
+        </mxCell>
+
+        <!-- 4. notification-service (Consumidor) -->
+        <mxCell id="notif_box" value="&lt;b&gt;notification-service (:8085)&lt;/b&gt;&lt;br&gt;&lt;i&gt;Consumidor Asíncrono de Eventos&lt;/i&gt;&lt;br&gt;-----------------------&lt;br&gt;JobApplicationStreamConsumer&lt;br&gt;1. Lee mensaje con &lt;b&gt;XREADGROUP&lt;/b&gt;&lt;br&gt;2. Prepara plantilla de correo/push&lt;br&gt;3. Despacha alerta a la empresa&lt;br&gt;4. &lt;b&gt;CAMINO FELIZ:&lt;/b&gt;&lt;br&gt;   Envía &lt;b&gt;XACK&lt;/b&gt; explícito a Redis&lt;br&gt;   (Mensaje completado y archivado)&lt;br&gt;5. &lt;b&gt;SI FALLA:&lt;/b&gt; Reintenta hasta 3 veces" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;strokeWidth=2;fontColor=#0F172A;fontSize=11;align=left;spacingLeft=10;" vertex="1" parent="1">
+          <mxGeometry x="870" y="180" width="250" height="230" as="geometry" />
+        </mxCell>
+
+        <!-- 5. Empresa Destinataria -->
+        <mxCell id="empresa_box" value="&lt;b&gt;Empresa Empleadora&lt;/b&gt;&lt;br&gt;Receptor Final&lt;br&gt;-----------------------&lt;br&gt;• Recibe Notificación:&lt;br&gt;  - Alerta en vivo por&lt;br&gt;    WebSocket (/topic)&lt;br&gt;  - Correo electrónico&lt;br&gt;• &#39;Tienes una nueva&lt;br&gt;  postulación en tu oferta&#39;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#64748B;fontColor=#0F172A;fontSize=11;align=center;" vertex="1" parent="1">
+          <mxGeometry x="1160" y="190" width="160" height="210" as="geometry" />
+        </mxCell>
+
+        <!-- Flechas Camino Feliz -->
+        <mxCell id="f_1" value="1. POST /jobs/1/apply" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#0284C7;strokeWidth=2;fontColor=#0284C7;fontSize=10;" edge="1" parent="1" source="candidato_box" target="jobs_box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f_2" value="2. XADD Evento" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#7E22CE;strokeWidth=2;fontColor=#7E22CE;fontSize=10;" edge="1" parent="1" source="jobs_box" target="redis_box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f_3" value="3. XREADGROUP (Background)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#16A34A;strokeWidth=2;fontColor=#16A34A;fontSize=10;" edge="1" parent="1" source="redis_box" target="notif_box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="850" y="270" />
+              <mxPoint x="850" y="270" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f_4" value="4. Envía Alerta" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#16A34A;strokeWidth=2;fontColor=#16A34A;fontSize=10;" edge="1" parent="1" source="notif_box" target="empresa_box">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f_5" value="5. XACK (Confirmado)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#16A34A;strokeWidth=2;dashed=1;fontColor=#16A34A;fontSize=10;" edge="1" parent="1" source="notif_box" target="redis_box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="850" y="340" />
+              <mxPoint x="850" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ============================================== -->
+        <!-- BLOQUE DEAD LETTER QUEUE (DLQ) -->
+        <!-- ============================================== -->
+        <mxCell id="dlq_box" value="&lt;b&gt;ESCENARIO DE FALLA: DEAD LETTER QUEUE (DLQ) — stream:job-applications:dlq&lt;/b&gt;&lt;br&gt;------------------------------------------------------------------------------------------------------------------------------------&lt;br&gt;1. &lt;b&gt;Causa del fallo:&lt;/b&gt; Mensaje corrupto, datos inválidos o prueba inducida (&lt;i&gt;&#39;forceError: true&#39;&lt;/i&gt;).&lt;br&gt;2. &lt;b&gt;Control de Reintentos:&lt;/b&gt; El consumidor captura la excepción en el catch e incrementa el contador en memoria (&lt;i&gt;retryCounters&lt;/i&gt;).&lt;br&gt;3. &lt;b&gt;Desvío Automático tras 3 Intentos:&lt;/b&gt; Si &lt;i&gt;attempts &gt;= 3&lt;/i&gt;, se enriquece el payload con &lt;i&gt;{errorReason, failedAt, originalId, retryAttempts}&lt;/i&gt; y se envía a la &lt;b&gt;DLQ&lt;/b&gt;.&lt;br&gt;4. &lt;b&gt;ACK de Liberación:&lt;/b&gt; Se confirma (&lt;b&gt;XACK&lt;/b&gt;) en la cola principal para no bloquear los mensajes de los demás candidatos (&lt;i&gt;Evita Poison Messages&lt;/i&gt;).&lt;br&gt;5. &lt;b&gt;Auditoría y Recuperación:&lt;/b&gt; Expone endpoint &lt;b&gt;GET /api/v1/admin/dlq&lt;/b&gt; para inspeccionar y &lt;b&gt;POST /api/v1/admin/dlq/{id}/retry&lt;/b&gt; para reinyectar." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF2F2;strokeColor=#DC2626;strokeWidth=2;fontColor=#991B1B;fontSize=11;align=left;spacingLeft=15;" vertex="1" parent="1">
+          <mxGeometry x="550" y="450" width="770" height="190" as="geometry" />
+        </mxCell>
+
+        <!-- Flecha hacia DLQ -->
+        <mxCell id="f_dlq" value="Tras 3 fallos -&gt; Deriva a DLQ" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor=#DC2626;strokeWidth=3;fontColor=#DC2626;fontSize=10;" edge="1" parent="1" source="notif_box" target="dlq_box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="995" y="430" />
+              <mxPoint x="995" y="430" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Beneficios Arquitectura Asincrona -->
+        <mxCell id="beneficios_box" value="&lt;b&gt;BENEFICIOS DE LA ARQUITECTURA ASÍNCRONA:&lt;/b&gt;&lt;br&gt;• &lt;b&gt;Desacoplamiento Temporal:&lt;/b&gt; Jobs y Notifications operan independientemente sin esperarse mutuamente.&lt;br&gt;• &lt;b&gt;Resiliencia y Persistencia:&lt;/b&gt; Si notification-service se reinicia, el mensaje queda guardado de forma segura en Redis.&lt;br&gt;• &lt;b&gt;Alta Concurrencia:&lt;/b&gt; El usuario nunca sufre lentitud por envíos de correos masivos.&lt;br&gt;• &lt;b&gt;Sin Poison Messages:&lt;/b&gt; La DLQ aísla mensajes corruptos sin trabar la fila de postulaciones válidas." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#CBD5E1;fontColor=#334155;fontSize=11;align=left;spacingLeft=15;" vertex="1" parent="1">
+          <mxGeometry x="50" y="450" width="460" height="190" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
