@@ -29,10 +29,13 @@ app:
   messaging:
     streams:
       job-applications: "stream:job-applications"
+      application-status: "stream:application-status"
+      application-status-dlq: "stream:application-status:dlq"
       notifications: "stream:notifications"
       dlq: "stream:job-applications:dlq"
     groups:
       notifications-group: "notifications-group"
+      application-status-group: "application-status-notifications"
     consumer:
       name: "notification-consumer-1"
       poll-timeout-ms: 2000

@@ -42,6 +42,9 @@ public class JobOfferServiceTest {
     @Mock
     private com.catchandgo.jobs.messaging.producer.JobApplicationStreamPublisher jobStreamPublisher;
 
+    @Mock
+    private com.catchandgo.jobs.messaging.producer.ApplicationStatusStreamPublisher statusStreamPublisher;
+
     @InjectMocks
     private JobOfferService service;
 
@@ -161,44 +164,28 @@ public class JobOfferServiceTest {
     // Verifica que al cambiar el estado de la postulación a 'ACEPTADO',
     // el sistema actualice el estado y envíe una notificación push de éxito al trabajador.
     @Test
-    void updateApplicationStatus_accepted() {
+    void updateApplicationStatus_publishesStatusEventWithoutPubSub() {
         when(applicationRepository.findById(10L)).thenReturn(Optional.of(jobApplication));
-        when(applicationRepository.save(jobApplication)).thenReturn(jobApplication);
-        doNothing().when(notificationPublisher).sendNotification(anyString(), anyString(), anyString(), anyString());
-
         service.updateApplicationStatus(10L, "ACEPTADO");
-
-        assertEquals("ACEPTADO", jobApplication.getEstado());
-        verify(notificationPublisher).sendNotification(
-                eq("worker-456"),
-                eq("¡Postulación Aceptada!"),
-                eq("Has sido seleccionado para un nuevo turno."),
-                eq("success")
-        );
+        var event = org.mockito.ArgumentCaptor.forClass(com.catchandgo.common.events.ApplicationStatusEvent.class);
+        verify(statusStreamPublisher).publish(event.capture());
+        assertEquals("PENDIENTE", event.getValue().previousStatus());
+        assertEquals("ACEPTADO", event.getValue().newStatus());
+        assertEquals("worker-456", event.getValue().workerId());
+        assertEquals(1L, event.getValue().jobId());
+        verify(notificationPublisher, never()).sendNotification(anyString(), anyString(), anyString(), anyString());
     }
 
-    // CP-16: Rechazo de postulación por parte de la empresa.
-    // Verifica que al cambiar el estado a 'RECHAZADO',
-    // el sistema actualice el estado en BD y envíe una notificación de advertencia (warning) al trabajador.
     @Test
-    void updateApplicationStatus_rejected() {
+    void updateApplicationStatus_rejectedPublishesWarning() {
         when(applicationRepository.findById(10L)).thenReturn(Optional.of(jobApplication));
-        when(applicationRepository.save(jobApplication)).thenReturn(jobApplication);
-        doNothing().when(notificationPublisher).sendNotification(anyString(), anyString(), anyString(), anyString());
-
         service.updateApplicationStatus(10L, "RECHAZADO");
-
-        assertEquals("RECHAZADO", jobApplication.getEstado());
-        verify(notificationPublisher).sendNotification(
-                eq("worker-456"),
-                eq("Postulación Rechazada"),
-                eq("Lo sentimos, no has sido seleccionado para esta oferta."),
-                eq("warning")
-        );
+        var event = org.mockito.ArgumentCaptor.forClass(com.catchandgo.common.events.ApplicationStatusEvent.class);
+        verify(statusStreamPublisher).publish(event.capture());
+        assertEquals("warning", event.getValue().notificationType());
+        assertEquals("RECHAZADO", event.getValue().newStatus());
     }
 
-    // Búsqueda de todas las ofertas de trabajo.
-    // Verifica que retorne la lista de ofertas del sistema mapeadas a DTO.
     @Test
     void findAll_success() {
         when(repository.findAll()).thenReturn(List.of(jobOffer));

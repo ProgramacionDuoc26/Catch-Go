@@ -42,6 +42,10 @@ public class StreamConfig {
             String dlqStream = messagingProperties.getStreamName("dlq", "stream:job-applications:dlq");
 
             initStreamAndGroup(redisTemplate, jobStream, notifGroup);
+            initStreamAndGroup(redisTemplate,
+                messagingProperties.getStreamName("application-status", "stream:application-status"),
+                messagingProperties.getGroupName("application-status-group", "application-status-notifications"));
+            initStream(redisTemplate, messagingProperties.getStreamName("application-status-dlq", "stream:application-status:dlq"));
             initStream(redisTemplate, dlqStream);
         };
     }
@@ -57,7 +61,11 @@ public class StreamConfig {
 
             try {
                 // Crear el grupo de consumidores si no existe
-                redisTemplate.opsForStream().createGroup(streamKey, groupName);
+                if (streamKey.equals(messagingProperties.getStreamName("application-status", "stream:application-status"))) {
+                    redisTemplate.opsForStream().createGroup(streamKey, org.springframework.data.redis.connection.stream.ReadOffset.from("0-0"), groupName);
+                } else {
+                    redisTemplate.opsForStream().createGroup(streamKey, groupName);
+                }
                 log.info("[STREAM-INIT] Consumer Group '{}' creado en stream '{}'", groupName, streamKey);
             } catch (Exception e) {
                 // Si el grupo ya existe (BUSYGROUP), se ignora de forma segura

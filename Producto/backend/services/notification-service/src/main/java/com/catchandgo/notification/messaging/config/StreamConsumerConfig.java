@@ -1,6 +1,7 @@
 package com.catchandgo.notification.messaging.config;
 
 import com.catchandgo.notification.messaging.consumer.JobApplicationStreamConsumer;
+import com.catchandgo.notification.messaging.consumer.ApplicationStatusStreamConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +20,7 @@ import java.util.Collections;
  * Cumple con la declaración de Beans de configuración de la rúbrica.
  */
 @Configuration
+@org.springframework.scheduling.annotation.EnableScheduling
 public class StreamConsumerConfig {
 
     private static final Logger log = LoggerFactory.getLogger(StreamConsumerConfig.class);
@@ -38,7 +40,7 @@ public class StreamConsumerConfig {
     public StreamMessageListenerContainer<String, MapRecord<String, String, String>> streamMessageListenerContainer(
             RedisConnectionFactory connectionFactory,
             StringRedisTemplate redisTemplate,
-            JobApplicationStreamConsumer consumer) {
+            JobApplicationStreamConsumer consumer, ApplicationStatusStreamConsumer statusConsumer) {
 
         String streamKey = messagingProperties.getStreamName("job-applications", "stream:job-applications");
         String groupName = messagingProperties.getGroupName("notifications-group", "notifications-group");
@@ -65,6 +67,12 @@ public class StreamConsumerConfig {
             record -> consumer.onMessage(record)
         );
 
+        String statusStream = messagingProperties.getStreamName("application-status", "stream:application-status");
+        String statusGroup = messagingProperties.getGroupName("application-status-group", "application-status-notifications");
+        ensureStreamAndGroup(redisTemplate, statusStream, statusGroup);
+        container.receive(Consumer.from(statusGroup, consumerName),
+            StreamOffset.create(statusStream, ReadOffset.lastConsumed()), statusConsumer);
+
         container.start();
         log.info("[STREAM-CONSUMER-START] Contenedor de escucha iniciado en stream '{}' | Grupo='{}' | Consumidor='{}'",
                 streamKey, groupName, consumerName);
@@ -81,7 +89,11 @@ public class StreamConsumerConfig {
             }
 
             try {
-                redisTemplate.opsForStream().createGroup(streamKey, groupName);
+                if (streamKey.equals(messagingProperties.getStreamName("application-status", "stream:application-status"))) {
+                    redisTemplate.opsForStream().createGroup(streamKey, ReadOffset.from("0-0"), groupName);
+                } else {
+                    redisTemplate.opsForStream().createGroup(streamKey, groupName);
+                }
                 log.info("[STREAM-INIT] Consumer Group '{}' registrado en stream '{}'", groupName, streamKey);
             } catch (Exception e) {
                 log.debug("[STREAM-INIT] Consumer Group '{}' ya registrado", groupName);

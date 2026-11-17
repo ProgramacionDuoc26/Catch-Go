@@ -8,6 +8,8 @@ import com.catchandgo.jobs.mapper.JobOfferMapper;
 import com.catchandgo.jobs.repository.JobOfferRepository;
 import com.catchandgo.jobs.repository.JobApplicationRepository;
 import com.catchandgo.common.events.JobApplicationEvent;
+import com.catchandgo.common.events.ApplicationStatusEvent;
+import com.catchandgo.jobs.messaging.producer.ApplicationStatusStreamPublisher;
 import com.catchandgo.jobs.messaging.producer.JobApplicationStreamPublisher;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -20,17 +22,20 @@ public class JobOfferService {
     private final JobApplicationRepository applicationRepository;
     private final NotificationPublisher notificationPublisher;
     private final JobApplicationStreamPublisher jobStreamPublisher;
+    private final ApplicationStatusStreamPublisher statusStreamPublisher;
 
     public JobOfferService(JobOfferRepository repository, 
                            JobOfferMapper mapper, 
                            JobApplicationRepository applicationRepository,
                            NotificationPublisher notificationPublisher,
-                           JobApplicationStreamPublisher jobStreamPublisher) {
+                           JobApplicationStreamPublisher jobStreamPublisher,
+                           ApplicationStatusStreamPublisher statusStreamPublisher) {
         this.repository = repository;
         this.mapper = mapper;
         this.applicationRepository = applicationRepository;
         this.notificationPublisher = notificationPublisher;
         this.jobStreamPublisher = jobStreamPublisher;
+        this.statusStreamPublisher = statusStreamPublisher;
     }
 
     public List<JobOfferDto> findAll() {
@@ -181,8 +186,10 @@ public class JobOfferService {
         applicationRepository.deleteById(id);
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public void updateApplicationStatus(Long id, String status) {
         JobApplication application = applicationRepository.findById(id).orElseThrow();
+        String previousStatus = application.getEstado();
         application.setEstado(status);
         applicationRepository.save(application);
 
@@ -224,11 +231,9 @@ public class JobOfferService {
                 break;
         }
 
-        notificationPublisher.sendNotification(
-            application.getUserId(),
-            title,
-            message,
-            type
-        );
+        statusStreamPublisher.publish(ApplicationStatusEvent.create(
+            application.getId(), application.getJobId(), application.getUserId(),
+            previousStatus, status, title, message, type
+        ));
     }
 }
