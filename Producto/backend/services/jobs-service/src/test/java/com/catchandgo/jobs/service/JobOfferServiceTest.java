@@ -37,9 +37,6 @@ public class JobOfferServiceTest {
     private JobApplicationRepository applicationRepository;
 
     @Mock
-    private NotificationPublisher notificationPublisher;
-
-    @Mock
     private com.catchandgo.jobs.messaging.producer.JobApplicationStreamPublisher jobStreamPublisher;
 
     @Mock
@@ -114,17 +111,15 @@ public class JobOfferServiceTest {
         when(applicationRepository.findByUserIdAndJobId("worker-456", 1L)).thenReturn(Collections.emptyList());
         when(repository.findById(1L)).thenReturn(Optional.of(jobOffer));
         when(applicationRepository.save(any(JobApplication.class))).thenReturn(jobApplication);
-        doNothing().when(notificationPublisher).sendNotification(anyString(), anyString(), anyString(), anyString());
-
         assertDoesNotThrow(() -> service.apply(1L, "worker-456"));
 
         verify(applicationRepository).save(any(JobApplication.class));
-        verify(notificationPublisher).sendNotification(
-                eq("empresa-123"),
-                eq("Nueva Postulación"),
-                contains("Auxiliar de Bodega"),
-                eq("info")
-        );
+        var event = org.mockito.ArgumentCaptor.forClass(com.catchandgo.common.events.JobApplicationEvent.class);
+        verify(jobStreamPublisher, times(1)).publish(event.capture());
+        assertEquals(10L, event.getValue().applicationId());
+        assertEquals(1L, event.getValue().offerId());
+        assertEquals("worker-456", event.getValue().candidateId());
+        assertEquals("empresa-123", event.getValue().employerId());
     }
 
     // CP-14 (Fallo): Intento de postulación duplicada activa.
@@ -173,7 +168,6 @@ public class JobOfferServiceTest {
         assertEquals("ACEPTADO", event.getValue().newStatus());
         assertEquals("worker-456", event.getValue().workerId());
         assertEquals(1L, event.getValue().jobId());
-        verify(notificationPublisher, never()).sendNotification(anyString(), anyString(), anyString(), anyString());
     }
 
     @Test

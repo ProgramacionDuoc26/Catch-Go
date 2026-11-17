@@ -20,20 +20,17 @@ public class JobOfferService {
     private final JobOfferRepository repository;
     private final JobOfferMapper mapper;
     private final JobApplicationRepository applicationRepository;
-    private final NotificationPublisher notificationPublisher;
     private final JobApplicationStreamPublisher jobStreamPublisher;
     private final ApplicationStatusStreamPublisher statusStreamPublisher;
 
     public JobOfferService(JobOfferRepository repository, 
                            JobOfferMapper mapper, 
                            JobApplicationRepository applicationRepository,
-                           NotificationPublisher notificationPublisher,
                            JobApplicationStreamPublisher jobStreamPublisher,
                            ApplicationStatusStreamPublisher statusStreamPublisher) {
         this.repository = repository;
         this.mapper = mapper;
         this.applicationRepository = applicationRepository;
-        this.notificationPublisher = notificationPublisher;
         this.jobStreamPublisher = jobStreamPublisher;
         this.statusStreamPublisher = statusStreamPublisher;
     }
@@ -69,37 +66,21 @@ public class JobOfferService {
         JobOffer offer = repository.findById(jobId)
             .orElseThrow(() -> new RuntimeException("Oferta no encontrada"));
 
-        try {
-            JobApplication application = new JobApplication();
-            application.setJobId(jobId);
-            application.setUserId(userId);
-            application.setEstado("PENDIENTE");
-            applicationRepository.save(application);
+        JobApplication application = new JobApplication();
+        application.setJobId(jobId);
+        application.setUserId(userId);
+        application.setEstado("PENDIENTE");
+        JobApplication saved = applicationRepository.save(application);
 
-            // Notificar a la Empresa vía Pub/Sub tradicional
-            notificationPublisher.sendNotification(
-                offer.getEmpresaId(), 
-                "Nueva Postulación", 
-                "Un trabajador ha postulado a tu oferta: " + offer.getTitulo(),
-                "info"
-            );
-
-            // Publicar evento en cola de mensajería durable (Redis Stream con ACK/DLQ)
-            if (jobStreamPublisher != null) {
-                jobStreamPublisher.publish(JobApplicationEvent.create(
-                    application.getId(),
-                    jobId,
-                    offer.getTitulo(),
-                    userId,
-                    userId,
-                    "",
-                    offer.getEmpresaId()
-                ));
-            }
-
-        } catch (Exception e) {
-            throw e;
-        }
+        jobStreamPublisher.publish(JobApplicationEvent.create(
+            saved.getId(),
+            jobId,
+            offer.getTitulo(),
+            userId,
+            userId,
+            "",
+            offer.getEmpresaId()
+        ));
     }
 
     public List<JobApplicationDto> findApplicationsByUserId(String userId) {
