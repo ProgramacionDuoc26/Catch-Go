@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = {QueueAdminController.class, com.catchandgo.common.exceptions.GlobalExceptionHandler.class})
+@WebMvcTest(controllers = {QueueAdminController.class, com.catchandgo.common.exceptions.GlobalExceptionHandler.class}, properties = "JWT_SECRET=test-secret-key-with-at-least-32-bytes-for-tests")
 @AutoConfigureMockMvc(addFilters = false)
 class QueueAdminControllerTest {
 

@@ -26,6 +26,7 @@ class GatewaySecurityConfigTest {
     static class TestEndpoints {
         @GetMapping("/protected-test") String protectedEndpoint() { return "ok"; }
         @PostMapping("/auth/login") String login() { return "ok"; }
+        @GetMapping("/queues") String queues() { return "ok"; }
     }
 
     @Test void publicLoginIsAccessible() {
@@ -54,5 +55,16 @@ class GatewaySecurityConfigTest {
     @Test void protectedRouteAllowsValidToken() {
         client.get().uri("/protected-test").headers(h -> h.setBearerAuth(jwt.generateToken("1", 60)))
                 .exchange().expectStatus().isOk().expectBody(String.class).isEqualTo("ok");
+    }
+    @Test void queueAdminRejectsAnonymousAndNonAdminTokens() {
+        client.get().uri("/queues").exchange().expectStatus().isUnauthorized();
+        client.get().uri("/queues").headers(h -> h.setBearerAuth(jwt.generateToken("1", "TRABAJADOR", 60)))
+                .exchange().expectStatus().isForbidden();
+        client.get().uri("/queues").headers(h -> h.setBearerAuth(jwt.generateToken("1", 60)))
+                .exchange().expectStatus().isForbidden();
+    }
+    @Test void queueAdminAllowsAdmin() {
+        client.get().uri("/queues").headers(h -> h.setBearerAuth(jwt.generateToken("1", "ADMIN", 60)))
+                .exchange().expectStatus().isOk();
     }
 }

@@ -25,7 +25,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebFluxSecurity
 public class GatewaySecurityConfig {
     @Bean
-    JwtService gatewayJwtService(@Value("${JWT_SECRET:very-secret-key-that-is-at-least-32-characters-long-12345}") String secret) {
+    JwtService gatewayJwtService(@Value("${JWT_SECRET}") String secret) {
         return new JwtService(secret);
     }
 
@@ -37,7 +37,11 @@ public class GatewaySecurityConfig {
                 if (claims.getSubject() == null || claims.getSubject().isBlank() || claims.getExpiration() == null) {
                     throw new BadCredentialsException("JWT incompleto");
                 }
-                return new UsernamePasswordAuthenticationToken(claims.getSubject(), null, java.util.List.of());
+                String role = claims.get("role", String.class);
+                var authorities = "ADMIN".equals(role)
+                        ? java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN"))
+                        : java.util.List.<org.springframework.security.core.authority.SimpleGrantedAuthority>of();
+                return new UsernamePasswordAuthenticationToken(claims.getSubject(), null, authorities);
             } catch (Exception ex) {
                 throw new BadCredentialsException("JWT invalido o expirado", ex);
             }
@@ -68,6 +72,7 @@ public class GatewaySecurityConfig {
                         .pathMatchers("/actuator/health", "/actuator/info", "/gateway/ping",
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
                                 "/ws-notifications", "/ws-notifications/**").permitAll()
+                        .pathMatchers("/queues", "/queues/**", "/api/v1/queues", "/api/v1/queues/**").hasRole("ADMIN")
                         .anyExchange().authenticated())
                 .httpBasic(basic -> basic.disable())
                 .formLogin(form -> form.disable())

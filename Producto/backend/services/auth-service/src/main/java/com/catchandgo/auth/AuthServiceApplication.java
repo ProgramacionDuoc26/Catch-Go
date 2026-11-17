@@ -24,7 +24,7 @@ public class AuthServiceApplication {
 
     @Bean
     public JwtService jwtService(
-            @Value("${JWT_SECRET:very-secret-key-that-is-at-least-32-characters-long-12345}") String jwtSecret
+            @Value("${JWT_SECRET}") String jwtSecret
     ) {
         return new JwtService(jwtSecret);
     }

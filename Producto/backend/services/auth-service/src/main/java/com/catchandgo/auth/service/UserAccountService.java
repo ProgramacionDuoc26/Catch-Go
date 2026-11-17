@@ -30,6 +30,10 @@ public class UserAccountService {
     }
 
     public AuthResponseDto register(RegisterRequestDto dto) {
+        String role = dto.tipo() == null ? "" : dto.tipo().trim().toUpperCase(java.util.Locale.ROOT);
+        if (!java.util.Set.of("TRABAJADOR", "EMPRESA").contains(role)) {
+            throw new IllegalArgumentException("El registro solo admite trabajador o empresa");
+        }
         captchaService.validateCaptcha(dto.captchaToken());
 
         if (repository.findByEmail(dto.email()).isPresent()) {
@@ -46,11 +50,12 @@ public class UserAccountService {
         }
 
         UserAccount entity = mapper.toEntity(dto);
+        entity.setTipo(role);
         entity.setPassword(passwordEncoder.encode(dto.password()));
         
         UserAccount saved = repository.save(entity);
         
-        String token = jwtService.generateToken(saved.getId().toString(), 86400); // 1 dia
+        String token = jwtService.generateToken(saved.getId().toString(), saved.getTipo(), 86400); // 1 dia
         return new AuthResponseDto(token, mapper.toUserDto(saved));
     }
 
@@ -64,7 +69,7 @@ public class UserAccountService {
             throw new RuntimeException("Credenciales inválidas");
         }
 
-        String token = jwtService.generateToken(user.getId().toString(), 86400);
+        String token = jwtService.generateToken(user.getId().toString(), user.getTipo() == null ? "" : user.getTipo().trim().toUpperCase(java.util.Locale.ROOT), 86400);
         return new AuthResponseDto(token, mapper.toUserDto(user));
     }
 

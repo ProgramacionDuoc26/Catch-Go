@@ -55,6 +55,8 @@ Para instalar y ejecutar el proyecto en tu máquina local, asegúrate de tener i
 ## 4. Instalación y Ejecución Local
 
 ### Paso 1: Levantar el Backend (Docker Compose)
+
+Crea un archivo `.env` a partir de `.env.example` y configura `JWT_SECRET` con un valor aleatorio privado de al menos 32 bytes. `auth-service`, `api-gateway` y `jobs-service` deben usar el mismo valor. No publiques el archivo `.env`. Los tokens de administrador antiguos, emitidos sin rol, deben renovarse iniciando sesión nuevamente.
 Para levantar la base de datos (PostgreSQL), la caché (Redis) y compilar todos los microservicios Java automáticamente, ejecuta el siguiente comando en la raíz del repositorio:
 
 ```bash

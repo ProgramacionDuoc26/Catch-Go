@@ -79,14 +79,15 @@ public class UserAccountServiceTest {
                 "Trabajador",
                 "+56912345678",
                 "mock-captcha-token",
-                null
+                "123456"
         );
 
         when(repository.findByEmail(dto.email())).thenReturn(Optional.empty());
+        when(otpService.verifyOtp(dto.email(), "123456", "REGISTER")).thenReturn(true);
         when(mapper.toEntity(dto)).thenReturn(userAccount);
         when(passwordEncoder.encode(dto.password())).thenReturn("encodedPassword");
         when(repository.save(userAccount)).thenReturn(userAccount);
-        when(jwtService.generateToken(anyString(), anyLong())).thenReturn("mocked-jwt-token");
+        when(jwtService.generateToken(anyString(), anyString(), anyLong())).thenReturn("mocked-jwt-token");
         when(mapper.toUserDto(userAccount)).thenReturn(userDto);
 
         AuthResponseDto response = service.register(dto);
@@ -125,7 +126,7 @@ public class UserAccountServiceTest {
 
         when(repository.findByEmail(dto.email())).thenReturn(Optional.of(userAccount));
         when(passwordEncoder.matches(dto.password(), userAccount.getPassword())).thenReturn(true);
-        when(jwtService.generateToken(anyString(), anyLong())).thenReturn("mocked-jwt-token");
+        when(jwtService.generateToken(anyString(), anyString(), anyLong())).thenReturn("mocked-jwt-token");
         when(mapper.toUserDto(userAccount)).thenReturn(userDto);
 
         AuthResponseDto response = service.login(dto);
@@ -222,5 +223,22 @@ public class UserAccountServiceTest {
         service.deleteById(1L);
 
         verify(repository).deleteById(1L);
+    }
+    @Test
+    void publicRegistrationRejectsAdminRole() {
+        var dto = new RegisterRequestDto("admin@test.cl", "password", "Name", "admin", "", "captcha", "123456");
+        assertThrows(IllegalArgumentException.class, () -> service.register(dto));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
+    void loginIssuesRoleFromStoredUser() {
+        userAccount.setTipo("ADMIN");
+        var dto = new LoginRequestDto("test@email.com", "Password123!", "mock-captcha-token");
+        when(repository.findByEmail(dto.email())).thenReturn(Optional.of(userAccount));
+        when(passwordEncoder.matches(dto.password(), userAccount.getPassword())).thenReturn(true);
+        when(jwtService.generateToken("1", "ADMIN", 86400)).thenReturn("admin-token");
+        service.login(dto);
+        verify(jwtService).generateToken("1", "ADMIN", 86400);
     }
 }
