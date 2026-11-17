@@ -64,6 +64,23 @@ docker-compose up --build -d
 * El API Gateway estará disponible localmente en `http://localhost:8080`.
 * Puedes acceder a la herramienta de visualización de base de datos **Adminer** ingresando en tu navegador a `http://localhost:8085` (Servidor: `postgres`, Usuario/Contraseña: `catchandgo`).
 
+### Persistencia de Redis Streams en desarrollo
+
+Docker Compose configura Redis con AOF (`appendonly yes`) y sincronización a disco cada segundo (`appendfsync everysec`). El volumen `redis_data` conserva los streams, los grupos y la configuración de retención al recrear el contenedor. Una interrupción inesperada puede perder las ultimas escrituras que todavia no se hayan sincronizado; esta configuración usa una sola instancia y no proporciona replicación ni alta disponibilidad.
+
+Para comprobar la recuperacion en un entorno local, desde la raíz del proyecto:
+
+```powershell
+docker compose up -d redis
+docker compose exec redis redis-cli XADD stream:demo-persistencia '*' evento prueba
+docker compose up -d --force-recreate redis
+docker compose exec redis redis-cli XRANGE stream:demo-persistencia - +
+```
+
+El último comando debe mostrar el evento creado antes de recrear el contenedor. La recreación desconecta temporalmente a los servicios que utilizan Redis. No uses `docker compose down -v` si necesitas conservar los datos, porque elimina los volúmenes del proyecto.
+
+Si ya existía un contenedor Redis anterior a esta configuración, el nuevo volumen nombrado puede no contener sus datos anteriores. Antes de recrearlo, respalda o migra los datos que necesites conservar.
+
 ### Paso 2: Configurar y Ejecutar el Frontend Web (Next.js)
 1. Navega a la carpeta del frontend:
    ```bash
