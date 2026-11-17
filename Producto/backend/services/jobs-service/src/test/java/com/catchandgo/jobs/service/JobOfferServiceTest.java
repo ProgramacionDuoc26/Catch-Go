@@ -37,10 +37,7 @@ public class JobOfferServiceTest {
     private JobApplicationRepository applicationRepository;
 
     @Mock
-    private com.catchandgo.jobs.messaging.producer.JobApplicationStreamPublisher jobStreamPublisher;
-
-    @Mock
-    private com.catchandgo.jobs.messaging.producer.ApplicationStatusStreamPublisher statusStreamPublisher;
+    private com.catchandgo.jobs.messaging.outbox.OutboxService outbox;
 
     @InjectMocks
     private JobOfferService service;
@@ -115,7 +112,7 @@ public class JobOfferServiceTest {
 
         verify(applicationRepository).save(any(JobApplication.class));
         var event = org.mockito.ArgumentCaptor.forClass(com.catchandgo.common.events.JobApplicationEvent.class);
-        verify(jobStreamPublisher, times(1)).publish(event.capture());
+        verify(outbox, times(1)).enqueue(event.capture());
         assertEquals(10L, event.getValue().applicationId());
         assertEquals(1L, event.getValue().offerId());
         assertEquals("worker-456", event.getValue().candidateId());
@@ -163,7 +160,7 @@ public class JobOfferServiceTest {
         when(applicationRepository.findById(10L)).thenReturn(Optional.of(jobApplication));
         service.updateApplicationStatus(10L, "ACEPTADO");
         var event = org.mockito.ArgumentCaptor.forClass(com.catchandgo.common.events.ApplicationStatusEvent.class);
-        verify(statusStreamPublisher).publish(event.capture());
+        verify(outbox).enqueue(event.capture());
         assertEquals("PENDIENTE", event.getValue().previousStatus());
         assertEquals("ACEPTADO", event.getValue().newStatus());
         assertEquals("worker-456", event.getValue().workerId());
@@ -175,7 +172,7 @@ public class JobOfferServiceTest {
         when(applicationRepository.findById(10L)).thenReturn(Optional.of(jobApplication));
         service.updateApplicationStatus(10L, "RECHAZADO");
         var event = org.mockito.ArgumentCaptor.forClass(com.catchandgo.common.events.ApplicationStatusEvent.class);
-        verify(statusStreamPublisher).publish(event.capture());
+        verify(outbox).enqueue(event.capture());
         assertEquals("warning", event.getValue().notificationType());
         assertEquals("RECHAZADO", event.getValue().newStatus());
     }

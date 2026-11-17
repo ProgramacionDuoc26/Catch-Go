@@ -83,6 +83,12 @@ El último comando debe mostrar el evento creado antes de recrear el contenedor.
 
 Si ya existía un contenedor Redis anterior a esta configuración, el nuevo volumen nombrado puede no contener sus datos anteriores. Antes de recrearlo, respalda o migra los datos que necesites conservar.
 
+### Publicación de eventos con outbox
+
+Al crear una postulación o cambiar su estado, `jobs-service` guarda el cambio y su evento en `jobs_event_outbox` dentro de la misma transacción de PostgreSQL. Un proceso periódico busca eventos pendientes y los publica en el stream correspondiente; si Redis no está disponible, registra el fallo y vuelve a intentarlo. La migración se aplica al iniciar el servicio con Flyway.
+
+Si el proceso cae después de publicar en Redis y antes de registrar la publicación en PostgreSQL, el evento puede publicarse de nuevo. El consumidor todavía debe implementar deduplicación para evitar avisos repetidos. Los registros publicados permanecen en la tabla; debe definirse una política de limpieza antes de acumular un volumen considerable.
+
 ### Paso 2: Configurar y Ejecutar el Frontend Web (Next.js)
 1. Navega a la carpeta del frontend:
    ```bash

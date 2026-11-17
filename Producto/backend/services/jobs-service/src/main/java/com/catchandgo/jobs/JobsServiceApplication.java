@@ -16,6 +16,7 @@ import jakarta.servlet.DispatcherType;
 import org.springframework.security.web.SecurityFilterChain;
 
 @SpringBootApplication(scanBasePackages = "com.catchandgo")
+@org.springframework.scheduling.annotation.EnableScheduling
 public class JobsServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(JobsServiceApplication.class, args);

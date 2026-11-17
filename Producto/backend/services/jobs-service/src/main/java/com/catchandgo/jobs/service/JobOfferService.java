@@ -9,8 +9,7 @@ import com.catchandgo.jobs.repository.JobOfferRepository;
 import com.catchandgo.jobs.repository.JobApplicationRepository;
 import com.catchandgo.common.events.JobApplicationEvent;
 import com.catchandgo.common.events.ApplicationStatusEvent;
-import com.catchandgo.jobs.messaging.producer.ApplicationStatusStreamPublisher;
-import com.catchandgo.jobs.messaging.producer.JobApplicationStreamPublisher;
+import com.catchandgo.jobs.messaging.outbox.OutboxService;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
@@ -20,19 +19,16 @@ public class JobOfferService {
     private final JobOfferRepository repository;
     private final JobOfferMapper mapper;
     private final JobApplicationRepository applicationRepository;
-    private final JobApplicationStreamPublisher jobStreamPublisher;
-    private final ApplicationStatusStreamPublisher statusStreamPublisher;
+    private final OutboxService outbox;
 
     public JobOfferService(JobOfferRepository repository, 
                            JobOfferMapper mapper, 
                            JobApplicationRepository applicationRepository,
-                           JobApplicationStreamPublisher jobStreamPublisher,
-                           ApplicationStatusStreamPublisher statusStreamPublisher) {
+                           OutboxService outbox) {
         this.repository = repository;
         this.mapper = mapper;
         this.applicationRepository = applicationRepository;
-        this.jobStreamPublisher = jobStreamPublisher;
-        this.statusStreamPublisher = statusStreamPublisher;
+        this.outbox = outbox;
     }
 
     public List<JobOfferDto> findAll() {
@@ -47,6 +43,7 @@ public class JobOfferService {
         return mapper.toDto(repository.save(mapper.toEntity(dto)));
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public void apply(Long jobId, String userId) {
         List<JobApplication> existingApps = applicationRepository.findByUserIdAndJobId(userId, jobId);
         boolean hasActiveApp = existingApps.stream().anyMatch(app -> {
@@ -72,7 +69,7 @@ public class JobOfferService {
         application.setEstado("PENDIENTE");
         JobApplication saved = applicationRepository.save(application);
 
-        jobStreamPublisher.publish(JobApplicationEvent.create(
+        outbox.enqueue(JobApplicationEvent.create(
             saved.getId(),
             jobId,
             offer.getTitulo(),
@@ -212,7 +209,7 @@ public class JobOfferService {
                 break;
         }
 
-        statusStreamPublisher.publish(ApplicationStatusEvent.create(
+        outbox.enqueue(ApplicationStatusEvent.create(
             application.getId(), application.getJobId(), application.getUserId(),
             previousStatus, status, title, message, type
         ));

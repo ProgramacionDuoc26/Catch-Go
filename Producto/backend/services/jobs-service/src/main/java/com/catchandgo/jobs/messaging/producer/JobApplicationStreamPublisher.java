@@ -57,12 +57,17 @@ public class JobApplicationStreamPublisher {
             );
 
             MapRecord<String, String, String> record = MapRecord.create(streamKey, fields);
+            Long maxLen = retention.effectiveMaxLen(streamKey);
             RecordId recordId = redisTemplate.opsForStream().add(record);
+            if (recordId == null) throw new IllegalStateException("Redis no confirmo el evento");
 
             // Aplicar política de retención (MAXLEN ~)
-            Long maxLen = retention.effectiveMaxLen(streamKey);
             if (maxLen != null && maxLen > 0) {
-                redisTemplate.opsForStream().trim(streamKey, maxLen, true);
+                try {
+                    redisTemplate.opsForStream().trim(streamKey, maxLen, true);
+                } catch (Exception e) {
+                    log.warn("Evento publicado, pero no se pudo aplicar retencion en {}: {}", streamKey, e.getMessage());
+                }
             }
 
             log.info("[ASYNC-MQ PRODUCER] Mensaje persistido en stream '{}' ID='{}' | Candidato='{}' -> Empleo='{}'",

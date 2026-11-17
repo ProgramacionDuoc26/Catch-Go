@@ -5,12 +5,14 @@ import com.catchandgo.jobs.messaging.config.MessagingProperties;
 import com.catchandgo.jobs.messaging.config.StreamRetentionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import java.util.Map;
 
 @Service
 public class ApplicationStatusStreamPublisher {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ApplicationStatusStreamPublisher.class);
     private final StringRedisTemplate redis;
     private final ObjectMapper mapper;
     private final MessagingProperties properties;
@@ -23,7 +25,7 @@ public class ApplicationStatusStreamPublisher {
         this.retention = retention;
     }
 
-    public void publish(ApplicationStatusEvent event) {
+    public RecordId publish(ApplicationStatusEvent event) {
         String stream = properties.getStreamName("application-status", "stream:application-status");
         final String payload;
         try {
@@ -31,11 +33,17 @@ public class ApplicationStatusStreamPublisher {
         } catch (Exception e) {
             throw new IllegalStateException("No se pudo serializar el evento de estado", e);
         }
-        redis.opsForStream().add(MapRecord.create(stream, Map.of(
-                "eventId", event.eventId(), "type", "APPLICATION_STATUS_CHANGED", "payload", payload)));
         Long maxLen = retention.effectiveMaxLen(stream);
+        RecordId id = redis.opsForStream().add(MapRecord.create(stream, Map.of(
+                "eventId", event.eventId(), "type", "APPLICATION_STATUS_CHANGED", "payload", payload)));
+        if (id == null) throw new IllegalStateException("Redis no confirmo el evento");
         if (maxLen != null && maxLen > 0) {
-            redis.opsForStream().trim(stream, maxLen, true);
+            try {
+                redis.opsForStream().trim(stream, maxLen, true);
+            } catch (Exception e) {
+                log.warn("Evento publicado, pero no se pudo aplicar retencion en {}: {}", stream, e.getMessage());
+            }
         }
+        return id;
     }
 }

@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.core.StreamOperations;
+import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -19,7 +21,10 @@ class StreamRetentionPublisherTest {
     MessagingProperties properties = new MessagingProperties();
     ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 
-    @BeforeEach void setup() { when(redis.<String, String>opsForStream()).thenReturn(streams); }
+    @BeforeEach void setup() {
+        when(redis.<String, String>opsForStream()).thenReturn(streams);
+        when(streams.add(any(MapRecord.class))).thenReturn(RecordId.of("1-0"));
+    }
 
     @Test void applicationPublisherUsesConfiguredPolicy() {
         when(retention.effectiveMaxLen("stream:job-applications")).thenReturn(250L);
