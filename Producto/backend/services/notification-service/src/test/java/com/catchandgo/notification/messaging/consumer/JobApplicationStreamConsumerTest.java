@@ -1,99 +1,86 @@
 package com.catchandgo.notification.messaging.consumer;
 
+import com.catchandgo.common.events.JobApplicationEvent;
 import com.catchandgo.notification.messaging.config.MessagingProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
+import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.PendingMessage;
+import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.StreamOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-
-import java.util.Map;
-
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class JobApplicationStreamConsumerTest {
-
-    @Mock
-    private StringRedisTemplate redisTemplate;
-
-    @Mock
-    private SimpMessagingTemplate messagingTemplate;
-
-    @Mock
-    private ObjectMapper objectMapper;
-
-    @Mock
-    private MessagingProperties messagingProperties;
-
-    @Mock
-    private StreamOperations<String, Object, Object> streamOperations;
-
-    @InjectMocks
+    private final StringRedisTemplate redis = mock(StringRedisTemplate.class);
+    @SuppressWarnings("unchecked")
+    private final StreamOperations<String, String, String> streams = mock(StreamOperations.class);
+    private final SimpMessagingTemplate websocket = mock(SimpMessagingTemplate.class);
+    private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+    private final MessagingProperties properties = new MessagingProperties();
     private JobApplicationStreamConsumer consumer;
+    private static final String STREAM = "stream:job-applications";
+    private static final String GROUP = "notifications-group";
+    private static final RecordId ID = RecordId.of("1710000000000-1");
 
-    @BeforeEach
-    void setUp() {
-        when(redisTemplate.opsForStream()).thenReturn(streamOperations);
-        when(messagingProperties.getGroupName(anyString(), anyString())).thenReturn("notifications-group");
-        when(messagingProperties.getStreamName(eq("dlq"), anyString())).thenReturn("stream:job-applications:dlq");
-
-        MessagingProperties.Retry retry = new MessagingProperties.Retry();
-        retry.setMaxAttempts(2);
-        when(messagingProperties.getRetry()).thenReturn(retry);
+    @BeforeEach void setup() {
+        when(redis.<String, String>opsForStream()).thenReturn(streams);
+        consumer = new JobApplicationStreamConsumer(redis, websocket, mapper, properties);
+    }
+    private MapRecord<String, String, String> record(String payload) {
+        return MapRecord.create(STREAM, Map.of("payload", payload)).withId(ID);
+    }
+    private PendingMessages pending(long deliveries) {
+        return new PendingMessages(GROUP, List.of(new PendingMessage(ID,
+                Consumer.from(GROUP, "old-consumer"), Duration.ofSeconds(70), deliveries)));
     }
 
-    @Test
-    void onMessage_success_emitsAckAndWebSocket() {
-        Map<String, String> payload = Map.of(
-            "employerId", "company-123",
-            "candidateId", "worker-456",
-            "offerId", "1"
-        );
-        MapRecord<String, String, String> record = MapRecord.create("stream:job-applications", payload)
-            .withId(RecordId.of("1710000000000-0"));
-
-        consumer.onMessage(record);
-
-        // Verifica que se envió la notificación por WebSocket a la empresa
-        verify(messagingTemplate).convertAndSend(eq("/topic/user/company-123"), any(Map.class));
-
-        // Verifica la confirmación explícita mediante XACK
-        verify(streamOperations).acknowledge("stream:job-applications", "notifications-group", RecordId.of("1710000000000-0"));
+    @Test void validEventIsDeliveredAndAcknowledged() throws Exception {
+        var event = JobApplicationEvent.create(10L, 1L, "Offer", "worker", "Worker", "", "company");
+        consumer.onMessage(record(mapper.writeValueAsString(event)));
+        verify(websocket).convertAndSend(eq("/topic/user/company"), argThat((Map<String,String> m) -> "info".equals(m.get("type"))));
+        verify(streams).acknowledge(STREAM, GROUP, ID);
     }
 
-    @Test
-    void onMessage_failure_routesToDlqAfterRetries() {
-        // Mensaje con fallo forzado
-        Map<String, String> payload = Map.of(
-            "employerId", "company-123",
-            "candidateId", "worker-456",
-            "offerId", "1",
-            "forceError", "true"
-        );
-        MapRecord<String, String, String> record = MapRecord.create("stream:job-applications", payload)
-            .withId(RecordId.of("1710000000000-1"));
+    @Test void failedEventRemainsPendingBeforeMaximum() {
+        when(streams.pending(eq(STREAM), eq(GROUP), any(Range.class), eq(1L))).thenReturn(pending(1));
+        consumer.onMessage(record("invalid"));
+        verify(streams, never()).acknowledge(anyString(), anyString(), any(RecordId.class));
+        verify(streams, never()).add(eq("stream:job-applications:dlq"), anyMap());
+    }
 
-        // Intento 1: no debe ir a DLQ todavía
-        consumer.onMessage(record);
-        verify(streamOperations, never()).add(eq("stream:job-applications:dlq"), any(Map.class));
+    @Test void lastFailedDeliveryGoesToDlqBeforeAck() {
+        when(streams.pending(eq(STREAM), eq(GROUP), any(Range.class), eq(1L))).thenReturn(pending(3));
+        when(streams.add(eq("stream:job-applications:dlq"), anyMap())).thenReturn(RecordId.of("2-0"));
+        consumer.onMessage(record("invalid"));
+        var order = inOrder(streams);
+        order.verify(streams).add(eq("stream:job-applications:dlq"), argThat(m -> "3".equals(m.get("retryAttempts"))));
+        order.verify(streams).acknowledge(STREAM, GROUP, ID);
+    }
 
-        // Intento 2 (alcanza maxAttempts=2): debe transferirse a la DLQ
-        consumer.onMessage(record);
-        verify(streamOperations).add(eq("stream:job-applications:dlq"), any(Map.class));
+    @Test void failedDlqWriteDoesNotAcknowledge() {
+        when(streams.pending(eq(STREAM), eq(GROUP), any(Range.class), eq(1L))).thenReturn(pending(3));
+        when(streams.add(eq("stream:job-applications:dlq"), anyMap())).thenThrow(new RuntimeException("Redis unavailable"));
+        consumer.onMessage(record("invalid"));
+        verify(streams, never()).acknowledge(anyString(), anyString(), any(RecordId.class));
+    }
 
-        // Y se debe confirmar en la cola principal para no bloquear otros mensajes
-        verify(streamOperations).acknowledge("stream:job-applications", "notifications-group", RecordId.of("1710000000000-1"));
+    @Test void recoveryClaimsAbandonedMessage() throws Exception {
+        var event = JobApplicationEvent.create(10L, 1L, "Offer", "worker", "Worker", "", "company");
+        when(streams.pending(eq(STREAM), eq(GROUP), any(Range.class), eq(100L))).thenReturn(pending(1));
+        when(streams.claim(eq(STREAM), eq(GROUP), anyString(), eq(Duration.ofSeconds(60)), eq(ID)))
+                .thenReturn(List.of(record(mapper.writeValueAsString(event))));
+        consumer.recoverPending();
+        verify(websocket).convertAndSend(eq("/topic/user/company"), any(Map.class));
+        verify(streams).acknowledge(STREAM, GROUP, ID);
     }
 }

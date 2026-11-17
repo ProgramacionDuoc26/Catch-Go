@@ -10,7 +10,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.*;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer;
-import org.springframework.data.redis.stream.Subscription;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -60,11 +59,10 @@ public class StreamConsumerConfig {
             StreamMessageListenerContainer.create(connectionFactory, options);
 
         // 3. Suscripción al grupo de consumidores
-        Subscription subscription = container.receiveAutoAck(
+        container.receive(
             Consumer.from(groupName, consumerName),
             StreamOffset.create(streamKey, ReadOffset.lastConsumed()),
-            // El ACK se maneja manualmente dentro de consumer.onMessage() para mayor robustez
-            record -> consumer.onMessage(record)
+            consumer
         );
 
         String statusStream = messagingProperties.getStreamName("application-status", "stream:application-status");

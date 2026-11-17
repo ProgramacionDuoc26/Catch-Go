@@ -1,144 +1,123 @@
 package com.catchandgo.notification.messaging.consumer;
 
+import com.catchandgo.common.events.JobApplicationEvent;
 import com.catchandgo.notification.messaging.config.MessagingProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.stream.StreamListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
-
-/**
- * Consumidor asíncrono de eventos de postulación en Redis Streams.
- * Cumple con los criterios de la rúbrica:
- * - Consumidor agrupado por dominio funcional (Notificaciones).
- * - Confirmación explícita mediante ACK (XACK).
- * - Manejo explícito de errores y desvío a Dead Letter Queue (DLQ).
- */
 @Component
 public class JobApplicationStreamConsumer implements StreamListener<String, MapRecord<String, String, String>> {
-
     private static final Logger log = LoggerFactory.getLogger(JobApplicationStreamConsumer.class);
+    private static final Duration MIN_IDLE = Duration.ofSeconds(60);
+    private final StringRedisTemplate redis;
+    private final SimpMessagingTemplate websocket;
+    private final ObjectMapper mapper;
+    private final MessagingProperties properties;
 
-    private final StringRedisTemplate redisTemplate;
-    private final SimpMessagingTemplate messagingTemplate;
-    private final ObjectMapper objectMapper;
-    private final MessagingProperties messagingProperties;
+    public JobApplicationStreamConsumer(StringRedisTemplate redis, SimpMessagingTemplate websocket,
+                                        ObjectMapper mapper, MessagingProperties properties) {
+        this.redis = redis;
+        this.websocket = websocket;
+        this.mapper = mapper;
+        this.properties = properties;
+    }
 
-    // Registro de reintentos por ID de mensaje
-    private final Map<String, AtomicInteger> retryCounters = new ConcurrentHashMap<>();
-
-    public JobApplicationStreamConsumer(StringRedisTemplate redisTemplate,
-                                       SimpMessagingTemplate messagingTemplate,
-                                       ObjectMapper objectMapper,
-                                       MessagingProperties messagingProperties) {
-        this.redisTemplate = redisTemplate;
-        this.messagingTemplate = messagingTemplate;
-        this.objectMapper = objectMapper;
-        this.messagingProperties = messagingProperties;
+    private String group() {
+        return properties.getGroupName("notifications-group", "notifications-group");
     }
 
     @Override
     public void onMessage(MapRecord<String, String, String> record) {
-        String streamKey = record.getStream();
-        RecordId recordId = record.getId();
-        Map<String, String> value = record.getValue();
-        String groupName = messagingProperties.getGroupName("notifications-group", "notifications-group");
-
-        // Ignorar registros de inicialización del sistema
-        if (value.containsKey("system")) {
-            redisTemplate.opsForStream().acknowledge(streamKey, groupName, recordId);
+        if (record.getValue().containsKey("system")) {
+            acknowledge(record);
             return;
         }
-
-        log.info("[ASYNC-MQ CONSUMER] Mensaje recibido de stream '{}' | ID='{}'", streamKey, recordId);
-
         try {
-            // Procesamiento de negocio del evento
-            processApplicationEvent(value);
-
-            // 1. Confirmación de procesamiento exitoso (ACK explícito - XACK)
-            redisTemplate.opsForStream().acknowledge(streamKey, groupName, recordId);
-            retryCounters.remove(recordId.getValue());
-
-            log.info("[ASYNC-MQ ACK] Confirmado exitosamente (XACK) | Stream='{}' | Grupo='{}' | ID='{}'",
-                    streamKey, groupName, recordId);
-
-        } catch (Exception e) {
-            handleProcessingFailure(streamKey, groupName, record, e);
-        }
-    }
-
-    private void processApplicationEvent(Map<String, String> data) throws Exception {
-        String employerId = data.get("employerId");
-        String candidateId = data.get("candidateId");
-        String offerId = data.get("offerId");
-
-        // Simulación de validación: si viene corrupto, fuerza el desvío a DLQ
-        if (data.containsKey("forceError") && "true".equalsIgnoreCase(data.get("forceError"))) {
-            throw new IllegalArgumentException("Error simulado para prueba de Dead Letter Queue (DLQ)");
-        }
-
-        Map<String, String> notification = Map.of(
-            "title", "Nueva Postulación Recibida",
-            "message", "El postulante " + candidateId + " ha aplicado a la oferta #" + offerId,
-            "type", "JOB_APPLICATION",
-            "userId", employerId != null ? employerId : "unknown",
-            "timestamp", Instant.now().toString()
-        );
-
-        // Retransmisión en tiempo real vía WebSocket al usuario destinatario
-        if (employerId != null && !employerId.isBlank()) {
-            messagingTemplate.convertAndSend("/topic/user/" + employerId, notification);
-            log.info("[ASYNC-MQ WS] Alerta enviada a WebSocket para empresa '{}'", employerId);
-        }
-    }
-
-    private void handleProcessingFailure(String streamKey,
-                                         String groupName,
-                                         MapRecord<String, String, String> record,
-                                         Exception exception) {
-        RecordId recordId = record.getId();
-        int maxRetries = messagingProperties.getRetry().getMaxAttempts();
-        int attempts = retryCounters.computeIfAbsent(recordId.getValue(), k -> new AtomicInteger(0)).incrementAndGet();
-
-        log.warn("[ASYNC-MQ RETRY] Intento {} de {} para mensaje ID='{}': {}",
-                attempts, maxRetries, recordId, exception.getMessage());
-
-        if (attempts >= maxRetries) {
-            // 2. Se alcanzaron los reintentos máximos -> Derivar a Dead Letter Queue (DLQ)
-            String dlqStream = messagingProperties.getStreamName("dlq", "stream:job-applications:dlq");
-
-            try {
-                Map<String, String> dlqPayload = new HashMap<>(record.getValue());
-                dlqPayload.put("errorReason", exception.getMessage() != null ? exception.getMessage() : "Error desconocido");
-                dlqPayload.put("failedAt", Instant.now().toString());
-                dlqPayload.put("originalStream", streamKey);
-                dlqPayload.put("originalId", recordId.getValue());
-                dlqPayload.put("retryAttempts", String.valueOf(attempts));
-
-                // Guardar en la DLQ
-                redisTemplate.opsForStream().add(dlqStream, dlqPayload);
-
-                // Confirmar el mensaje en la cola principal para no bloquear la cola a otros mensajes
-                redisTemplate.opsForStream().acknowledge(streamKey, groupName, recordId);
-                retryCounters.remove(recordId.getValue());
-
-                log.error("[ASYNC-MQ ALERTA DLQ] Mensaje ID='{}' movido a Dead Letter Queue '{}' tras {} fallos",
-                        recordId, dlqStream, attempts);
-
-            } catch (Exception dlqEx) {
-                log.error("[ASYNC-MQ ERROR CRÍTICO] No se pudo transferir mensaje a DLQ: {}", dlqEx.getMessage(), dlqEx);
+            JobApplicationEvent event = mapper.readValue(record.getValue().get("payload"), JobApplicationEvent.class);
+            if (event == null || event.eventId() == null || event.eventId().isBlank()
+                    || event.applicationId() == null || event.offerId() == null
+                    || event.candidateId() == null || event.candidateId().isBlank()
+                    || event.employerId() == null || event.employerId().isBlank()
+                    || event.timestamp() == null) {
+                throw new IllegalArgumentException("Evento de postulacion incompleto");
             }
+            Map<String, String> notification = Map.of(
+                    "title", "Nueva Postulación Recibida",
+                    "message", "El postulante " + event.candidateId() + " ha aplicado a la oferta #" + event.offerId(),
+                    "type", "info", "userId", event.employerId(), "timestamp", Instant.now().toString());
+            websocket.convertAndSend("/topic/user/" + event.employerId(), notification);
+        } catch (Exception e) {
+            handleFailure(record, e);
+            return;
+        }
+        // A failed ACK leaves the message pending for recovery; it is not a processing error.
+        acknowledge(record);
+    }
+
+    private void acknowledge(MapRecord<String, String, String> record) {
+        try {
+            redis.opsForStream().acknowledge(record.getStream(), group(), record.getId());
+        } catch (Exception e) {
+            log.error("No se pudo confirmar el mensaje {} del stream {}; queda pendiente", record.getId(), record.getStream(), e);
+        }
+    }
+
+    private void handleFailure(MapRecord<String, String, String> record, Exception failure) {
+        try {
+            String id = record.getId().getValue();
+            PendingMessages pending = redis.opsForStream().pending(record.getStream(), group(), Range.closed(id, id), 1);
+            if (pending == null || pending.isEmpty()) {
+                log.error("No se encontro el mensaje pendiente {} en {}; no se confirmara", id, record.getStream());
+                return;
+            }
+            long attempts = pending.get(0).getTotalDeliveryCount();
+            log.warn("Error procesando {} en {}: entrega {} de {}", id, record.getStream(), attempts,
+                    properties.getRetry().getMaxAttempts(), failure);
+            if (attempts < Math.max(1, properties.getRetry().getMaxAttempts())) return;
+
+            Map<String, String> deadLetter = new HashMap<>(record.getValue());
+            deadLetter.put("errorReason", failure.getMessage() == null ? failure.getClass().getSimpleName() : failure.getMessage());
+            deadLetter.put("failedAt", Instant.now().toString());
+            deadLetter.put("originalStream", record.getStream());
+            deadLetter.put("originalId", id);
+            deadLetter.put("retryAttempts", String.valueOf(attempts));
+            String dlq = properties.getStreamName("dlq", "stream:job-applications:dlq");
+            RecordId dlqId = redis.opsForStream().add(dlq, deadLetter);
+            if (dlqId == null) throw new IllegalStateException("Redis no confirmo la escritura en la DLQ");
+            acknowledge(record);
+        } catch (Exception e) {
+            log.error("No se pudo gestionar el fallo de {}; el mensaje permanece pendiente", record.getId(), e);
+        }
+    }
+
+    @Scheduled(fixedDelay = 30000, initialDelay = 30000)
+    public void recoverPending() {
+        String stream = properties.getStreamName("job-applications", "stream:job-applications");
+        try {
+            PendingMessages pending = redis.opsForStream().pending(stream, group(), Range.unbounded(), 100);
+            if (pending == null) return;
+            for (var message : pending) {
+                if (message.getElapsedTimeSinceLastDelivery().compareTo(MIN_IDLE) < 0) continue;
+                var claimed = redis.<String, String>opsForStream().claim(stream, group(),
+                        properties.getConsumer().getName(), MIN_IDLE, message.getId());
+                if (claimed != null) claimed.forEach(this::onMessage);
+            }
+        } catch (Exception e) {
+            log.warn("No se pudieron recuperar mensajes pendientes de {}: {}", stream, e.getMessage());
         }
     }
 }
