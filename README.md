@@ -66,6 +66,23 @@ docker-compose up --build -d
 * El API Gateway estará disponible localmente en `http://localhost:8080`.
 * Puedes acceder a la herramienta de visualización de base de datos **Adminer** ingresando en tu navegador a `http://localhost:8085` (Servidor: `postgres`, Usuario/Contraseña: `catchandgo`).
 
+### Inspeccionar streams con Redis Insight
+
+Con el backend levantado, abre `http://localhost:5540`. En Redis Insight agrega una base de datos con host `redis` y puerto `6379`: ese nombre funciona porque ambos contenedores comparten la red de Docker. El Redis local del proyecto no requiere contraseña en la configuración predeterminada. El puerto de la interfaz se puede cambiar mediante `REDIS_INSIGHT_PORT` en `.env`.
+
+En el navegador de claves busca `stream:job-applications`, `stream:application-status` y sus claves terminadas en `:dlq`. Los streams aparecen cuando los servicios los inicializan y contienen eventos cuando se realizan acciones en la aplicación.
+
+Para consultar los grupos y sus métricas desde la terminal:
+
+```powershell
+docker compose exec redis redis-cli XINFO GROUPS stream:job-applications
+docker compose exec redis redis-cli XPENDING stream:job-applications notifications-group
+docker compose exec redis redis-cli XINFO GROUPS stream:application-status
+docker compose exec redis redis-cli XPENDING stream:application-status application-status-notifications
+```
+
+En `XINFO GROUPS`, `lag` es la cantidad estimada de eventos aún no entregados al grupo cuando Redis puede calcularla. `pending` cuenta los eventos entregados que aún no se han confirmado. Redis Insight se publica solo en la máquina local y el volumen `redis_insight_data` guarda su configuración entre reinicios.
+
 ### Persistencia de Redis Streams en desarrollo
 
 Docker Compose configura Redis con AOF (`appendonly yes`) y sincronización a disco cada segundo (`appendfsync everysec`). El volumen `redis_data` conserva los streams, los grupos y la configuración de retención al recrear el contenedor. Una interrupción inesperada puede perder las ultimas escrituras que todavia no se hayan sincronizado; esta configuración usa una sola instancia y no proporciona replicación ni alta disponibilidad.

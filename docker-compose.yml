@@ -46,6 +46,20 @@ services:
       timeout: 5s
       retries: 5
 
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: catch-and-go-redis-insight
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${REDIS_INSIGHT_PORT:-5540}:5540"
+    volumes:
+      - redis_insight_data:/data
+    networks:
+      - catchgo-network
+    depends_on:
+      redis:
+        condition: service_healthy
+
   # ── Microservicios Java ──
 
   auth-service:
@@ -194,6 +208,7 @@ services:
       - postgres
 
 volumes:
+  redis_insight_data:
   redis_data:
   postgres_data:
   profile_uploads:
