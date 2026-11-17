@@ -4,6 +4,9 @@ import com.catchandgo.common.events.QueueSummaryDto;
 import com.catchandgo.jobs.messaging.admin.dto.CreateQueueRequest;
 import com.catchandgo.jobs.messaging.admin.dto.DlqMessageDto;
 import com.catchandgo.jobs.messaging.config.MessagingProperties;
+import com.catchandgo.jobs.messaging.config.StreamRetentionService;
+import com.catchandgo.jobs.messaging.admin.dto.ConsumerGroupDto;
+import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Range;
@@ -27,10 +30,12 @@ public class QueueAdminService {
 
     private final StringRedisTemplate redisTemplate;
     private final MessagingProperties messagingProperties;
+    private final StreamRetentionService retention;
 
-    public QueueAdminService(StringRedisTemplate redisTemplate, MessagingProperties messagingProperties) {
+    public QueueAdminService(StringRedisTemplate redisTemplate, MessagingProperties messagingProperties, StreamRetentionService retention) {
         this.redisTemplate = redisTemplate;
         this.messagingProperties = messagingProperties;
+        this.retention = retention;
     }
 
     /**
@@ -51,13 +56,8 @@ public class QueueAdminService {
                 log.info("[ADMIN-MQ] Stream '{}' creado con ID inicial '{}'", streamName, initId);
             }
 
-            // Crear grupo de consumidores
-            try {
-                redisTemplate.opsForStream().createGroup(streamName, groupName);
-                log.info("[ADMIN-MQ] Grupo '{}' creado en stream '{}'", groupName, streamName);
-            } catch (Exception e) {
-                log.debug("[ADMIN-MQ] Grupo '{}' ya existía: {}", groupName, e.getMessage());
-            }
+            createGroupIfMissing(streamName, groupName);
+            if (request.maxLen() != null) retention.setMaxLen(streamName, request.maxLen());
 
             // Crear DLQ asociada por defecto
             String dlqName = streamName + ":dlq";
@@ -159,6 +159,7 @@ public class QueueAdminService {
         Boolean deleted = redisTemplate.delete(streamKey);
         // También intentar borrar su DLQ si existe
         redisTemplate.delete(streamKey + ":dlq");
+        retention.remove(streamKey);
         log.info("[ADMIN-MQ] Cola '{}' eliminada: {}", streamKey, deleted);
         return Boolean.TRUE.equals(deleted);
     }
@@ -216,6 +217,58 @@ public class QueueAdminService {
             log.error("[ADMIN-MQ ERROR] Error leyendo DLQ '{}': {}", dlqKey, e.getMessage());
             return Collections.emptyList();
         }
+    }
+
+    public Long getRetention(String name) {
+        String stream = requireStream(name);
+        return retention.effectiveMaxLen(stream);
+    }
+
+    public void setRetention(String name, long maxLen) {
+        retention.setMaxLen(requireStream(name), maxLen);
+    }
+
+    public List<ConsumerGroupDto> getGroups(String name) {
+        String stream = requireStream(name);
+        var groups = redisTemplate.opsForStream().groups(stream);
+        List<ConsumerGroupDto> result = new ArrayList<>();
+        for (var group : groups) {
+            var consumers = redisTemplate.opsForStream().consumers(stream, group.groupName());
+            List<ConsumerGroupDto.ConsumerDto> members = new ArrayList<>();
+            for (var consumer : consumers) {
+                members.add(new ConsumerGroupDto.ConsumerDto(consumer.consumerName(), consumer.pendingCount(), consumer.idleTimeMs()));
+            }
+            Object rawLag = group.getRaw().get("lag");
+            Long lag = rawLag == null ? null : Long.valueOf(rawLag.toString());
+            result.add(new ConsumerGroupDto(group.groupName(), group.consumerCount(), group.pendingCount(),
+                    group.lastDeliveredId(), lag, members));
+        }
+        return result;
+    }
+
+    public void createGroup(String name, String group) {
+        createGroupIfMissing(requireStream(name), group);
+    }
+
+    private void createGroupIfMissing(String stream, String group) {
+        try {
+            redisTemplate.opsForStream().createGroup(stream, ReadOffset.from("0-0"), group);
+        } catch (Exception e) {
+            Throwable cause = e;
+            while (cause != null) {
+                if (cause.getMessage() != null && cause.getMessage().contains("BUSYGROUP")) return;
+                cause = cause.getCause();
+            }
+            throw e;
+        }
+    }
+
+    private String requireStream(String name) {
+        String stream = normalizeStreamName(name);
+        if (!Boolean.TRUE.equals(redisTemplate.hasKey(stream))) {
+            throw new IllegalArgumentException("El stream no existe: " + stream);
+        }
+        return stream;
     }
 
     private String normalizeStreamName(String rawName) {

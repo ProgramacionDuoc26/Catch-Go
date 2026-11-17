@@ -3,6 +3,10 @@ package com.catchandgo.jobs.messaging.admin.service;
 import com.catchandgo.common.events.QueueSummaryDto;
 import com.catchandgo.jobs.messaging.admin.dto.CreateQueueRequest;
 import com.catchandgo.jobs.messaging.config.MessagingProperties;
+import com.catchandgo.jobs.messaging.config.StreamRetentionService;
+import org.springframework.data.redis.connection.stream.ReadOffset;
+import org.springframework.data.redis.connection.stream.StreamInfo;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +39,9 @@ class QueueAdminServiceTest {
     @Mock
     private StreamOperations<String, Object, Object> streamOperations;
 
+    @Mock
+    private StreamRetentionService retention;
+
     @InjectMocks
     private QueueAdminService service;
 
@@ -55,7 +62,8 @@ class QueueAdminServiceTest {
 
         assertNotNull(result);
         assertEquals("stream:test-queue", result.queueName());
-        verify(streamOperations).createGroup("stream:test-queue", "test-group");
+        verify(streamOperations).createGroup(eq("stream:test-queue"), any(ReadOffset.class), eq("test-group"));
+        verify(retention).setMaxLen("stream:test-queue", 5000L);
     }
 
     @Test
@@ -75,5 +83,43 @@ class QueueAdminServiceTest {
         boolean purged = service.purgeQueue("test-queue");
         assertTrue(purged);
         verify(streamOperations).trim("stream:test-queue", 0L);
+    }
+    @Test
+    void createGroupDoesNotHideRedisErrors() {
+        when(redisTemplate.hasKey("stream:test-queue")).thenReturn(true);
+        when(streamOperations.createGroup(eq("stream:test-queue"), any(ReadOffset.class), eq("group")))
+            .thenThrow(new RuntimeException("Redis unavailable"));
+        assertThrows(RuntimeException.class, () -> service.createGroup("test-queue", "group"));
+    }
+
+    @Test
+    void groupsExposeLagAndPendingSeparately() {
+        when(redisTemplate.hasKey("stream:test-queue")).thenReturn(true);
+        var groups = mock(StreamInfo.XInfoGroups.class);
+        var group = mock(StreamInfo.XInfoGroup.class);
+        var consumers = mock(StreamInfo.XInfoConsumers.class);
+        var consumer = mock(StreamInfo.XInfoConsumer.class);
+        when(streamOperations.groups("stream:test-queue")).thenReturn(groups);
+        when(groups.iterator()).thenReturn(List.of(group).iterator());
+        when(group.groupName()).thenReturn("workers");
+        when(group.consumerCount()).thenReturn(1L);
+        when(group.pendingCount()).thenReturn(2L);
+        when(group.lastDeliveredId()).thenReturn("5-0");
+        when(group.getRaw()).thenReturn(Map.of("lag", 7L));
+        when(streamOperations.consumers("stream:test-queue", "workers")).thenReturn(consumers);
+        when(consumers.iterator()).thenReturn(List.of(consumer).iterator());
+        when(consumer.consumerName()).thenReturn("worker-1");
+        when(consumer.pendingCount()).thenReturn(2L);
+        var result = service.getGroups("test-queue").get(0);
+        assertEquals(7L, result.lag());
+        assertEquals(2L, result.pendingMessages());
+        assertEquals("worker-1", result.consumers().get(0).name());
+    }
+
+    @Test
+    void settingRetentionPersistsPolicyForExistingStream() {
+        when(redisTemplate.hasKey("stream:test-queue")).thenReturn(true);
+        service.setRetention("test-queue", 250L);
+        verify(retention).setMaxLen("stream:test-queue", 250L);
     }
 }

@@ -2,6 +2,7 @@ package com.catchandgo.jobs.messaging.producer;
 
 import com.catchandgo.common.events.ApplicationStatusEvent;
 import com.catchandgo.jobs.messaging.config.MessagingProperties;
+import com.catchandgo.jobs.messaging.config.StreamRetentionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -13,11 +14,13 @@ public class ApplicationStatusStreamPublisher {
     private final StringRedisTemplate redis;
     private final ObjectMapper mapper;
     private final MessagingProperties properties;
+    private final StreamRetentionService retention;
 
-    public ApplicationStatusStreamPublisher(StringRedisTemplate redis, ObjectMapper mapper, MessagingProperties properties) {
+    public ApplicationStatusStreamPublisher(StringRedisTemplate redis, ObjectMapper mapper, MessagingProperties properties, StreamRetentionService retention) {
         this.redis = redis;
         this.mapper = mapper;
         this.properties = properties;
+        this.retention = retention;
     }
 
     public void publish(ApplicationStatusEvent event) {
@@ -30,7 +33,7 @@ public class ApplicationStatusStreamPublisher {
         }
         redis.opsForStream().add(MapRecord.create(stream, Map.of(
                 "eventId", event.eventId(), "type", "APPLICATION_STATUS_CHANGED", "payload", payload)));
-        Long maxLen = properties.getRetention().getMaxLen();
+        Long maxLen = retention.effectiveMaxLen(stream);
         if (maxLen != null && maxLen > 0) {
             redis.opsForStream().trim(stream, maxLen, true);
         }

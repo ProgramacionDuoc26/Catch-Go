@@ -2,6 +2,7 @@ package com.catchandgo.jobs.messaging.producer;
 
 import com.catchandgo.common.events.JobApplicationEvent;
 import com.catchandgo.jobs.messaging.config.MessagingProperties;
+import com.catchandgo.jobs.messaging.config.StreamRetentionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,13 +25,15 @@ public class JobApplicationStreamPublisher {
     private final StringRedisTemplate redisTemplate;
     private final ObjectMapper objectMapper;
     private final MessagingProperties messagingProperties;
+    private final StreamRetentionService retention;
 
     public JobApplicationStreamPublisher(StringRedisTemplate redisTemplate,
                                         ObjectMapper objectMapper,
-                                        MessagingProperties messagingProperties) {
+                                        MessagingProperties messagingProperties, StreamRetentionService retention) {
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
         this.messagingProperties = messagingProperties;
+        this.retention = retention;
     }
 
     /**
@@ -57,7 +60,7 @@ public class JobApplicationStreamPublisher {
             RecordId recordId = redisTemplate.opsForStream().add(record);
 
             // Aplicar política de retención (MAXLEN ~)
-            Long maxLen = messagingProperties.getRetention().getMaxLen();
+            Long maxLen = retention.effectiveMaxLen(streamKey);
             if (maxLen != null && maxLen > 0) {
                 redisTemplate.opsForStream().trim(streamKey, maxLen, true);
             }

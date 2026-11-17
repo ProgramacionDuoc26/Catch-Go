@@ -3,6 +3,9 @@ package com.catchandgo.jobs.messaging.admin.controller;
 import com.catchandgo.common.events.QueueSummaryDto;
 import com.catchandgo.jobs.messaging.admin.dto.CreateQueueRequest;
 import com.catchandgo.jobs.messaging.admin.dto.DlqMessageDto;
+import com.catchandgo.jobs.messaging.admin.dto.ConsumerGroupDto;
+import com.catchandgo.jobs.messaging.admin.dto.CreateGroupRequest;
+import com.catchandgo.jobs.messaging.admin.dto.RetentionRequest;
 import com.catchandgo.jobs.messaging.admin.service.QueueAdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -77,5 +80,26 @@ public class QueueAdminController {
             @PathVariable("name") String name,
             @RequestParam(value = "limit", defaultValue = "20") int limit) {
         return ResponseEntity.ok(adminService.getDlqMessages(name, limit));
+    }
+    @GetMapping("/{name}/groups")
+    public ResponseEntity<List<ConsumerGroupDto>> getGroups(@PathVariable("name") String name) {
+        return ResponseEntity.ok(adminService.getGroups(name));
+    }
+
+    @PostMapping("/{name}/groups")
+    public ResponseEntity<Void> createGroup(@PathVariable("name") String name, @Valid @RequestBody CreateGroupRequest request) {
+        adminService.createGroup(name, request.name());
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{name}/retention")
+    public ResponseEntity<Map<String, Long>> getRetention(@PathVariable("name") String name) {
+        return ResponseEntity.ok(Map.of("maxLen", adminService.getRetention(name)));
+    }
+
+    @PutMapping("/{name}/retention")
+    public ResponseEntity<Map<String, Long>> setRetention(@PathVariable("name") String name, @Valid @RequestBody RetentionRequest request) {
+        adminService.setRetention(name, request.maxLen());
+        return ResponseEntity.ok(Map.of("maxLen", request.maxLen()));
     }
 }

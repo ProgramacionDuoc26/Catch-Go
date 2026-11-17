@@ -2,6 +2,7 @@ package com.catchandgo.jobs.messaging.admin.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 
 /**
  * DTO de solicitud para la creación de colas/streams.
@@ -14,6 +15,7 @@ public record CreateQueueRequest(
 
     String consumerGroup,
 
+    @Positive(message = "maxLen debe ser positivo")
     Long maxLen
 ) {
     public String getEffectiveGroup() {

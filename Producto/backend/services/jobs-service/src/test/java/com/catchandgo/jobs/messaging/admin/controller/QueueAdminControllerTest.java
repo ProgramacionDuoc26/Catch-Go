@@ -82,4 +82,17 @@ class QueueAdminControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.deleted").value(true));
     }
+    @Test
+    void retentionRejectsNonPositiveValue() throws Exception {
+        mockMvc.perform(put("/queues/jobs-stream/retention")
+                .contentType(MediaType.APPLICATION_JSON).content("{\"maxLen\":0}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void retentionReturnsConfiguredValue() throws Exception {
+        when(adminService.getRetention("jobs-stream")).thenReturn(250L);
+        mockMvc.perform(get("/queues/jobs-stream/retention"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.maxLen").value(250));
+    }
 }
