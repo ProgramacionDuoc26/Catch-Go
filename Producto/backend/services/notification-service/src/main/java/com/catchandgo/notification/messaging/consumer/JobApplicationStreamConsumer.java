@@ -27,13 +27,15 @@ public class JobApplicationStreamConsumer implements StreamListener<String, MapR
     private final SimpMessagingTemplate websocket;
     private final ObjectMapper mapper;
     private final MessagingProperties properties;
+    private final EventDeliveryGuard deliveryGuard;
 
     public JobApplicationStreamConsumer(StringRedisTemplate redis, SimpMessagingTemplate websocket,
-                                        ObjectMapper mapper, MessagingProperties properties) {
+                                        ObjectMapper mapper, MessagingProperties properties, EventDeliveryGuard deliveryGuard) {
         this.redis = redis;
         this.websocket = websocket;
         this.mapper = mapper;
         this.properties = properties;
+        this.deliveryGuard = deliveryGuard;
     }
 
     private String group() {
@@ -46,8 +48,9 @@ public class JobApplicationStreamConsumer implements StreamListener<String, MapR
             acknowledge(record);
             return;
         }
+        JobApplicationEvent event;
         try {
-            JobApplicationEvent event = mapper.readValue(record.getValue().get("payload"), JobApplicationEvent.class);
+            event = mapper.readValue(record.getValue().get("payload"), JobApplicationEvent.class);
             if (event == null || event.eventId() == null || event.eventId().isBlank()
                     || event.applicationId() == null || event.offerId() == null
                     || event.candidateId() == null || event.candidateId().isBlank()
@@ -55,16 +58,37 @@ public class JobApplicationStreamConsumer implements StreamListener<String, MapR
                     || event.timestamp() == null) {
                 throw new IllegalArgumentException("Evento de postulacion incompleto");
             }
-            Map<String, String> notification = Map.of(
-                    "title", "Nueva Postulación Recibida",
-                    "message", "El postulante " + event.candidateId() + " ha aplicado a la oferta #" + event.offerId(),
-                    "type", "info", "userId", event.employerId(), "timestamp", Instant.now().toString());
-            websocket.convertAndSend("/topic/user/" + event.employerId(), notification);
         } catch (Exception e) {
             handleFailure(record, e);
             return;
         }
-        // A failed ACK leaves the message pending for recovery; it is not a processing error.
+        final EventDeliveryGuard.Claim claim;
+        try {
+            claim = deliveryGuard.acquire(group(), event.eventId());
+            if (claim.state() == EventDeliveryGuard.State.COMPLETED) { acknowledge(record); return; }
+            if (claim.state() == EventDeliveryGuard.State.BUSY) return;
+        } catch (Exception e) {
+            log.warn("No se pudo reservar el evento {}; permanece pendiente", event.eventId(), e);
+            return;
+        }
+        try {
+            Map<String, String> notification = Map.of(
+                    "title", "Nueva Postulaci\u00f3n Recibida",
+                    "message", "El postulante " + event.candidateId() + " ha aplicado a la oferta #" + event.offerId(),
+                    "type", "info", "userId", event.employerId(), "eventId", event.eventId(), "timestamp", Instant.now().toString());
+            websocket.convertAndSend("/topic/user/" + event.employerId(), notification);
+        } catch (Exception e) {
+            try { deliveryGuard.release(claim); }
+            catch (Exception releaseError) { log.warn("No se pudo liberar la reserva del evento {}", event.eventId(), releaseError); }
+            handleFailure(record, e);
+            return;
+        }
+        try {
+            deliveryGuard.complete(claim);
+        } catch (Exception e) {
+            log.error("No se pudo guardar la confirmacion del evento {}; permanece pendiente", event.eventId(), e);
+            return;
+        }
         acknowledge(record);
     }
 

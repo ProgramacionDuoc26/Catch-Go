@@ -21,13 +21,15 @@ public class ApplicationStatusStreamConsumer implements StreamListener<String, M
     private final SimpMessagingTemplate websocket;
     private final ObjectMapper mapper;
     private final MessagingProperties properties;
+    private final EventDeliveryGuard deliveryGuard;
 
     public ApplicationStatusStreamConsumer(StringRedisTemplate redis, SimpMessagingTemplate websocket,
-            ObjectMapper mapper, MessagingProperties properties) {
+            ObjectMapper mapper, MessagingProperties properties, EventDeliveryGuard deliveryGuard) {
         this.redis = redis;
         this.websocket = websocket;
         this.mapper = mapper;
         this.properties = properties;
+        this.deliveryGuard = deliveryGuard;
     }
 
     // Recupera mensajes abandonados por consumidores caidos despues de un minuto.
@@ -56,34 +58,68 @@ public class ApplicationStatusStreamConsumer implements StreamListener<String, M
             redis.opsForStream().acknowledge(record.getStream(), group, record.getId());
             return;
         }
+        ApplicationStatusEvent event;
+        try {
+            event = mapper.readValue(record.getValue().get("payload"), ApplicationStatusEvent.class);
+            if (event == null || event.eventId() == null || event.eventId().isBlank() || event.workerId() == null ||
+                    event.workerId().isBlank() || event.title() == null || event.message() == null ||
+                    event.notificationType() == null || event.occurredAt() == null) {
+                throw new IllegalArgumentException("Evento de estado incompleto");
+            }
+        } catch (Exception e) {
+            moveToDlq(record, group, e, 1);
+            return;
+        }
+        final EventDeliveryGuard.Claim claim;
+        try {
+            claim = deliveryGuard.acquire(group, event.eventId());
+            if (claim.state() == EventDeliveryGuard.State.COMPLETED) {
+                redis.opsForStream().acknowledge(record.getStream(), group, record.getId());
+                return;
+            }
+            if (claim.state() == EventDeliveryGuard.State.BUSY) return;
+        } catch (Exception e) {
+            log.warn("No se pudo reservar el evento {}; permanece pendiente", event.eventId(), e);
+            return;
+        }
         Exception failure = null;
         int attempts = Math.max(1, properties.getRetry().getMaxAttempts());
         for (int i = 1; i <= attempts; i++) {
             try {
-                ApplicationStatusEvent event = mapper.readValue(record.getValue().get("payload"), ApplicationStatusEvent.class);
-                if (event.workerId() == null || event.workerId().isBlank() || event.title() == null ||
-                        event.message() == null || event.notificationType() == null) {
-                    throw new IllegalArgumentException("Evento de estado incompleto");
-                }
                 websocket.convertAndSend("/topic/user/" + event.workerId(), Map.of(
                         "userId", event.workerId(), "title", event.title(), "message", event.message(),
-                        "type", event.notificationType(), "timestamp", event.occurredAt().toString()));
-                redis.opsForStream().acknowledge(record.getStream(), group, record.getId());
-                return;
+                        "type", event.notificationType(), "timestamp", event.occurredAt().toString(), "eventId", event.eventId()));
+                failure = null;
+                break;
             } catch (Exception e) {
                 failure = e;
                 log.warn("Error procesando evento {} (intento {}/{}): {}", record.getId(), i, attempts, e.getMessage());
             }
         }
+        if (failure != null) {
+            try { deliveryGuard.release(claim); }
+            catch (Exception e) { log.warn("No se pudo liberar la reserva del evento {}", event.eventId(), e); }
+            moveToDlq(record, group, failure, attempts);
+            return;
+        }
+        try {
+            deliveryGuard.complete(claim);
+            redis.opsForStream().acknowledge(record.getStream(), group, record.getId());
+        } catch (Exception e) {
+            log.error("No se pudo confirmar el evento {}; permanece pendiente", event.eventId(), e);
+        }
+    }
+
+    private void moveToDlq(MapRecord<String, String, String> record, String group, Exception failure, int attempts) {
         try {
             Map<String, String> dlq = new HashMap<>(record.getValue());
             dlq.put("originalStream", record.getStream());
             dlq.put("originalId", record.getId().getValue());
             dlq.put("failedAt", Instant.now().toString());
             dlq.put("retryAttempts", String.valueOf(attempts));
-            dlq.put("errorReason", failure == null ? "Error desconocido" : String.valueOf(failure.getMessage()));
+            dlq.put("errorReason", String.valueOf(failure.getMessage()));
             String dlqStream = properties.getStreamName("application-status-dlq", "stream:application-status:dlq");
-            redis.opsForStream().add(dlqStream, dlq);
+            if (redis.opsForStream().add(dlqStream, dlq) == null) throw new IllegalStateException("Redis no confirmo la DLQ");
             redis.opsForStream().acknowledge(record.getStream(), group, record.getId());
         } catch (Exception e) {
             log.error("No se pudo trasladar el evento {} a la DLQ; permanece pendiente", record.getId(), e);

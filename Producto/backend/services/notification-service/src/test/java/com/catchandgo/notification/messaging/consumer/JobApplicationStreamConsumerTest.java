@@ -27,6 +27,7 @@ class JobApplicationStreamConsumerTest {
     private final SimpMessagingTemplate websocket = mock(SimpMessagingTemplate.class);
     private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
     private final MessagingProperties properties = new MessagingProperties();
+    private final EventDeliveryGuard guard = mock(EventDeliveryGuard.class);
     private JobApplicationStreamConsumer consumer;
     private static final String STREAM = "stream:job-applications";
     private static final String GROUP = "notifications-group";
@@ -34,7 +35,9 @@ class JobApplicationStreamConsumerTest {
 
     @BeforeEach void setup() {
         when(redis.<String, String>opsForStream()).thenReturn(streams);
-        consumer = new JobApplicationStreamConsumer(redis, websocket, mapper, properties);
+        when(guard.acquire(anyString(), anyString())).thenReturn(
+                new EventDeliveryGuard.Claim(EventDeliveryGuard.State.ACQUIRED, "key", "token"));
+        consumer = new JobApplicationStreamConsumer(redis, websocket, mapper, properties, guard);
     }
     private MapRecord<String, String, String> record(String payload) {
         return MapRecord.create(STREAM, Map.of("payload", payload)).withId(ID);
@@ -82,5 +85,30 @@ class JobApplicationStreamConsumerTest {
         consumer.recoverPending();
         verify(websocket).convertAndSend(eq("/topic/user/company"), any(Map.class));
         verify(streams).acknowledge(STREAM, GROUP, ID);
+    }
+    @Test void previouslyCompletedEventIsAcknowledgedWithoutSendingAgain() throws Exception {
+        var event = JobApplicationEvent.create(10L, 1L, "Offer", "worker", "Worker", "", "company");
+        when(guard.acquire(GROUP, event.eventId())).thenReturn(
+                new EventDeliveryGuard.Claim(EventDeliveryGuard.State.COMPLETED, "key", "token"));
+        consumer.onMessage(record(mapper.writeValueAsString(event)));
+        verifyNoInteractions(websocket);
+        verify(streams).acknowledge(STREAM, GROUP, ID);
+    }
+
+    @Test void busyEventRemainsPending() throws Exception {
+        var event = JobApplicationEvent.create(10L, 1L, "Offer", "worker", "Worker", "", "company");
+        when(guard.acquire(GROUP, event.eventId())).thenReturn(
+                new EventDeliveryGuard.Claim(EventDeliveryGuard.State.BUSY, "key", "token"));
+        consumer.onMessage(record(mapper.writeValueAsString(event)));
+        verifyNoInteractions(websocket);
+        verify(streams, never()).acknowledge(anyString(), anyString(), any(RecordId.class));
+    }
+
+    @Test void confirmationFailureLeavesEventPending() throws Exception {
+        var event = JobApplicationEvent.create(10L, 1L, "Offer", "worker", "Worker", "", "company");
+        doThrow(new IllegalStateException("Redis unavailable")).when(guard).complete(any());
+        consumer.onMessage(record(mapper.writeValueAsString(event)));
+        verify(websocket).convertAndSend(eq("/topic/user/company"), any(Map.class));
+        verify(streams, never()).acknowledge(anyString(), anyString(), any(RecordId.class));
     }
 }

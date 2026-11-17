@@ -21,11 +21,14 @@ class ApplicationStatusStreamConsumerTest {
     SimpMessagingTemplate websocket = mock(SimpMessagingTemplate.class);
     ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
     MessagingProperties properties = new MessagingProperties();
+    EventDeliveryGuard guard = mock(EventDeliveryGuard.class);
     ApplicationStatusStreamConsumer consumer;
 
     @BeforeEach void setup() {
         when(redis.<String, String>opsForStream()).thenReturn(operations);
-        consumer = new ApplicationStatusStreamConsumer(redis, websocket, mapper, properties);
+        when(guard.acquire(anyString(), anyString())).thenReturn(
+                new EventDeliveryGuard.Claim(EventDeliveryGuard.State.ACQUIRED, "key", "token"));
+        consumer = new ApplicationStatusStreamConsumer(redis, websocket, mapper, properties, guard);
     }
 
     @Test void deliversAndAcknowledges() throws Exception {
@@ -39,9 +42,28 @@ class ApplicationStatusStreamConsumerTest {
 
     @Test void invalidPayloadGoesToDlqAndIsAcknowledged() {
         MapRecord<String, String, String> record = MapRecord.create("stream:application-status", Map.of("payload", "invalid")).withId(RecordId.of("2-0"));
+        when(operations.add(eq("stream:application-status:dlq"), anyMap())).thenReturn(RecordId.of("3-0"));
         consumer.onMessage(record);
-        verify(operations).add(eq("stream:application-status:dlq"), argThat(m -> "2-0".equals(m.get("originalId")) && "3".equals(m.get("retryAttempts"))));
+        verify(operations).add(eq("stream:application-status:dlq"), argThat(m -> "2-0".equals(m.get("originalId")) && "1".equals(m.get("retryAttempts"))));
         verify(operations).acknowledge("stream:application-status", "application-status-notifications", record.getId());
         verifyNoInteractions(websocket);
+    }
+    @Test void completedEventIsAcknowledgedWithoutSendingAgain() throws Exception {
+        var event = ApplicationStatusEvent.create(10L, 1L, "worker", "PENDIENTE", "ACEPTADO", "Aceptada", "Seleccionado", "success");
+        when(guard.acquire("application-status-notifications", event.eventId())).thenReturn(
+                new EventDeliveryGuard.Claim(EventDeliveryGuard.State.COMPLETED, "key", "token"));
+        var record = MapRecord.create("stream:application-status", Map.of("payload", mapper.writeValueAsString(event))).withId(RecordId.of("1-0"));
+        consumer.onMessage(record);
+        verifyNoInteractions(websocket);
+        verify(operations).acknowledge("stream:application-status", "application-status-notifications", record.getId());
+    }
+
+    @Test void confirmationFailureDoesNotMoveSentEventToDlq() throws Exception {
+        var event = ApplicationStatusEvent.create(10L, 1L, "worker", "PENDIENTE", "ACEPTADO", "Aceptada", "Seleccionado", "success");
+        var record = MapRecord.create("stream:application-status", Map.of("payload", mapper.writeValueAsString(event))).withId(RecordId.of("1-0"));
+        doThrow(new IllegalStateException("Redis unavailable")).when(guard).complete(any());
+        consumer.onMessage(record);
+        verify(operations, never()).acknowledge(anyString(), anyString(), any(RecordId.class));
+        verify(operations, never()).add(eq("stream:application-status:dlq"), anyMap());
     }
 }
