@@ -153,7 +153,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       const wsUrl = `${getNotificationBaseUrl()}/ws-notifications`;
       const stomp = new Client({
         webSocketFactory: () => new SockJS(wsUrl),
-        debug: (str) => console.log('STOMP: ' + str),
+        beforeConnect: () => {
+          const token = localStorage.getItem('auth_token');
+          stomp.connectHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+        },
         reconnectDelay: 5000,
         onConnect: () => {
           console.log('Connected to Notification Service');
@@ -178,7 +181,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     const checkUser = () => {
       const storedUser = localStorage.getItem('user_info');
-      if (storedUser) {
+      if (storedUser && localStorage.getItem('auth_token')) {
         try {
           const user = JSON.parse(storedUser);
           const userId = user.id?.toString();

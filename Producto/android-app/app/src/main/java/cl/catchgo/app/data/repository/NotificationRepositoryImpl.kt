@@ -1,6 +1,7 @@
 package cl.catchgo.app.data.repository
 
 import android.util.Log
+import cl.catchgo.app.data.local.SessionStore
 import cl.catchgo.app.data.remote.ApiConfig
 import cl.catchgo.app.data.remote.dto.NotificationDto
 import cl.catchgo.app.domain.model.AppNotification
@@ -22,7 +23,8 @@ import javax.inject.Singleton
 @Singleton
 class NotificationRepositoryImpl @Inject constructor(
     private val okHttpClient: OkHttpClient,
-    private val json: Json
+    private val json: Json,
+    private val sessionStore: SessionStore
 ) : NotificationRepository {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -47,7 +49,12 @@ class NotificationRepositoryImpl @Inject constructor(
                 val stompClient = StompClient(wsClient)
 
                 // Connect to the WebSocket endpoint
-                val session = stompClient.connect(ApiConfig.NOTIFICATIONS_WS_URL)
+                val token = sessionStore.token()?.takeIf { it.isNotBlank() }
+                    ?: throw IllegalStateException("No hay una sesión activa")
+                val session = stompClient.connect(
+                    ApiConfig.NOTIFICATIONS_WS_URL,
+                    customStompConnectHeaders = mapOf("Authorization" to "Bearer $token")
+                )
                 stompSession = session
                 
                 _isConnected.value = true
