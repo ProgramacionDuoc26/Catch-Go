@@ -78,26 +78,28 @@ public class StreamConsumerConfig {
         return container;
     }
 
-    private void ensureStreamAndGroup(StringRedisTemplate redisTemplate, String streamKey, String groupName) {
-        try {
-            Boolean hasKey = redisTemplate.hasKey(streamKey);
-            if (Boolean.FALSE.equals(hasKey)) {
-                redisTemplate.opsForStream().add(streamKey, Collections.singletonMap("system", "init"));
-                log.info("[STREAM-INIT] Stream creado por notification-service: {}", streamKey);
+    void ensureStreamAndGroup(StringRedisTemplate redisTemplate, String streamKey, String groupName) {
+        Boolean hasKey = redisTemplate.hasKey(streamKey);
+        if (hasKey == null) throw new IllegalStateException("Redis no confirmo si existe el stream " + streamKey);
+        if (!hasKey) {
+            if (redisTemplate.opsForStream().add(streamKey, Collections.singletonMap("system", "init")) == null) {
+                throw new IllegalStateException("Redis no confirmo la creacion del stream " + streamKey);
             }
+            log.info("[STREAM-INIT] Stream creado por notification-service: {}", streamKey);
+        }
 
-            try {
-                if (streamKey.equals(messagingProperties.getStreamName("application-status", "stream:application-status"))) {
-                    redisTemplate.opsForStream().createGroup(streamKey, ReadOffset.from("0-0"), groupName);
-                } else {
-                    redisTemplate.opsForStream().createGroup(streamKey, groupName);
+        try {
+            // Un grupo nuevo debe leer tambien los eventos que ya estaban en el stream.
+            redisTemplate.opsForStream().createGroup(streamKey, ReadOffset.from("0-0"), groupName);
+            log.info("[STREAM-INIT] Consumer Group '{}' registrado en stream '{}'", groupName, streamKey);
+        } catch (RuntimeException e) {
+            for (Throwable cause = e; cause != null; cause = cause.getCause()) {
+                if (cause.getMessage() != null && cause.getMessage().contains("BUSYGROUP")) {
+                    log.debug("[STREAM-INIT] Consumer Group '{}' ya registrado en '{}'", groupName, streamKey);
+                    return;
                 }
-                log.info("[STREAM-INIT] Consumer Group '{}' registrado en stream '{}'", groupName, streamKey);
-            } catch (Exception e) {
-                log.debug("[STREAM-INIT] Consumer Group '{}' ya registrado", groupName);
             }
-        } catch (Exception e) {
-            log.warn("[STREAM-INIT] Advertencia inicializando stream en notification-service: {}", e.getMessage());
+            throw e;
         }
     }
 }
