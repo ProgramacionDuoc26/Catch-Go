@@ -112,6 +112,10 @@ Al crear una postulación o cambiar su estado, `jobs-service` guarda el cambio y
 
 El consumidor registra en Redis los identificadores de eventos procesados durante siete días para reducir notificaciones repetidas. Si el servicio cae después de enviar por WebSocket y antes de guardar ese registro, todavía podría repetir la alerta; WebSocket tampoco confirma que el usuario la haya recibido. Los registros publicados permanecen en la tabla de outbox y requieren una política de limpieza antes de acumular un volumen considerable.
 
+Cada instancia de `notification-service` genera un nombre de consumidor diferente al iniciar. Si se necesita un nombre fijo, se puede configurar `APP_MESSAGING_CONSUMER_NAME`, usando un valor distinto en cada instancia. Tras un reinicio, los mensajes pendientes de la instancia anterior pueden recuperarse por los consumidores activos. Redis conserva la información de consumidores anteriores hasta que se administre su limpieza; no se deben eliminar consumidores con mensajes pendientes.
+
+El broker WebSocket actual mantiene las conexiones en cada instancia. Por eso, aunque Redis pueda repartir eventos entre instancias, aún no está garantizado que una notificación llegue a un usuario conectado a otra instancia. Para escalar el servicio con seguridad se necesita una solución que distribuya también los mensajes WebSocket y probarla de extremo a extremo.
+
 ### Paso 2: Configurar y Ejecutar el Frontend Web (Next.js)
 1. Navega a la carpeta del frontend:
    ```bash

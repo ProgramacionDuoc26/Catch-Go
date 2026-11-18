@@ -37,7 +37,6 @@ app:
       notifications-group: "notifications-group"
       application-status-group: "application-status-notifications"
     consumer:
-      name: "notification-consumer-1"
       poll-timeout-ms: 2000
       batch-size: 10
     retry:

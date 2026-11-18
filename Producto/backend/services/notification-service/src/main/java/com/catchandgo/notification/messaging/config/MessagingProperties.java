@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Propiedades centralizadas de mensajería para notification-service.
@@ -59,7 +60,7 @@ public class MessagingProperties {
     }
 
     public static class Consumer {
-        private String name = "notification-consumer-1";
+        private String name = "notification-consumer-" + UUID.randomUUID();
         private long pollTimeoutMs = 2000L;
         private int batchSize = 10;
 

@@ -17,6 +17,15 @@ class StreamConsumerConfigTest {
     private final StreamOperations<String, String, String> streams = mock(StreamOperations.class);
     private final StreamConsumerConfig config = new StreamConsumerConfig(new MessagingProperties());
 
+    @Test void instancesReceiveDistinctConsumerNamesAndMayBeConfigured() {
+        var first = new MessagingProperties();
+        var second = new MessagingProperties();
+        assertTrue(first.getConsumer().getName().startsWith("notification-consumer-"));
+        assertNotEquals(first.getConsumer().getName(), second.getConsumer().getName());
+        first.getConsumer().setName("notification-consumer-custom");
+        assertEquals("notification-consumer-custom", first.getConsumer().getName());
+    }
+
     @Test void newGroupsReadFromBeginningForBothStreams() {
         when(redis.hasKey(anyString())).thenReturn(true);
         when(redis.<String, String>opsForStream()).thenReturn(streams);

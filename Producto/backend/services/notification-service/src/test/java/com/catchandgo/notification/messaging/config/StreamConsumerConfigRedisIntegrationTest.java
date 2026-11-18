@@ -8,11 +8,13 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.connection.stream.StreamOffset;
+import org.springframework.data.redis.connection.stream.StreamReadOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import java.util.Map;
+import java.time.Duration;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Testcontainers(disabledWithoutDocker = true)
@@ -55,5 +57,32 @@ class StreamConsumerConfigRedisIntegrationTest {
             assertEquals(1, next.size());
             assertEquals(nextId, next.get(0).getId());
         }
+    }
+
+    @Test void distinctConsumersShareWorkAndCanRecoverAnUnacknowledgedEvent() {
+        String stream = "stream:consumer-sharing-test";
+        String group = "sharing-test-group";
+        var firstId = template.opsForStream().add(stream, Map.of("payload", "first"));
+        var secondId = template.opsForStream().add(stream, Map.of("payload", "second"));
+        var firstConsumer = new MessagingProperties().getConsumer().getName();
+        var secondConsumer = new MessagingProperties().getConsumer().getName();
+        assertNotEquals(firstConsumer, secondConsumer);
+        new StreamConsumerConfig(new MessagingProperties()).ensureStreamAndGroup(template, stream, group);
+
+        var firstRead = template.opsForStream().read(Consumer.from(group, firstConsumer), StreamReadOptions.empty().count(1),
+                StreamOffset.create(stream, ReadOffset.lastConsumed()));
+        var secondRead = template.opsForStream().read(Consumer.from(group, secondConsumer), StreamReadOptions.empty().count(1),
+                StreamOffset.create(stream, ReadOffset.lastConsumed()));
+        assertNotNull(firstRead);
+        assertNotNull(secondRead);
+        assertEquals(firstId, firstRead.get(0).getId());
+        assertEquals(secondId, secondRead.get(0).getId());
+        template.opsForStream().acknowledge(stream, group, secondId);
+
+        var reclaimed = template.opsForStream().claim(stream, group, secondConsumer, Duration.ZERO, firstId);
+        assertNotNull(reclaimed);
+        assertEquals(1, reclaimed.size());
+        assertEquals(firstId, reclaimed.get(0).getId());
+        assertEquals(1L, template.opsForStream().acknowledge(stream, group, firstId));
     }
 }
