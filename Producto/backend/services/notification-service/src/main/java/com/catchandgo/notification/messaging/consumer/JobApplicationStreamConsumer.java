@@ -2,6 +2,7 @@ package com.catchandgo.notification.messaging.consumer;
 
 import com.catchandgo.common.events.JobApplicationEvent;
 import com.catchandgo.notification.messaging.config.MessagingProperties;
+import com.catchandgo.notification.hub.NotificationBroadcaster;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Duration;
 import java.time.Instant;
@@ -15,7 +16,6 @@ import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.stream.StreamListener;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -24,15 +24,15 @@ public class JobApplicationStreamConsumer implements StreamListener<String, MapR
     private static final Logger log = LoggerFactory.getLogger(JobApplicationStreamConsumer.class);
     private static final Duration MIN_IDLE = Duration.ofSeconds(60);
     private final StringRedisTemplate redis;
-    private final SimpMessagingTemplate websocket;
+    private final NotificationBroadcaster broadcaster;
     private final ObjectMapper mapper;
     private final MessagingProperties properties;
     private final EventDeliveryGuard deliveryGuard;
 
-    public JobApplicationStreamConsumer(StringRedisTemplate redis, SimpMessagingTemplate websocket,
+    public JobApplicationStreamConsumer(StringRedisTemplate redis, NotificationBroadcaster broadcaster,
                                         ObjectMapper mapper, MessagingProperties properties, EventDeliveryGuard deliveryGuard) {
         this.redis = redis;
-        this.websocket = websocket;
+        this.broadcaster = broadcaster;
         this.mapper = mapper;
         this.properties = properties;
         this.deliveryGuard = deliveryGuard;
@@ -77,7 +77,7 @@ public class JobApplicationStreamConsumer implements StreamListener<String, MapR
                     "title", "Nueva Postulaci\u00f3n Recibida",
                     "message", "El postulante " + event.candidateId() + " ha aplicado a la oferta #" + event.offerId(),
                     "type", "info", "userId", event.employerId(), "eventId", event.eventId(), "timestamp", Instant.now().toString());
-            websocket.convertAndSend("/topic/user/" + event.employerId(), notification);
+            broadcaster.publish(notification);
         } catch (Exception e) {
             try { deliveryGuard.release(claim); }
             catch (Exception releaseError) { log.warn("No se pudo liberar la reserva del evento {}", event.eventId(), releaseError); }

@@ -2,6 +2,7 @@ package com.catchandgo.notification.messaging.consumer;
 
 import com.catchandgo.common.events.ApplicationStatusEvent;
 import com.catchandgo.notification.messaging.config.MessagingProperties;
+import com.catchandgo.notification.hub.NotificationBroadcaster;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +11,6 @@ import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.stream.StreamListener;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.util.HashMap;
@@ -22,15 +22,15 @@ public class ApplicationStatusStreamConsumer implements StreamListener<String, M
     private static final Logger log = LoggerFactory.getLogger(ApplicationStatusStreamConsumer.class);
     private static final Set<String> NOTIFICATION_TYPES = Set.of("info", "success", "warning", "error");
     private final StringRedisTemplate redis;
-    private final SimpMessagingTemplate websocket;
+    private final NotificationBroadcaster broadcaster;
     private final ObjectMapper mapper;
     private final MessagingProperties properties;
     private final EventDeliveryGuard deliveryGuard;
 
-    public ApplicationStatusStreamConsumer(StringRedisTemplate redis, SimpMessagingTemplate websocket,
+    public ApplicationStatusStreamConsumer(StringRedisTemplate redis, NotificationBroadcaster broadcaster,
             ObjectMapper mapper, MessagingProperties properties, EventDeliveryGuard deliveryGuard) {
         this.redis = redis;
-        this.websocket = websocket;
+        this.broadcaster = broadcaster;
         this.mapper = mapper;
         this.properties = properties;
         this.deliveryGuard = deliveryGuard;
@@ -88,7 +88,7 @@ public class ApplicationStatusStreamConsumer implements StreamListener<String, M
             return;
         }
         try {
-            websocket.convertAndSend("/topic/user/" + event.workerId(), Map.of(
+            broadcaster.publish(Map.of(
                     "userId", event.workerId(), "title", event.title(), "message", event.message(),
                     "type", event.notificationType(), "timestamp", event.occurredAt().toString(), "eventId", event.eventId()));
         } catch (Exception failure) {

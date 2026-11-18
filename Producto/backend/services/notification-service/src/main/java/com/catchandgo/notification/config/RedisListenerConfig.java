@@ -7,6 +7,8 @@ import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import com.catchandgo.notification.hub.NotificationHandler;
+import com.catchandgo.notification.hub.NotificationBroadcaster;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 @SuppressWarnings("null")
@@ -17,12 +19,14 @@ public class RedisListenerConfig {
                                             MessageListenerAdapter listenerAdapter) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        container.addMessageListener(listenerAdapter, new PatternTopic("notifications"));
+        container.addMessageListener(listenerAdapter, new PatternTopic(NotificationBroadcaster.CHANNEL));
         return container;
     }
 
     @Bean
     MessageListenerAdapter listenerAdapter(NotificationHandler handler) {
-        return new MessageListenerAdapter(handler, "handleMessage");
+        MessageListenerAdapter adapter = new MessageListenerAdapter(handler, "handleMessage");
+        adapter.setSerializer(new StringRedisSerializer());
+        return adapter;
     }
 }

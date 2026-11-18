@@ -16,7 +16,7 @@ import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.StreamOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.catchandgo.notification.hub.NotificationBroadcaster;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -24,7 +24,7 @@ class JobApplicationStreamConsumerTest {
     private final StringRedisTemplate redis = mock(StringRedisTemplate.class);
     @SuppressWarnings("unchecked")
     private final StreamOperations<String, String, String> streams = mock(StreamOperations.class);
-    private final SimpMessagingTemplate websocket = mock(SimpMessagingTemplate.class);
+    private final NotificationBroadcaster broadcaster = mock(NotificationBroadcaster.class);
     private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
     private final MessagingProperties properties = new MessagingProperties();
     private final EventDeliveryGuard guard = mock(EventDeliveryGuard.class);
@@ -37,7 +37,7 @@ class JobApplicationStreamConsumerTest {
         when(redis.<String, String>opsForStream()).thenReturn(streams);
         when(guard.acquire(anyString(), anyString())).thenReturn(
                 new EventDeliveryGuard.Claim(EventDeliveryGuard.State.ACQUIRED, "key", "token"));
-        consumer = new JobApplicationStreamConsumer(redis, websocket, mapper, properties, guard);
+        consumer = new JobApplicationStreamConsumer(redis, broadcaster, mapper, properties, guard);
     }
     private MapRecord<String, String, String> record(String payload) {
         return MapRecord.create(STREAM, Map.of("payload", payload)).withId(ID);
@@ -50,7 +50,7 @@ class JobApplicationStreamConsumerTest {
     @Test void validEventIsDeliveredAndAcknowledged() throws Exception {
         var event = JobApplicationEvent.create(10L, 1L, "Offer", "worker", "Worker", "", "company");
         consumer.onMessage(record(mapper.writeValueAsString(event)));
-        verify(websocket).convertAndSend(eq("/topic/user/company"), argThat((Map<String,String> m) -> "info".equals(m.get("type"))));
+        verify(broadcaster).publish(argThat(m -> "company".equals(m.get("userId")) && "info".equals(m.get("type"))));
         verify(streams).acknowledge(STREAM, GROUP, ID);
     }
 
@@ -69,7 +69,7 @@ class JobApplicationStreamConsumerTest {
         consumer.onMessage(record(mapper.writeValueAsString(invalidApplication)));
         consumer.onMessage(record(mapper.writeValueAsString(invalidOffer)));
         verify(streams, times(2)).add(eq("stream:job-applications:dlq"), anyMap());
-        verifyNoInteractions(websocket);
+        verifyNoInteractions(broadcaster);
         verify(guard, never()).acquire(anyString(), anyString());
     }
 
@@ -95,7 +95,7 @@ class JobApplicationStreamConsumerTest {
         when(streams.claim(eq(STREAM), eq(GROUP), anyString(), eq(Duration.ofSeconds(60)), eq(ID)))
                 .thenReturn(List.of(record(mapper.writeValueAsString(event))));
         consumer.recoverPending();
-        verify(websocket).convertAndSend(eq("/topic/user/company"), any(Map.class));
+        verify(broadcaster).publish(argThat(m -> "company".equals(m.get("userId"))));
         verify(streams).acknowledge(STREAM, GROUP, ID);
     }
     @Test void previouslyCompletedEventIsAcknowledgedWithoutSendingAgain() throws Exception {
@@ -103,7 +103,7 @@ class JobApplicationStreamConsumerTest {
         when(guard.acquire(GROUP, event.eventId())).thenReturn(
                 new EventDeliveryGuard.Claim(EventDeliveryGuard.State.COMPLETED, "key", "token"));
         consumer.onMessage(record(mapper.writeValueAsString(event)));
-        verifyNoInteractions(websocket);
+        verifyNoInteractions(broadcaster);
         verify(streams).acknowledge(STREAM, GROUP, ID);
     }
 
@@ -112,7 +112,7 @@ class JobApplicationStreamConsumerTest {
         when(guard.acquire(GROUP, event.eventId())).thenReturn(
                 new EventDeliveryGuard.Claim(EventDeliveryGuard.State.BUSY, "key", "token"));
         consumer.onMessage(record(mapper.writeValueAsString(event)));
-        verifyNoInteractions(websocket);
+        verifyNoInteractions(broadcaster);
         verify(streams, never()).acknowledge(anyString(), anyString(), any(RecordId.class));
     }
 
@@ -120,7 +120,7 @@ class JobApplicationStreamConsumerTest {
         var event = JobApplicationEvent.create(10L, 1L, "Offer", "worker", "Worker", "", "company");
         doThrow(new IllegalStateException("Redis unavailable")).when(guard).complete(any());
         consumer.onMessage(record(mapper.writeValueAsString(event)));
-        verify(websocket).convertAndSend(eq("/topic/user/company"), any(Map.class));
+        verify(broadcaster).publish(argThat(m -> "company".equals(m.get("userId"))));
         verify(streams, never()).acknowledge(anyString(), anyString(), any(RecordId.class));
     }
 }
