@@ -5,7 +5,9 @@ import com.catchandgo.notification.messaging.config.MessagingProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.stream.StreamListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -82,24 +84,14 @@ public class ApplicationStatusStreamConsumer implements StreamListener<String, M
             log.warn("No se pudo reservar el evento {}; permanece pendiente", event.eventId(), e);
             return;
         }
-        Exception failure = null;
-        int attempts = Math.max(1, properties.getRetry().getMaxAttempts());
-        for (int i = 1; i <= attempts; i++) {
-            try {
-                websocket.convertAndSend("/topic/user/" + event.workerId(), Map.of(
-                        "userId", event.workerId(), "title", event.title(), "message", event.message(),
-                        "type", event.notificationType(), "timestamp", event.occurredAt().toString(), "eventId", event.eventId()));
-                failure = null;
-                break;
-            } catch (Exception e) {
-                failure = e;
-                log.warn("Error procesando evento {} (intento {}/{}): {}", record.getId(), i, attempts, e.getMessage());
-            }
-        }
-        if (failure != null) {
+        try {
+            websocket.convertAndSend("/topic/user/" + event.workerId(), Map.of(
+                    "userId", event.workerId(), "title", event.title(), "message", event.message(),
+                    "type", event.notificationType(), "timestamp", event.occurredAt().toString(), "eventId", event.eventId()));
+        } catch (Exception failure) {
             try { deliveryGuard.release(claim); }
             catch (Exception e) { log.warn("No se pudo liberar la reserva del evento {}", event.eventId(), e); }
-            moveToDlq(record, group, failure, attempts);
+            retryOrMoveToDlq(record, group, failure);
             return;
         }
         try {
@@ -110,7 +102,24 @@ public class ApplicationStatusStreamConsumer implements StreamListener<String, M
         }
     }
 
-    private void moveToDlq(MapRecord<String, String, String> record, String group, Exception failure, int attempts) {
+    private void retryOrMoveToDlq(MapRecord<String, String, String> record, String group, Exception failure) {
+        try {
+            String id = record.getId().getValue();
+            PendingMessages pending = redis.opsForStream().pending(record.getStream(), group, Range.closed(id, id), 1);
+            if (pending == null || pending.isEmpty()) {
+                log.error("No se encontro el mensaje pendiente {} en {}; no se confirmara", id, record.getStream());
+                return;
+            }
+            long attempts = pending.get(0).getTotalDeliveryCount();
+            int maximum = Math.max(1, properties.getRetry().getMaxAttempts());
+            log.warn("Error procesando {} en {}: entrega {} de {}", id, record.getStream(), attempts, maximum, failure);
+            if (attempts >= maximum) moveToDlq(record, group, failure, attempts);
+        } catch (Exception e) {
+            log.error("No se pudo consultar los intentos de {}; permanece pendiente", record.getId(), e);
+        }
+    }
+
+    private void moveToDlq(MapRecord<String, String, String> record, String group, Exception failure, long attempts) {
         try {
             Map<String, String> dlq = new HashMap<>(record.getValue());
             dlq.put("originalStream", record.getStream());

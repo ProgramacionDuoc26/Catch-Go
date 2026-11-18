@@ -5,12 +5,18 @@ import com.catchandgo.notification.messaging.config.MessagingProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Range;
+import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
+import org.springframework.data.redis.connection.stream.PendingMessage;
+import org.springframework.data.redis.connection.stream.PendingMessages;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.StreamOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import java.util.Map;
+import java.util.List;
+import java.time.Duration;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.*;
 
@@ -65,5 +71,55 @@ class ApplicationStatusStreamConsumerTest {
         consumer.onMessage(record);
         verify(operations, never()).acknowledge(anyString(), anyString(), any(RecordId.class));
         verify(operations, never()).add(eq("stream:application-status:dlq"), anyMap());
+    }
+
+    private PendingMessages pending(RecordId id, long deliveries) {
+        return new PendingMessages("application-status-notifications", List.of(new PendingMessage(id,
+                Consumer.from("application-status-notifications", "consumer"), Duration.ofSeconds(70), deliveries)));
+    }
+
+    @Test void failedDeliveryRemainsPendingUntilNextRecovery() throws Exception {
+        var event = ApplicationStatusEvent.create(10L, 1L, "worker", "PENDIENTE", "ACEPTADO", "Aceptada", "Seleccionado", "success");
+        var record = MapRecord.create("stream:application-status", Map.of("payload", mapper.writeValueAsString(event))).withId(RecordId.of("4-0"));
+        when(operations.pending(eq(record.getStream()), anyString(), any(Range.class), eq(1L))).thenReturn(pending(record.getId(), 1));
+        doThrow(new IllegalStateException("Temporal")).when(websocket).convertAndSend(anyString(), any(Map.class));
+        consumer.onMessage(record);
+        verify(websocket, times(1)).convertAndSend(anyString(), any(Map.class));
+        verify(guard).release(any());
+        verify(operations, never()).acknowledge(anyString(), anyString(), any(RecordId.class));
+        verify(operations, never()).add(anyString(), anyMap());
+    }
+
+    @Test void lastFailedDeliveryWritesDlqBeforeAck() throws Exception {
+        var event = ApplicationStatusEvent.create(10L, 1L, "worker", "PENDIENTE", "ACEPTADO", "Aceptada", "Seleccionado", "success");
+        var record = MapRecord.create("stream:application-status", Map.of("payload", mapper.writeValueAsString(event))).withId(RecordId.of("4-0"));
+        when(operations.pending(eq(record.getStream()), anyString(), any(Range.class), eq(1L))).thenReturn(pending(record.getId(), 3));
+        when(operations.add(eq("stream:application-status:dlq"), anyMap())).thenReturn(RecordId.of("5-0"));
+        doThrow(new IllegalStateException("Temporal")).when(websocket).convertAndSend(anyString(), any(Map.class));
+        consumer.onMessage(record);
+        var order = inOrder(operations);
+        order.verify(operations).add(eq("stream:application-status:dlq"), argThat(m -> "3".equals(m.get("retryAttempts"))));
+        order.verify(operations).acknowledge(record.getStream(), "application-status-notifications", record.getId());
+    }
+
+    @Test void dlqFailureKeepsMessagePending() throws Exception {
+        var event = ApplicationStatusEvent.create(10L, 1L, "worker", "PENDIENTE", "ACEPTADO", "Aceptada", "Seleccionado", "success");
+        var record = MapRecord.create("stream:application-status", Map.of("payload", mapper.writeValueAsString(event))).withId(RecordId.of("4-0"));
+        when(operations.pending(eq(record.getStream()), anyString(), any(Range.class), eq(1L))).thenReturn(pending(record.getId(), 3));
+        when(operations.add(eq("stream:application-status:dlq"), anyMap())).thenThrow(new IllegalStateException("Redis unavailable"));
+        doThrow(new IllegalStateException("Temporal")).when(websocket).convertAndSend(anyString(), any(Map.class));
+        consumer.onMessage(record);
+        verify(operations, never()).acknowledge(anyString(), anyString(), any(RecordId.class));
+    }
+
+    @Test void recoveryClaimsAndProcessesPendingMessage() throws Exception {
+        var event = ApplicationStatusEvent.create(10L, 1L, "worker", "PENDIENTE", "ACEPTADO", "Aceptada", "Seleccionado", "success");
+        var record = MapRecord.create("stream:application-status", Map.of("payload", mapper.writeValueAsString(event))).withId(RecordId.of("4-0"));
+        when(operations.pending(eq(record.getStream()), anyString(), any(Range.class), eq(100L))).thenReturn(pending(record.getId(), 1));
+        when(operations.claim(eq(record.getStream()), anyString(), anyString(), eq(Duration.ofSeconds(60)), eq(record.getId())))
+                .thenReturn(List.of(record));
+        consumer.recoverPending();
+        verify(websocket).convertAndSend(eq("/topic/user/worker"), any(Map.class));
+        verify(operations).acknowledge(record.getStream(), "application-status-notifications", record.getId());
     }
 }
