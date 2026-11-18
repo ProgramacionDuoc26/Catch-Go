@@ -61,10 +61,10 @@ public class JobApplicationStreamPublisher {
             RecordId recordId = redisTemplate.opsForStream().add(record);
             if (recordId == null) throw new IllegalStateException("Redis no confirmo el evento");
 
-            // Aplicar política de retención (MAXLEN ~)
+            // Mantener mensajes pendientes o aun no leidos por los grupos existentes.
             if (maxLen != null && maxLen > 0) {
                 try {
-                    redisTemplate.opsForStream().trim(streamKey, maxLen, true);
+                    retention.trimSafely(streamKey, maxLen);
                 } catch (Exception e) {
                     log.warn("Evento publicado, pero no se pudo aplicar retencion en {}: {}", streamKey, e.getMessage());
                 }

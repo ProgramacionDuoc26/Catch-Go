@@ -116,6 +116,8 @@ Cada instancia de `notification-service` genera un nombre de consumidor diferent
 
 El consumidor de cada stream publica la notificación en el canal Redis Pub/Sub `notifications`. Cada instancia activa la recibe y la entrega a sus conexiones WebSocket locales. El publicador mantiene el evento pendiente si Redis informa que no hay instancias suscritas. Pub/Sub es temporal: no confirma que todas las instancias hayan recibido el mensaje ni conserva notificaciones para usuarios desconectados. La distribución entre instancias debe probarse de extremo a extremo antes de usar varias réplicas.
 
+La retención de los streams de postulaciones se intenta al publicar. El recorte considera todos los grupos existentes y conserva las entradas no leídas o pendientes. El máximo configurado es un objetivo, por lo que el stream puede crecer por encima del límite si hay mensajes necesarios o no existen grupos; supervisa su tamaño y los pendientes. Esta protección no impide que las operaciones administrativas de purga y eliminación borren mensajes.
+
 Para comprobar ambos streams con un Redis aislado, inicia Docker y ejecuta desde `Producto/backend` con Java 21:
 
 ```powershell

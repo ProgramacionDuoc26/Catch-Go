@@ -124,7 +124,7 @@ La prueba crea un Redis temporal y comprueba los dos eventos hasta el componente
 ## Límites que se deben explicar
 
 - Redis local usa AOF con sincronización cada segundo y una sola instancia: no ofrece replicación ni alta disponibilidad en esta configuración.
-- La retención por longitud se aplica al publicar. Un recorte puede eliminar entradas antiguas que todavía sean necesarias; hay que ajustar la política y supervisar los pendientes.
+- La retención por longitud se intenta al publicar, pero conserva las entradas necesarias para los grupos existentes y sus mensajes pendientes. El límite puede superarse mientras haya trabajo sin procesar o no existan grupos. Las operaciones administrativas de purga o eliminación siguen borrando datos; deben usarse con cuidado.
 - Redis Pub/Sub y WebSocket no confirman que una persona haya visto la notificación ni conservan una alerta para un usuario desconectado. La deduplicación reduce repeticiones, pero no garantiza entrega exactamente una vez.
 - Un grupo ya existente conserva su posición. Cambiar la configuración de inicio no recupera automáticamente eventos omitidos antes de crear o corregir el grupo.
 - Los resultados y tiempos se deben registrar después de ejecutar las pruebas; no presentar tiempos o capturas de ejemplo como mediciones reales.

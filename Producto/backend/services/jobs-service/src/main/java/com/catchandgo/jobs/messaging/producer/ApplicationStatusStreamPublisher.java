@@ -39,7 +39,7 @@ public class ApplicationStatusStreamPublisher {
         if (id == null) throw new IllegalStateException("Redis no confirmo el evento");
         if (maxLen != null && maxLen > 0) {
             try {
-                redis.opsForStream().trim(stream, maxLen, true);
+                retention.trimSafely(stream, maxLen);
             } catch (Exception e) {
                 log.warn("Evento publicado, pero no se pudo aplicar retencion en {}: {}", stream, e.getMessage());
             }
