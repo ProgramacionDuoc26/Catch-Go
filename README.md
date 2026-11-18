@@ -142,6 +142,16 @@ Para compilar y ejecutar las pruebas de todos los microservicios a través de Ma
 mvn clean test
 ```
 
+### Integración de eventos con PostgreSQL y Redis
+
+Estas pruebas crean contenedores temporales aislados de PostgreSQL y Redis mediante Testcontainers; no utilizan los volúmenes de la aplicación. Requieren que Docker Desktop esté iniciado y que las imágenes estén disponibles o se puedan descargar. Desde `Producto/backend`, ejecuta:
+
+```powershell
+mvn -pl services/jobs-service,services/notification-service -am test "-Dtest=OutboxRedisPostgresIntegrationTest,EventDeliveryGuardRedisIntegrationTest" "-Dsurefire.failIfNoSpecifiedTests=false"
+```
+
+Las pruebas comprueban la migración del outbox, la publicación de los dos eventos, el reintento tras un fallo simulado y la reserva de eventos en Redis. Si Docker no está disponible, se omiten: un resultado omitido no demuestra que la integración haya funcionado.
+
 ### Frontend (Next.js)
 Las pruebas unitarias y de componentes del frontend se ejecutan con Vitest y React Testing Library. Para iniciarlas:
 

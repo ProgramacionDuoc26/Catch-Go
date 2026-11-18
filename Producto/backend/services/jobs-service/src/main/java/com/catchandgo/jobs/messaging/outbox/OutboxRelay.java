@@ -34,7 +34,8 @@ public class OutboxRelay {
         this.transactions = new TransactionTemplate(transactionManager);
     }
 
-    @Scheduled(fixedDelayString = "${app.messaging.outbox.poll-delay-ms:5000}")
+    @Scheduled(fixedDelayString = "${app.messaging.outbox.poll-delay-ms:5000}",
+            initialDelayString = "${app.messaging.outbox.initial-delay-ms:5000}")
     public void relayPending() {
         try {
             transactions.executeWithoutResult(status -> {
