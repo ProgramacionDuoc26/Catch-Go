@@ -26,6 +26,7 @@ public class ApplicationStatusStreamConsumer implements StreamListener<String, M
     private final ObjectMapper mapper;
     private final MessagingProperties properties;
     private final EventDeliveryGuard deliveryGuard;
+    private final PendingRecovery pendingRecovery;
 
     public ApplicationStatusStreamConsumer(StringRedisTemplate redis, NotificationBroadcaster broadcaster,
             ObjectMapper mapper, MessagingProperties properties, EventDeliveryGuard deliveryGuard) {
@@ -34,6 +35,7 @@ public class ApplicationStatusStreamConsumer implements StreamListener<String, M
         this.mapper = mapper;
         this.properties = properties;
         this.deliveryGuard = deliveryGuard;
+        this.pendingRecovery = new PendingRecovery(redis, properties);
     }
 
     // Recupera mensajes abandonados por consumidores caidos despues de un minuto.
@@ -42,14 +44,7 @@ public class ApplicationStatusStreamConsumer implements StreamListener<String, M
         String stream = properties.getStreamName("application-status", "stream:application-status");
         String group = properties.getGroupName("application-status-group", "application-status-notifications");
         try {
-            var pending = redis.opsForStream().pending(stream, group, org.springframework.data.domain.Range.unbounded(), 100);
-            if (pending == null) return;
-            for (var message : pending) {
-                if (message.getElapsedTimeSinceLastDelivery().compareTo(java.time.Duration.ofSeconds(60)) < 0) continue;
-                var claimed = redis.<String, String>opsForStream().claim(stream, group, properties.getConsumer().getName(),
-                        java.time.Duration.ofSeconds(60), message.getId());
-                if (claimed != null) claimed.forEach(this::onMessage);
-            }
+            pendingRecovery.recover(stream, group, this::onMessage);
         } catch (Exception e) {
             log.warn("No se pudieron recuperar mensajes pendientes: {}", e.getMessage());
         }

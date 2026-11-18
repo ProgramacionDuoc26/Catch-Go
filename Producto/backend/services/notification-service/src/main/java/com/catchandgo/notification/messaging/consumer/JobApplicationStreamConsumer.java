@@ -4,7 +4,6 @@ import com.catchandgo.common.events.JobApplicationEvent;
 import com.catchandgo.notification.messaging.config.MessagingProperties;
 import com.catchandgo.notification.hub.NotificationBroadcaster;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,12 +21,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class JobApplicationStreamConsumer implements StreamListener<String, MapRecord<String, String, String>> {
     private static final Logger log = LoggerFactory.getLogger(JobApplicationStreamConsumer.class);
-    private static final Duration MIN_IDLE = Duration.ofSeconds(60);
     private final StringRedisTemplate redis;
     private final NotificationBroadcaster broadcaster;
     private final ObjectMapper mapper;
     private final MessagingProperties properties;
     private final EventDeliveryGuard deliveryGuard;
+    private final PendingRecovery pendingRecovery;
 
     public JobApplicationStreamConsumer(StringRedisTemplate redis, NotificationBroadcaster broadcaster,
                                         ObjectMapper mapper, MessagingProperties properties, EventDeliveryGuard deliveryGuard) {
@@ -36,6 +35,7 @@ public class JobApplicationStreamConsumer implements StreamListener<String, MapR
         this.mapper = mapper;
         this.properties = properties;
         this.deliveryGuard = deliveryGuard;
+        this.pendingRecovery = new PendingRecovery(redis, properties);
     }
 
     private String group() {
@@ -133,14 +133,7 @@ public class JobApplicationStreamConsumer implements StreamListener<String, MapR
     public void recoverPending() {
         String stream = properties.getStreamName("job-applications", "stream:job-applications");
         try {
-            PendingMessages pending = redis.opsForStream().pending(stream, group(), Range.unbounded(), 100);
-            if (pending == null) return;
-            for (var message : pending) {
-                if (message.getElapsedTimeSinceLastDelivery().compareTo(MIN_IDLE) < 0) continue;
-                var claimed = redis.<String, String>opsForStream().claim(stream, group(),
-                        properties.getConsumer().getName(), MIN_IDLE, message.getId());
-                if (claimed != null) claimed.forEach(this::onMessage);
-            }
+            pendingRecovery.recover(stream, group(), this::onMessage);
         } catch (Exception e) {
             log.warn("No se pudieron recuperar mensajes pendientes de {}: {}", stream, e.getMessage());
         }
