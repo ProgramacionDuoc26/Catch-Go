@@ -29,6 +29,12 @@ vi.mock('@/lib/api/auth', () => ({
   },
 }));
 
+vi.mock('@/components/auth/SecurityCaptcha', () => ({
+  SecurityCaptcha: ({ onVerify }: { onVerify: (token: string) => void }) => (
+    <button type="button" onClick={() => onVerify('captcha-de-prueba')}>Completar captcha de prueba</button>
+  ),
+}));
+
 // Desactivar animaciones de framer-motion en la suite de pruebas
 vi.mock('framer-motion', () => ({
   motion: {
@@ -52,11 +58,14 @@ describe('LoginPage Component', () => {
     expect(screen.getByLabelText(/Correo Electrónico/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/Contraseña/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Ingresar ahora/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Ingresar ahora/i })).toBeDisabled();
   });
 
   // Escenario 2: Validaciones de campos vacíos antes de enviar
   it('muestra mensajes de validación si el usuario intenta enviar campos vacíos', () => {
     render(<LoginPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Completar captcha de prueba/i }));
 
     // Presionar botón de ingreso
     const submitBtn = screen.getByRole('button', { name: /Ingresar ahora/i });
@@ -86,6 +95,8 @@ describe('LoginPage Component', () => {
 
     render(<LoginPage />);
 
+    fireEvent.click(screen.getByRole('button', { name: /Completar captcha de prueba/i }));
+
     // Escribir credenciales válidas
     fireEvent.change(screen.getByLabelText(/Correo Electrónico/i), { target: { value: 'carlos@test.com' } });
     fireEvent.change(screen.getByLabelText(/Contraseña/i), { target: { value: 'password123' } });
@@ -99,6 +110,7 @@ describe('LoginPage Component', () => {
       expect(mockLogin).toHaveBeenCalledWith({
         email: 'carlos@test.com',
         password: 'password123',
+        captchaToken: 'captcha-de-prueba',
       });
       // Validar persistencia local
       expect(localStorage.getItem('auth_token')).toBe('fake-jwt-token');
@@ -128,6 +140,8 @@ describe('LoginPage Component', () => {
 
     render(<LoginPage />);
 
+    fireEvent.click(screen.getByRole('button', { name: /Completar captcha de prueba/i }));
+
     // Rellenar credenciales
     fireEvent.change(screen.getByLabelText(/Correo Electrónico/i), { target: { value: 'beta@test.com' } });
     fireEvent.change(screen.getByLabelText(/Contraseña/i), { target: { value: 'password456' } });
@@ -149,6 +163,8 @@ describe('LoginPage Component', () => {
     });
 
     render(<LoginPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Completar captcha de prueba/i }));
 
     // Escribir credenciales
     fireEvent.change(screen.getByLabelText(/Correo Electrónico/i), { target: { value: 'incorrecto@test.com' } });

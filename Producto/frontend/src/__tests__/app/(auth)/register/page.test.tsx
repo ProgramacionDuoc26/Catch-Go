@@ -13,10 +13,18 @@ vi.mock('next/navigation', () => ({
 
 // Simular el servicio de API de autenticación (importación dinámica)
 const mockRegister = vi.fn();
+const mockSendOtp = vi.fn();
 vi.mock('@/lib/api/auth', () => ({
   authApi: {
     register: mockRegister,
+    sendOtp: mockSendOtp,
   },
+}));
+
+vi.mock('@/components/auth/SecurityCaptcha', () => ({
+  SecurityCaptcha: ({ onVerify }: { onVerify: (token: string) => void }) => (
+    <button type="button" onClick={() => onVerify('captcha-de-prueba')}>Completar captcha de prueba</button>
+  ),
 }));
 
 // Desactivar animaciones de framer-motion en la suite de pruebas
@@ -37,6 +45,8 @@ describe('RegisterPage Component', () => {
   // CP-62: Validación de fortaleza de contraseña (mínimo 8 caracteres, 1 mayúscula y 1 número)
   it('CP-62: Muestra error si la contraseña no cumple con la fortaleza requerida', () => {
     const { container } = render(<RegisterPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Completar captcha de prueba/i }));
 
     // Llenar campos válidos excepto contraseña
     fireEvent.change(container.querySelector('#name')!, { target: { value: 'Juan Perez' } });
@@ -61,6 +71,8 @@ describe('RegisterPage Component', () => {
   it('CP-63: Muestra error si las contraseñas no coinciden', () => {
     const { container } = render(<RegisterPage />);
 
+    fireEvent.click(screen.getByRole('button', { name: /Completar captcha de prueba/i }));
+
     fireEvent.change(container.querySelector('#name')!, { target: { value: 'Juan Perez' } });
     fireEvent.change(container.querySelector('#rut')!, { target: { value: '12345678-9' } });
     fireEvent.change(container.querySelector('#email')!, { target: { value: 'juan@test.com' } });
@@ -81,6 +93,7 @@ describe('RegisterPage Component', () => {
 
   // CP-64: Simulación de registro exitoso y redirección automática al Login/Dashboard
   it('CP-64: Permite completar registro exitoso tras aceptar los términos y condiciones', async () => {
+    mockSendOtp.mockResolvedValue({ data: { message: 'Enviado' }, error: null });
     mockRegister.mockResolvedValue({
       data: {
         token: 'registered-jwt-token',
@@ -94,6 +107,9 @@ describe('RegisterPage Component', () => {
     });
 
     const { container } = render(<RegisterPage />);
+
+    expect(screen.getByRole('button', { name: /Crear Cuenta de Trabajador/i })).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: /Completar captcha de prueba/i }));
 
     // Rellenar campos válidos
     fireEvent.change(container.querySelector('#name')!, { target: { value: 'Juan Perez' } });
@@ -111,8 +127,13 @@ describe('RegisterPage Component', () => {
     expect(screen.getByText('Términos, Condiciones y Privacidad')).toBeInTheDocument();
 
     // Confirmar registro en el modal
-    const acceptBtn = screen.getByRole('button', { name: /Aceptar y Registrarse/i });
+    const acceptBtn = screen.getByRole('button', { name: /Aceptar y Continuar/i });
     fireEvent.click(acceptBtn);
+
+    expect(await screen.findByText('Verifica tu Correo')).toBeInTheDocument();
+    expect(mockSendOtp).toHaveBeenCalledWith({ email: 'juan@test.com', purpose: 'REGISTER' });
+    fireEvent.change(screen.getByPlaceholderText('123456'), { target: { value: '654321' } });
+    fireEvent.click(screen.getByRole('button', { name: /Verificar y Crear Cuenta/i }));
 
     // Esperar registro y redirección
     await waitFor(() => {
@@ -121,7 +142,9 @@ describe('RegisterPage Component', () => {
         password: 'Secured123',
         nombre: 'Juan Perez',
         tipo: 'TRABAJADOR',
-        telefono: '+56 912345678'
+        telefono: '+56 912345678',
+        captchaToken: 'captcha-de-prueba',
+        otpCode: '654321'
       });
 
       // Validar persistencia
