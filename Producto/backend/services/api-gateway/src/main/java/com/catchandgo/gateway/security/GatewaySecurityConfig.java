@@ -52,7 +52,7 @@ public class GatewaySecurityConfig {
             String path = exchange.getRequest().getPath().value();
             if (exchange.getRequest().getMethod() == HttpMethod.POST && java.util.Set.of(
                     "/auth/login", "/auth/register", "/auth/send-otp", "/auth/verify-otp",
-                    "/auth/forgot-password", "/auth/reset-password").contains(path)) return Mono.empty();
+                    "/auth/forgot-password", "/auth/reset-password", "/auth/supabase/exchange").contains(path)) return Mono.empty();
             String header = exchange.getRequest().getHeaders().getFirst("Authorization");
             if (header == null || !header.regionMatches(true, 0, "Bearer ", 0, 7)) return Mono.empty();
             return Mono.just(UsernamePasswordAuthenticationToken.unauthenticated("jwt", header.substring(7).trim()));
@@ -68,7 +68,7 @@ public class GatewaySecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .pathMatchers(HttpMethod.POST, "/auth/login", "/auth/register", "/auth/send-otp",
-                                "/auth/verify-otp", "/auth/forgot-password", "/auth/reset-password").permitAll()
+                                "/auth/verify-otp", "/auth/forgot-password", "/auth/reset-password", "/auth/supabase/exchange").permitAll()
                         .pathMatchers("/actuator/health", "/actuator/info", "/gateway/ping",
                                 "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
                                 "/ws-notifications", "/ws-notifications/**").permitAll()

@@ -77,6 +77,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-catchandgo}
       SPRING_DATA_REDIS_HOST: redis
       JWT_SECRET: ${JWT_SECRET:?Configura JWT_SECRET en el archivo .env}
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY:-}
     depends_on:
       postgres:
         condition: service_healthy

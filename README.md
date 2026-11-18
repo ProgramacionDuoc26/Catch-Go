@@ -83,6 +83,12 @@ docker compose exec redis redis-cli XPENDING stream:application-status applicati
 
 En `XINFO GROUPS`, `lag` es la cantidad estimada de eventos aún no entregados al grupo cuando Redis puede calcularla. `pending` cuenta los eventos entregados que aún no se han confirmado. Redis Insight se publica solo en la máquina local y el volumen `redis_insight_data` guarda su configuración entre reinicios.
 
+### Inicio de sesión con Google
+
+Configura `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY` en el frontend, y los mismos valores como `SUPABASE_URL` y `SUPABASE_ANON_KEY` en `auth-service`. En Docker Compose, configura estos dos últimos en el `.env` de la raíz. Utiliza la clave pública del proyecto, no una clave de servicio privada.
+
+Al elegir el tipo de cuenta, el backend verifica el token con Supabase y emite un JWT de Catch-Go. El identificador de Supabase se conserva para mantener la relación con los perfiles existentes. El primer tipo elegido queda guardado en el servidor; seleccionar otro posteriormente no modifica el tipo registrado. Las cuentas de Google no se vinculan automáticamente con cuentas locales que tengan el mismo correo.
+
 ### Persistencia de Redis Streams en desarrollo
 
 Docker Compose configura Redis con AOF (`appendonly yes`) y sincronización a disco cada segundo (`appendfsync everysec`). El volumen `redis_data` conserva los streams, los grupos y la configuración de retención al recrear el contenedor. Una interrupción inesperada puede perder las ultimas escrituras que todavia no se hayan sincronizado; esta configuración usa una sola instancia y no proporciona replicación ni alta disponibilidad.

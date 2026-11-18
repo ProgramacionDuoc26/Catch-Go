@@ -26,6 +26,7 @@ class GatewaySecurityConfigTest {
     static class TestEndpoints {
         @GetMapping("/protected-test") String protectedEndpoint() { return "ok"; }
         @PostMapping("/auth/login") String login() { return "ok"; }
+        @PostMapping("/auth/supabase/exchange") String exchange() { return "ok"; }
         @GetMapping("/queues") String queues() { return "ok"; }
     }
 
@@ -65,6 +66,10 @@ class GatewaySecurityConfigTest {
     }
     @Test void queueAdminAllowsAdmin() {
         client.get().uri("/queues").headers(h -> h.setBearerAuth(jwt.generateToken("1", "ADMIN", 60)))
+                .exchange().expectStatus().isOk();
+    }
+    @Test void supabaseExchangeIsPublicEvenWithExpiredPreviousToken() {
+        client.post().uri("/auth/supabase/exchange").headers(h -> h.setBearerAuth(jwt.generateToken("1", -60)))
                 .exchange().expectStatus().isOk();
     }
 }

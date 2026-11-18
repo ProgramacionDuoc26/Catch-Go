@@ -13,6 +13,9 @@ import type {
 const BASE = getServiceBaseUrl('NEXT_PUBLIC_AUTH_SERVICE_URL', 'http://localhost:8081');
 
 export const authApi = {
+  exchangeSupabase: (body: { accessToken: string; tipo: 'TRABAJADOR' | 'EMPRESA' }) =>
+    api.post<AuthResponse>(`${BASE}/auth/supabase/exchange`, body),
+
   /**
    * Registrar un nuevo usuario (EMPRESA o TRABAJADOR)
    * POST /auth/register

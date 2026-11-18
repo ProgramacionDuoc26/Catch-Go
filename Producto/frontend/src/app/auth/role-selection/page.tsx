@@ -10,6 +10,7 @@ export default function RoleSelectionPage() {
   const router = useRouter();
   const [selected, setSelected] = useState<'TRABAJADOR' | 'EMPRESA' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
   const [userData, setUserData] = useState<any>(null);
 
   const supabase = createClient();
@@ -36,42 +37,28 @@ export default function RoleSelectionPage() {
 
   const handleContinue = async () => {
     if (!selected) return;
-    
     setIsLoading(true);
+    setAuthError('');
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_info');
+    localStorage.removeItem('user_role');
     try {
-      // Aquí simularemos el guardado del rol. 
-      // En una implementación real, haríamos un fetch al backend o a Supabase
-      // para crear el perfil del usuario.
-      
-      console.log(`Configurando perfil como: ${selected}`);
-      
-      // Limpiar datos antiguos para evitar conflictos
-      localStorage.removeItem('user_info');
-      
-      // Guardar el nuevo perfil en localStorage para que el resto de la app lo reconozca
-      const mockUser = {
-        id: userData?.id || 'google-user-' + Math.random().toString(36).substr(2, 9),
-        tipo: selected,
-        nombre: userData?.name || 'Usuario de Google',
-        email: userData?.email || '',
-        foto: userData?.photo || ''
-      };
-      
-      localStorage.setItem('user_info', JSON.stringify(mockUser));
-      localStorage.setItem('user_role', selected);
-      
-      // Redirigir con un pequeño delay para asegurar que el localStorage se guarde
-      setTimeout(() => {
-        if (selected === 'EMPRESA') {
-          console.log("Redirigiendo a Perfil de Empresa...");
-          router.push('/empresa/perfil');
-        } else {
-          console.log("Redirigiendo a Perfil de Trabajador...");
-          router.push('/trabajador/perfil');
-        }
-      }, 100);
+      const { data, error } = await supabase.auth.getSession();
+      if (error || !data.session?.access_token) {
+        throw new Error('No se encontr\u00f3 una sesi\u00f3n de Google v\u00e1lida. Vuelve a iniciar sesi\u00f3n.');
+      }
+      const { authApi } = await import('@/lib/api/auth');
+      const response = await authApi.exchangeSupabase({ accessToken: data.session.access_token, tipo: selected });
+      if (response.error || !response.data?.token || !response.data.usuario) {
+        throw new Error(response.error || 'No se pudo iniciar sesi\u00f3n.');
+      }
+      const { token, usuario } = response.data;
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('user_info', JSON.stringify(usuario));
+      localStorage.setItem('user_role', usuario.tipo);
+      router.push(usuario.tipo === 'EMPRESA' ? '/empresa/perfil' : '/trabajador/perfil');
     } catch (error) {
-      console.error('Error al guardar el rol:', error);
+      setAuthError(error instanceof Error ? error.message : 'No se pudo iniciar sesi\u00f3n.');
     } finally {
       setIsLoading(false);
     }
@@ -182,6 +169,8 @@ export default function RoleSelectionPage() {
             )}
           </motion.div>
         </div>
+
+        {authError && <p role="alert" className="text-center text-red-600 mb-4">{authError}</p>}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
