@@ -1,4 +1,5 @@
 # Guía de Exposición y Evidencias — Mensajería Síncrona y Asíncrona
+> **Documento anterior:** contiene afirmaciones y ejemplos que no reflejan todos los cambios actuales. Para EP5 utiliza [la guía actualizada](Guia_EP5_Streams_CatchAndGo.md) y verifica cualquier ejemplo antes de presentarlo.
 **Asignatura:** DSY1107 — Arquitectura y Microservicios  
 **Proyecto:** Catch & Go  
 **Integrantes:** Miguel Arredondo & Nicolás Iturrieta  

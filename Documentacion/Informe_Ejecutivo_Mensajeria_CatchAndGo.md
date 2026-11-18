@@ -1,4 +1,5 @@
 # INFORME EJECUTIVO Y GUÍA INTEGRAL DE EVALUACIÓN
+> **Documento anterior:** describe flujos y resultados que no corresponden necesariamente a la implementación actual. Para EP5 consulta [la guía actualizada](Guia_EP5_Streams_CatchAndGo.md) y usa únicamente evidencias comprobadas.
 ## Arquitectura de Mensajería y Comunicación entre Microservicios: Catch&Go
 
 ---
