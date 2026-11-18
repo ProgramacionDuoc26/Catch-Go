@@ -116,6 +116,14 @@ Cada instancia de `notification-service` genera un nombre de consumidor diferent
 
 El consumidor de cada stream publica la notificación en el canal Redis Pub/Sub `notifications`. Cada instancia activa la recibe y la entrega a sus conexiones WebSocket locales. El publicador mantiene el evento pendiente si Redis informa que no hay instancias suscritas. Pub/Sub es temporal: no confirma que todas las instancias hayan recibido el mensaje ni conserva notificaciones para usuarios desconectados. La distribución entre instancias debe probarse de extremo a extremo antes de usar varias réplicas.
 
+Para comprobar ambos streams con un Redis aislado, inicia Docker y ejecuta desde `Producto/backend` con Java 21:
+
+```powershell
+mvn -pl services/notification-service -am "-Dtest=StreamFlowRedisIntegrationTest" "-Dsurefire.failIfNoSpecifiedTests=false" test
+```
+
+La prueba usa Testcontainers, publica eventos de ejemplo en Redis y comprueba su procesamiento hasta la entrega al componente WebSocket y la confirmación de ambos mensajes. No sustituye una prueba con el frontend, clientes WebSocket reales o la base de datos de producción. Si Docker no está disponible, Testcontainers omite la prueba y Maven puede finalizar con éxito; revisa el número de pruebas omitidas.
+
 ### Paso 2: Configurar y Ejecutar el Frontend Web (Next.js)
 1. Navega a la carpeta del frontend:
    ```bash
