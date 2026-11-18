@@ -35,8 +35,12 @@ class NotificationFanoutRedisIntegrationTest {
         doAnswer(invocation -> { received.countDown(); return null; }).when(firstWebsocket).convertAndSend(anyString(), any(Object.class));
         doAnswer(invocation -> { received.countDown(); return null; }).when(secondWebsocket).convertAndSend(anyString(), any(Object.class));
         var config = new RedisListenerConfig();
-        var first = config.container(factory, config.listenerAdapter(new NotificationHandler(firstWebsocket, mapper)));
-        var second = config.container(factory, config.listenerAdapter(new NotificationHandler(secondWebsocket, mapper)));
+        var firstAdapter = config.listenerAdapter(new NotificationHandler(firstWebsocket, mapper));
+        var secondAdapter = config.listenerAdapter(new NotificationHandler(secondWebsocket, mapper));
+        firstAdapter.afterPropertiesSet();
+        secondAdapter.afterPropertiesSet();
+        var first = config.container(factory, firstAdapter);
+        var second = config.container(factory, secondAdapter);
         try {
             first.afterPropertiesSet();
             second.afterPropertiesSet();

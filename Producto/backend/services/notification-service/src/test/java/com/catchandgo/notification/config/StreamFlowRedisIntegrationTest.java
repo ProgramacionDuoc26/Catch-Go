@@ -43,7 +43,9 @@ class StreamFlowRedisIntegrationTest {
         doAnswer(invocation -> { delivered.countDown(); return null; })
                 .when(websocket).convertAndSend(anyString(), any(Object.class));
         var listenerConfig = new RedisListenerConfig();
-        var listener = listenerConfig.container(factory, listenerConfig.listenerAdapter(new NotificationHandler(websocket, mapper)));
+        var adapter = listenerConfig.listenerAdapter(new NotificationHandler(websocket, mapper));
+        adapter.afterPropertiesSet();
+        var listener = listenerConfig.container(factory, adapter);
         var properties = new MessagingProperties();
         properties.getConsumer().setPollTimeoutMs(100);
         var guard = new EventDeliveryGuard(template);
