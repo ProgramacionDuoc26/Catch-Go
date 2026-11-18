@@ -92,6 +92,20 @@ public class QueueAdminController {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/{name}/groups/{group}")
+    @Operation(summary = "Eliminar un grupo sin trabajo pendiente")
+    public ResponseEntity<Map<String, String>> deleteGroup(@PathVariable("name") String name, @PathVariable("group") String group) {
+        var result = adminService.deleteGroup(name, group);
+        return switch (result) {
+            case DELETED -> ResponseEntity.ok(Map.of("status", "deleted"));
+            case NOT_FOUND -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Grupo no encontrado"));
+            case PENDING -> ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "El grupo tiene mensajes pendientes"));
+            case UNREAD -> ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "El grupo tiene mensajes sin leer"));
+            case CONSUMERS -> ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "El grupo tiene consumidores registrados"));
+            case PROTECTED -> ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Grupo principal protegido"));
+        };
+    }
+
     @GetMapping("/{name}/retention")
     public ResponseEntity<Map<String, Long>> getRetention(@PathVariable("name") String name) {
         return ResponseEntity.ok(Map.of("maxLen", adminService.getRetention(name)));

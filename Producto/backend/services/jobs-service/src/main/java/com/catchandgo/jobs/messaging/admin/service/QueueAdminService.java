@@ -14,6 +14,8 @@ import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.connection.stream.StreamInfo;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -27,6 +29,13 @@ import java.util.*;
 public class QueueAdminService {
 
     private static final Logger log = LoggerFactory.getLogger(QueueAdminService.class);
+    private static final DefaultRedisScript<Long> DELETE_GROUP = new DefaultRedisScript<>();
+    static {
+        DELETE_GROUP.setLocation(new ClassPathResource("redis/delete-group-safely.lua"));
+        DELETE_GROUP.setResultType(Long.class);
+    }
+
+    public enum GroupDeletion { DELETED, NOT_FOUND, PENDING, UNREAD, CONSUMERS, PROTECTED }
 
     private final StringRedisTemplate redisTemplate;
     private final MessagingProperties messagingProperties;
@@ -248,6 +257,28 @@ public class QueueAdminService {
 
     public void createGroup(String name, String group) {
         createGroupIfMissing(requireStream(name), group);
+    }
+
+    public GroupDeletion deleteGroup(String name, String group) {
+        if (group == null || !group.matches("[a-zA-Z0-9:_-]+")) {
+            throw new IllegalArgumentException("Nombre de grupo invalido");
+        }
+        String stream = requireStream(name);
+        boolean applications = stream.equals(messagingProperties.getStreamName("job-applications", "stream:job-applications"))
+                && group.equals(messagingProperties.getGroupName("notifications-group", "notifications-group"));
+        boolean statuses = stream.equals(messagingProperties.getStreamName("application-status", "stream:application-status"))
+                && group.equals(messagingProperties.getGroupName("application-status-group", "application-status-notifications"));
+        if (applications || statuses) return GroupDeletion.PROTECTED;
+        Long result = redisTemplate.execute(DELETE_GROUP, List.of(stream), group);
+        if (result == null) throw new IllegalStateException("Redis no confirmo la operacion del grupo");
+        return switch (result.intValue()) {
+            case 1 -> GroupDeletion.DELETED;
+            case 0 -> GroupDeletion.NOT_FOUND;
+            case -1 -> GroupDeletion.PENDING;
+            case -2 -> GroupDeletion.UNREAD;
+            case -3 -> GroupDeletion.CONSUMERS;
+            default -> throw new IllegalStateException("Respuesta inesperada de Redis");
+        };
     }
 
     private void createGroupIfMissing(String stream, String group) {

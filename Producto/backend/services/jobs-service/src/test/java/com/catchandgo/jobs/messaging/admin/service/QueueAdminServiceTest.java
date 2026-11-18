@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.StreamOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 
 import java.util.Map;
 
@@ -121,5 +122,31 @@ class QueueAdminServiceTest {
         when(redisTemplate.hasKey("stream:test-queue")).thenReturn(true);
         service.setRetention("test-queue", 250L);
         verify(retention).setMaxLen("stream:test-queue", 250L);
+    }
+
+    @Test void deletingGroupReturnsResultFromAtomicCheck() {
+        when(redisTemplate.hasKey("stream:test-queue")).thenReturn(true);
+        when(redisTemplate.execute(any(RedisScript.class), eq(List.of("stream:test-queue")), eq("group")))
+                .thenReturn(-1L, -2L, -3L, 1L, 0L);
+        assertEquals(QueueAdminService.GroupDeletion.PENDING, service.deleteGroup("test-queue", "group"));
+        assertEquals(QueueAdminService.GroupDeletion.UNREAD, service.deleteGroup("test-queue", "group"));
+        assertEquals(QueueAdminService.GroupDeletion.CONSUMERS, service.deleteGroup("test-queue", "group"));
+        assertEquals(QueueAdminService.GroupDeletion.DELETED, service.deleteGroup("test-queue", "group"));
+        assertEquals(QueueAdminService.GroupDeletion.NOT_FOUND, service.deleteGroup("test-queue", "group"));
+    }
+
+    @Test void cannotDeleteProtectedGroupOrUseInvalidName() {
+        when(redisTemplate.hasKey("stream:job-applications")).thenReturn(true);
+        when(messagingProperties.getStreamName("job-applications", "stream:job-applications")).thenReturn("stream:job-applications");
+        when(messagingProperties.getGroupName("notifications-group", "notifications-group")).thenReturn("notifications-group");
+        assertEquals(QueueAdminService.GroupDeletion.PROTECTED, service.deleteGroup("job-applications", "notifications-group"));
+        assertThrows(IllegalArgumentException.class, () -> service.deleteGroup("job-applications", "bad/group"));
+        verify(redisTemplate, never()).execute(any(RedisScript.class), anyList(), any());
+    }
+
+    @Test void deletingGroupFailsWhenRedisDoesNotConfirm() {
+        when(redisTemplate.hasKey("stream:test-queue")).thenReturn(true);
+        when(redisTemplate.execute(any(RedisScript.class), eq(List.of("stream:test-queue")), eq("group"))).thenReturn(null);
+        assertThrows(IllegalStateException.class, () -> service.deleteGroup("test-queue", "group"));
     }
 }

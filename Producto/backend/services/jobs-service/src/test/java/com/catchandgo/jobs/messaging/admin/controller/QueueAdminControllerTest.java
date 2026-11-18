@@ -95,4 +95,18 @@ class QueueAdminControllerTest {
         mockMvc.perform(get("/queues/jobs-stream/retention"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.maxLen").value(250));
     }
+
+    @Test void deleteGroupReportsConflictsAndMissingGroup() throws Exception {
+        when(adminService.deleteGroup("jobs-stream", "pending")).thenReturn(QueueAdminService.GroupDeletion.PENDING);
+        when(adminService.deleteGroup("jobs-stream", "unread")).thenReturn(QueueAdminService.GroupDeletion.UNREAD);
+        when(adminService.deleteGroup("jobs-stream", "consumers")).thenReturn(QueueAdminService.GroupDeletion.CONSUMERS);
+        when(adminService.deleteGroup("jobs-stream", "protected")).thenReturn(QueueAdminService.GroupDeletion.PROTECTED);
+        when(adminService.deleteGroup("jobs-stream", "missing")).thenReturn(QueueAdminService.GroupDeletion.NOT_FOUND);
+        when(adminService.deleteGroup("jobs-stream", "done")).thenReturn(QueueAdminService.GroupDeletion.DELETED);
+        for (String group : List.of("pending", "unread", "consumers", "protected")) {
+            mockMvc.perform(delete("/queues/jobs-stream/groups/" + group)).andExpect(status().isConflict());
+        }
+        mockMvc.perform(delete("/queues/jobs-stream/groups/missing")).andExpect(status().isNotFound());
+        mockMvc.perform(delete("/queues/jobs-stream/groups/done")).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("deleted"));
+    }
 }
