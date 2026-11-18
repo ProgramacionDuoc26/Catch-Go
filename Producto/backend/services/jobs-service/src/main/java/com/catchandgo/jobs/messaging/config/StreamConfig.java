@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.stream.RecordId;
+import org.springframework.data.redis.connection.stream.ReadOffset;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.util.Collections;
@@ -53,27 +54,32 @@ public class StreamConfig {
     private void initStreamAndGroup(StringRedisTemplate redisTemplate, String streamKey, String groupName) {
         try {
             Boolean hasKey = redisTemplate.hasKey(streamKey);
+            if (hasKey == null) throw new IllegalStateException("Redis no confirmo si existe el stream");
             if (Boolean.FALSE.equals(hasKey)) {
                 // Crear una entrada inicial para instanciar el stream
                 RecordId initId = redisTemplate.opsForStream().add(streamKey, Collections.singletonMap("system", "init"));
+                if (initId == null) throw new IllegalStateException("Redis no confirmo la creacion del stream");
                 log.info("[STREAM-INIT] Stream creado: {} con ID={}", streamKey, initId);
             }
 
             try {
-                // Crear el grupo de consumidores si no existe
-                if (streamKey.equals(messagingProperties.getStreamName("application-status", "stream:application-status"))) {
-                    redisTemplate.opsForStream().createGroup(streamKey, org.springframework.data.redis.connection.stream.ReadOffset.from("0-0"), groupName);
-                } else {
-                    redisTemplate.opsForStream().createGroup(streamKey, groupName);
-                }
+                // Leer tambien los eventos publicados antes de crear el grupo.
+                redisTemplate.opsForStream().createGroup(streamKey, ReadOffset.from("0-0"), groupName);
                 log.info("[STREAM-INIT] Consumer Group '{}' creado en stream '{}'", groupName, streamKey);
             } catch (Exception e) {
-                // Si el grupo ya existe (BUSYGROUP), se ignora de forma segura
-                log.debug("[STREAM-INIT] Grupo '{}' ya existe en stream '{}': {}", groupName, streamKey, e.getMessage());
+                if (!isExistingGroup(e)) throw e;
+                log.debug("[STREAM-INIT] Grupo '{}' ya existe en stream '{}'", groupName, streamKey);
             }
         } catch (Exception e) {
             log.warn("[STREAM-INIT] Advertencia al inicializar stream '{}': {}", streamKey, e.getMessage());
         }
+    }
+
+    private boolean isExistingGroup(Throwable error) {
+        for (Throwable cause = error; cause != null; cause = cause.getCause()) {
+            if (cause.getMessage() != null && cause.getMessage().contains("BUSYGROUP")) return true;
+        }
+        return false;
     }
 
     private void initStream(StringRedisTemplate redisTemplate, String streamKey) {
