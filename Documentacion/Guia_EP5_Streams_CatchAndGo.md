@@ -53,6 +53,8 @@ Los archivos de código están dentro de `Producto/backend/services` o `Producto
 
 La prueba se puede hacer desde la interfaz o con las peticiones siguientes. Los valores entre `< >` son datos de prueba que deben reemplazarse, no deben escribirse literalmente. La empresa debe permanecer conectada para observar la primera notificación y el trabajador para observar la segunda.
 
+Si prefieres Postman, importa [la colección de EP5](Postman_Collection_CatchAndGo_Mensajeria.json). Configura en un entorno local `baseUrl`, los tres tokens internos, `workerId`, `jobId` y, después de consultar las postulaciones, `applicationId`. Mantén los tokens fuera de archivos compartidos. Las peticiones de administración usan `adminToken`; las de escritura de negocio modifican datos y deben apuntar a un entorno de prueba. La colección no abre una conexión WebSocket ni reemplaza la observación de las notificaciones en la aplicación.
+
 ### 1. Crear una postulación
 
 Con el token y el identificador del trabajador, y el ID de una oferta existente:
