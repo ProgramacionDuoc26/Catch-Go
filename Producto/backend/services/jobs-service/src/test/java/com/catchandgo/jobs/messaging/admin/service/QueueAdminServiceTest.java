@@ -149,4 +149,24 @@ class QueueAdminServiceTest {
         when(redisTemplate.execute(any(RedisScript.class), eq(List.of("stream:test-queue")), eq("group"))).thenReturn(null);
         assertThrows(IllegalStateException.class, () -> service.deleteGroup("test-queue", "group"));
     }
+
+    @Test void replayGroupReportsAtomicCheckResults() {
+        when(redisTemplate.hasKey("stream:test-queue")).thenReturn(true);
+        when(redisTemplate.execute(any(RedisScript.class), eq(List.of("stream:test-queue")), eq("group")))
+                .thenReturn(-1L, -2L, 0L, 1L, null);
+        assertEquals(QueueAdminService.GroupReplay.PENDING, service.replayGroup("test-queue", "group"));
+        assertEquals(QueueAdminService.GroupReplay.CONSUMERS, service.replayGroup("test-queue", "group"));
+        assertEquals(QueueAdminService.GroupReplay.NOT_FOUND, service.replayGroup("test-queue", "group"));
+        assertEquals(QueueAdminService.GroupReplay.RESET, service.replayGroup("test-queue", "group"));
+        assertThrows(IllegalStateException.class, () -> service.replayGroup("test-queue", "group"));
+        assertThrows(IllegalArgumentException.class, () -> service.replayGroup("test-queue", "bad/group"));
+    }
+
+    @Test void replayOfCoreGroupIsBlocked() {
+        when(redisTemplate.hasKey("stream:application-status")).thenReturn(true);
+        when(messagingProperties.getStreamName("application-status", "stream:application-status")).thenReturn("stream:application-status");
+        when(messagingProperties.getGroupName("application-status-group", "application-status-notifications")).thenReturn("application-status-notifications");
+        assertEquals(QueueAdminService.GroupReplay.PROTECTED, service.replayGroup("application-status", "application-status-notifications"));
+        verify(redisTemplate, never()).execute(any(RedisScript.class), anyList(), any());
+    }
 }

@@ -109,4 +109,18 @@ class QueueAdminControllerTest {
         mockMvc.perform(delete("/queues/jobs-stream/groups/missing")).andExpect(status().isNotFound());
         mockMvc.perform(delete("/queues/jobs-stream/groups/done")).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("deleted"));
     }
+
+    @Test void replayGroupReportsResult() throws Exception {
+        when(adminService.replayGroup("demo", "done")).thenReturn(QueueAdminService.GroupReplay.RESET);
+        when(adminService.replayGroup("demo", "pending")).thenReturn(QueueAdminService.GroupReplay.PENDING);
+        when(adminService.replayGroup("demo", "consumers")).thenReturn(QueueAdminService.GroupReplay.CONSUMERS);
+        when(adminService.replayGroup("demo", "protected")).thenReturn(QueueAdminService.GroupReplay.PROTECTED);
+        when(adminService.replayGroup("demo", "missing")).thenReturn(QueueAdminService.GroupReplay.NOT_FOUND);
+        mockMvc.perform(post("/queues/demo/groups/done/replay")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.position").value("0-0"));
+        for (String group : List.of("pending", "consumers", "protected")) {
+            mockMvc.perform(post("/queues/demo/groups/" + group + "/replay")).andExpect(status().isConflict());
+        }
+        mockMvc.perform(post("/queues/demo/groups/missing/replay")).andExpect(status().isNotFound());
+    }
 }

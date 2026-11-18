@@ -9,6 +9,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = QueueAdminController.class, properties = "JWT_SECRET=test-secret-key-with-at-least-32-bytes-for-tests")
@@ -40,6 +41,11 @@ class QueueAdminSecurityTest {
     @Test void groupDeletionRequiresAdmin() throws Exception {
         mvc.perform(delete("/queues/demo/groups/temp")).andExpect(status().isUnauthorized());
         mvc.perform(delete("/queues/demo/groups/temp").header("Authorization", "Bearer " + jwt.generateToken("1", "TRABAJADOR", 60)))
+                .andExpect(status().isForbidden());
+    }
+    @Test void groupReplayRequiresAdmin() throws Exception {
+        mvc.perform(post("/queues/demo/groups/temp/replay")).andExpect(status().isUnauthorized());
+        mvc.perform(post("/queues/demo/groups/temp/replay").header("Authorization", "Bearer " + jwt.generateToken("1", "TRABAJADOR", 60)))
                 .andExpect(status().isForbidden());
     }
 }

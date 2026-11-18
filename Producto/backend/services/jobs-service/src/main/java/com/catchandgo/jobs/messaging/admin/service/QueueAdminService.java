@@ -30,12 +30,16 @@ public class QueueAdminService {
 
     private static final Logger log = LoggerFactory.getLogger(QueueAdminService.class);
     private static final DefaultRedisScript<Long> DELETE_GROUP = new DefaultRedisScript<>();
+    private static final DefaultRedisScript<Long> REPLAY_GROUP = new DefaultRedisScript<>();
     static {
         DELETE_GROUP.setLocation(new ClassPathResource("redis/delete-group-safely.lua"));
         DELETE_GROUP.setResultType(Long.class);
+        REPLAY_GROUP.setLocation(new ClassPathResource("redis/replay-group-safely.lua"));
+        REPLAY_GROUP.setResultType(Long.class);
     }
 
     public enum GroupDeletion { DELETED, NOT_FOUND, PENDING, UNREAD, CONSUMERS, PROTECTED }
+    public enum GroupReplay { RESET, NOT_FOUND, PENDING, CONSUMERS, PROTECTED }
 
     private final StringRedisTemplate redisTemplate;
     private final MessagingProperties messagingProperties;
@@ -260,15 +264,9 @@ public class QueueAdminService {
     }
 
     public GroupDeletion deleteGroup(String name, String group) {
-        if (group == null || !group.matches("[a-zA-Z0-9:_-]+")) {
-            throw new IllegalArgumentException("Nombre de grupo invalido");
-        }
+        validateGroupName(group);
         String stream = requireStream(name);
-        boolean applications = stream.equals(messagingProperties.getStreamName("job-applications", "stream:job-applications"))
-                && group.equals(messagingProperties.getGroupName("notifications-group", "notifications-group"));
-        boolean statuses = stream.equals(messagingProperties.getStreamName("application-status", "stream:application-status"))
-                && group.equals(messagingProperties.getGroupName("application-status-group", "application-status-notifications"));
-        if (applications || statuses) return GroupDeletion.PROTECTED;
+        if (isProtectedGroup(stream, group)) return GroupDeletion.PROTECTED;
         Long result = redisTemplate.execute(DELETE_GROUP, List.of(stream), group);
         if (result == null) throw new IllegalStateException("Redis no confirmo la operacion del grupo");
         return switch (result.intValue()) {
@@ -279,6 +277,35 @@ public class QueueAdminService {
             case -3 -> GroupDeletion.CONSUMERS;
             default -> throw new IllegalStateException("Respuesta inesperada de Redis");
         };
+    }
+
+    public GroupReplay replayGroup(String name, String group) {
+        validateGroupName(group);
+        String stream = requireStream(name);
+        if (isProtectedGroup(stream, group)) return GroupReplay.PROTECTED;
+        Long result = redisTemplate.execute(REPLAY_GROUP, List.of(stream), group);
+        if (result == null) throw new IllegalStateException("Redis no confirmo la operacion del grupo");
+        return switch (result.intValue()) {
+            case 1 -> GroupReplay.RESET;
+            case 0 -> GroupReplay.NOT_FOUND;
+            case -1 -> GroupReplay.PENDING;
+            case -2 -> GroupReplay.CONSUMERS;
+            default -> throw new IllegalStateException("Respuesta inesperada de Redis");
+        };
+    }
+
+    private void validateGroupName(String group) {
+        if (group == null || !group.matches("[a-zA-Z0-9:_-]+")) {
+            throw new IllegalArgumentException("Nombre de grupo invalido");
+        }
+    }
+
+    private boolean isProtectedGroup(String stream, String group) {
+        boolean applications = stream.equals(messagingProperties.getStreamName("job-applications", "stream:job-applications"))
+                && group.equals(messagingProperties.getGroupName("notifications-group", "notifications-group"));
+        boolean statuses = stream.equals(messagingProperties.getStreamName("application-status", "stream:application-status"))
+                && group.equals(messagingProperties.getGroupName("application-status-group", "application-status-notifications"));
+        return applications || statuses;
     }
 
     private void createGroupIfMissing(String stream, String group) {

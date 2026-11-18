@@ -113,6 +113,8 @@ El listado de pendientes puede estar vacío si el procesamiento ya terminó. Los
 
 Para administrar grupos de prueba, `POST /queues/{stream}/groups` crea un grupo y `DELETE /queues/{stream}/groups/{grupo}` intenta eliminarlo; ambos requieren ADMIN. La eliminación devuelve `409` si el grupo tiene mensajes pendientes, mensajes sin leer o consumidores registrados, o si es uno de los grupos principales. Los consumidores registrados incluyen consumidores antiguos: antes de retirarlos se deben revisar sus pendientes. No elimines los grupos de producción para realizar la demostración.
 
+`POST /queues/{stream}/groups/{grupo}/replay` reinicia la posición de un grupo no protegido para volver a leer desde las entradas que aún se conservan en el stream. Solo ADMIN puede usarlo; devuelve `409` si el grupo tiene pendientes, consumidores registrados o es un grupo principal protegido. La operación puede volver a procesar eventos y no recupera entradas que ya fueron eliminadas por la retención. Úsala únicamente en datos de prueba y con un consumidor preparado para ese efecto.
+
 ### 4. Ejecutar la prueba de integración
 
 Con Docker iniciado y Java 21, desde `Producto/backend`:

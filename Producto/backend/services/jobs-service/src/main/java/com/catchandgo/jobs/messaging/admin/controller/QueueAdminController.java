@@ -106,6 +106,19 @@ public class QueueAdminController {
         };
     }
 
+    @PostMapping("/{name}/groups/{group}/replay")
+    @Operation(summary = "Reiniciar lectura de un grupo no protegido desde las entradas conservadas")
+    public ResponseEntity<Map<String, String>> replayGroup(@PathVariable("name") String name, @PathVariable("group") String group) {
+        var result = adminService.replayGroup(name, group);
+        return switch (result) {
+            case RESET -> ResponseEntity.ok(Map.of("status", "reset", "position", "0-0"));
+            case NOT_FOUND -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Grupo no encontrado"));
+            case PENDING -> ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "El grupo tiene mensajes pendientes"));
+            case CONSUMERS -> ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "El grupo tiene consumidores registrados"));
+            case PROTECTED -> ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Grupo principal protegido"));
+        };
+    }
+
     @GetMapping("/{name}/retention")
     public ResponseEntity<Map<String, Long>> getRetention(@PathVariable("name") String name) {
         return ResponseEntity.ok(Map.of("maxLen", adminService.getRetention(name)));
