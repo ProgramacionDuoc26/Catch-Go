@@ -15,10 +15,12 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 public class ApplicationStatusStreamConsumer implements StreamListener<String, MapRecord<String, String, String>> {
     private static final Logger log = LoggerFactory.getLogger(ApplicationStatusStreamConsumer.class);
+    private static final Set<String> NOTIFICATION_TYPES = Set.of("info", "success", "warning", "error");
     private final StringRedisTemplate redis;
     private final SimpMessagingTemplate websocket;
     private final ObjectMapper mapper;
@@ -63,9 +65,10 @@ public class ApplicationStatusStreamConsumer implements StreamListener<String, M
         ApplicationStatusEvent event;
         try {
             event = mapper.readValue(record.getValue().get("payload"), ApplicationStatusEvent.class);
-            if (event == null || event.eventId() == null || event.eventId().isBlank() || event.workerId() == null ||
-                    event.workerId().isBlank() || event.title() == null || event.message() == null ||
-                    event.notificationType() == null || event.occurredAt() == null) {
+            if (event == null || blank(event.eventId()) || !positive(event.applicationId()) || !positive(event.jobId())
+                    || blank(event.workerId()) || blank(event.newStatus()) || blank(event.title())
+                    || blank(event.message()) || blank(event.notificationType())
+                    || !NOTIFICATION_TYPES.contains(event.notificationType()) || event.occurredAt() == null) {
                 throw new IllegalArgumentException("Evento de estado incompleto");
             }
         } catch (Exception e) {
@@ -102,6 +105,14 @@ public class ApplicationStatusStreamConsumer implements StreamListener<String, M
         }
     }
 
+    private static boolean blank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private static boolean positive(Long value) {
+        return value != null && value > 0;
+    }
+
     private void retryOrMoveToDlq(MapRecord<String, String, String> record, String group, Exception failure) {
         try {
             String id = record.getId().getValue();
@@ -129,6 +140,8 @@ public class ApplicationStatusStreamConsumer implements StreamListener<String, M
             dlq.put("errorReason", String.valueOf(failure.getMessage()));
             String dlqStream = properties.getStreamName("application-status-dlq", "stream:application-status:dlq");
             if (redis.opsForStream().add(dlqStream, dlq) == null) throw new IllegalStateException("Redis no confirmo la DLQ");
+            log.warn("Mensaje {} de {} trasladado a {} tras {} entrega(s): {}",
+                    record.getId(), record.getStream(), dlqStream, attempts, failure.getClass().getSimpleName());
             redis.opsForStream().acknowledge(record.getStream(), group, record.getId());
         } catch (Exception e) {
             log.error("No se pudo trasladar el evento {} a la DLQ; permanece pendiente", record.getId(), e);

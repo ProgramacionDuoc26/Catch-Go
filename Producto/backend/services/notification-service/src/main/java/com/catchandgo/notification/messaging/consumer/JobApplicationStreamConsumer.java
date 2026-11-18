@@ -52,7 +52,8 @@ public class JobApplicationStreamConsumer implements StreamListener<String, MapR
         try {
             event = mapper.readValue(record.getValue().get("payload"), JobApplicationEvent.class);
             if (event == null || event.eventId() == null || event.eventId().isBlank()
-                    || event.applicationId() == null || event.offerId() == null
+                    || event.applicationId() == null || event.applicationId() <= 0
+                    || event.offerId() == null || event.offerId() <= 0
                     || event.candidateId() == null || event.candidateId().isBlank()
                     || event.employerId() == null || event.employerId().isBlank()
                     || event.timestamp() == null) {

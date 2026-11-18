@@ -5,6 +5,9 @@ import com.catchandgo.notification.messaging.config.MessagingProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.data.domain.Range;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
@@ -53,6 +56,53 @@ class ApplicationStatusStreamConsumerTest {
         verify(operations).add(eq("stream:application-status:dlq"), argThat(m -> "2-0".equals(m.get("originalId")) && "1".equals(m.get("retryAttempts"))));
         verify(operations).acknowledge("stream:application-status", "application-status-notifications", record.getId());
         verifyNoInteractions(websocket);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"applicationId", "jobId", "workerId", "newStatus", "title", "message", "notificationType", "eventId", "occurredAt"})
+    void missingRequiredFieldGoesToDlq(String field) throws Exception {
+        var event = ApplicationStatusEvent.create(10L, 1L, "worker", "PENDIENTE", "ACEPTADO", "Aceptada", "Seleccionado", "success");
+        ObjectNode json = mapper.valueToTree(event);
+        json.remove(field);
+        var record = MapRecord.create("stream:application-status", Map.of("payload", mapper.writeValueAsString(json))).withId(RecordId.of("2-0"));
+        when(operations.add(eq("stream:application-status:dlq"), anyMap())).thenReturn(RecordId.of("3-0"));
+        consumer.onMessage(record);
+        verify(operations).add(eq("stream:application-status:dlq"), anyMap());
+        verify(operations).acknowledge(record.getStream(), "application-status-notifications", record.getId());
+        verifyNoInteractions(websocket);
+        verify(guard, never()).acquire(anyString(), anyString());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"title", "message", "newStatus", "notificationType"})
+    void blankTextGoesToDlq(String field) throws Exception {
+        var event = ApplicationStatusEvent.create(10L, 1L, "worker", "PENDIENTE", "ACEPTADO", "Aceptada", "Seleccionado", "success");
+        ObjectNode json = mapper.valueToTree(event);
+        json.put(field, "  ");
+        var record = MapRecord.create("stream:application-status", Map.of("payload", mapper.writeValueAsString(json))).withId(RecordId.of("2-0"));
+        when(operations.add(eq("stream:application-status:dlq"), anyMap())).thenReturn(RecordId.of("3-0"));
+        consumer.onMessage(record);
+        verify(operations).add(eq("stream:application-status:dlq"), anyMap());
+        verifyNoInteractions(websocket);
+    }
+
+    @Test void unknownTypeAndNonpositiveIdsAreRejected() throws Exception {
+        var event = ApplicationStatusEvent.create(0L, 1L, "worker", "PENDIENTE", "ACEPTADO", "Aceptada", "Seleccionado", "success");
+        var invalidType = ApplicationStatusEvent.create(1L, 1L, "worker", "PENDIENTE", "ACEPTADO", "Aceptada", "Seleccionado", "unknown");
+        when(operations.add(eq("stream:application-status:dlq"), anyMap())).thenReturn(RecordId.of("3-0"));
+        for (var invalid : List.of(event, invalidType)) {
+            consumer.onMessage(MapRecord.create("stream:application-status", Map.of("payload", mapper.writeValueAsString(invalid))).withId(RecordId.of("2-0")));
+        }
+        verify(operations, times(2)).add(eq("stream:application-status:dlq"), anyMap());
+        verifyNoInteractions(websocket);
+    }
+
+    @Test void previousStatusMayBeAbsent() throws Exception {
+        var event = ApplicationStatusEvent.create(10L, 1L, "worker", null, "ACEPTADO", "Aceptada", "Seleccionado", "success");
+        var record = MapRecord.create("stream:application-status", Map.of("payload", mapper.writeValueAsString(event))).withId(RecordId.of("1-0"));
+        consumer.onMessage(record);
+        verify(websocket).convertAndSend(eq("/topic/user/worker"), any(Map.class));
+        verify(operations).acknowledge(record.getStream(), "application-status-notifications", record.getId());
     }
     @Test void completedEventIsAcknowledgedWithoutSendingAgain() throws Exception {
         var event = ApplicationStatusEvent.create(10L, 1L, "worker", "PENDIENTE", "ACEPTADO", "Aceptada", "Seleccionado", "success");

@@ -61,6 +61,18 @@ class JobApplicationStreamConsumerTest {
         verify(streams, never()).add(eq("stream:job-applications:dlq"), anyMap());
     }
 
+    @Test void nonpositiveIdentifiersDoNotProduceNotifications() throws Exception {
+        when(streams.pending(eq(STREAM), eq(GROUP), any(Range.class), eq(1L))).thenReturn(pending(3));
+        when(streams.add(eq("stream:job-applications:dlq"), anyMap())).thenReturn(RecordId.of("2-0"));
+        var invalidApplication = JobApplicationEvent.create(0L, 1L, "Offer", "worker", "Worker", "", "company");
+        var invalidOffer = JobApplicationEvent.create(1L, -1L, "Offer", "worker", "Worker", "", "company");
+        consumer.onMessage(record(mapper.writeValueAsString(invalidApplication)));
+        consumer.onMessage(record(mapper.writeValueAsString(invalidOffer)));
+        verify(streams, times(2)).add(eq("stream:job-applications:dlq"), anyMap());
+        verifyNoInteractions(websocket);
+        verify(guard, never()).acquire(anyString(), anyString());
+    }
+
     @Test void lastFailedDeliveryGoesToDlqBeforeAck() {
         when(streams.pending(eq(STREAM), eq(GROUP), any(Range.class), eq(1L))).thenReturn(pending(3));
         when(streams.add(eq("stream:job-applications:dlq"), anyMap())).thenReturn(RecordId.of("2-0"));
