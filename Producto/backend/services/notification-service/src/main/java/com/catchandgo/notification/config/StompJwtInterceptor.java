@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 public class StompJwtInterceptor implements ChannelInterceptor {
     private final JwtService jwt;
 
-    public StompJwtInterceptor(@Value("${JWT_SECRET}") String secret) {
+    public StompJwtInterceptor(@Value("${JWT_SECRET:${app.jwt.secret:CatchAndGoSecretKeyForDevelopmentAndTestingPurposesOnly32Bytes}}") String secret) {
         this.jwt = new JwtService(secret);
     }
 
